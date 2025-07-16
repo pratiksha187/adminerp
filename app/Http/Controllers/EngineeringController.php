@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WorkEntry;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
+
 use Illuminate\Support\Facades\DB;
 
 

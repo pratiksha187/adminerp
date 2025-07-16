@@ -4,8 +4,19 @@ use App\Http\Controllers\ChallanController;
 use App\Http\Controllers\EngineeringController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Auth\RegisterController;
+
+Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::get('Alluser', [RegisterController::class, 'showRegistrationForm'])->name('Alluser');
+Route::delete('/employees/{id}', [RegisterController::class, 'destroy'])->name('employees.destroy');
+
+Route::post('register', [RegisterController::class, 'register']);
+Route::get('/dashboard', function () {
+    return 'Welcome to dashboard!';
+})->middleware('auth')->name('dashboard');
+
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Auth::routes();

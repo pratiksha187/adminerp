@@ -93,6 +93,25 @@
         <i class="bi bi-house-door me-2"></i> Dashboard
     </a>
 
+    <a class="d-flex justify-content-between align-items-center {{ request()->is('register*') ? 'active' : '' }}"
+       data-bs-toggle="collapse"
+       href="#registerMenu"
+       role="button"
+       aria-expanded="{{ request()->is('register*') ? 'true' : 'false' }}"
+       aria-controls="registerMenu">
+        <span><i class="bi bi-person me-2"></i> User</span>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse {{ request()->is('register*') ? 'show' : '' }}" id="registerMenu">
+        <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> Add User
+        </a>
+          <a href="{{ route('Alluser') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> All User
+        </a>
+    </div>
+
+
      <a class="d-flex justify-content-between align-items-center {{ request()->is('accounts*') ? 'active' : '' }}"
        data-bs-toggle="collapse"
        href="#accountsMenu"
