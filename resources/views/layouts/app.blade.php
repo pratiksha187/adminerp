@@ -4,26 +4,28 @@
     <meta charset="utf-8">
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- ✅ jQuery should come FIRST -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Optional Styling -->
     <style>
         body {
             background-color: #f1f4f9;
             padding-top: 70px;
         }
+
         .navbar {
             background-color: #ffffff !important;
             height: 70px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
+
         .navbar-brand {
             display: flex;
             align-items: center;
@@ -31,11 +33,13 @@
             font-weight: bold;
             color: #1c2c3e !important;
         }
-        .navbar-brand .logo-img {
+
+        .logo-img {
             height: 70px;
             width: auto;
             margin-top: -6px;
         }
+
         .sidebar {
             width: 250px;
             position: fixed;
@@ -45,7 +49,14 @@
             background-color: #1c2c3e;
             padding-top: 1rem;
             overflow-y: auto;
+            transition: margin-left 0.3s ease;
+            z-index: 1030;
         }
+
+        .sidebar.collapsed {
+            margin-left: -250px;
+        }
+
         .sidebar a {
             color: #adb5bd;
             padding: 0.75rem 1.5rem;
@@ -54,14 +65,41 @@
             transition: 0.3s;
             border-radius: 0 20px 20px 0;
         }
+
         .sidebar a:hover,
         .sidebar a.active {
-            background-color: #f25c05;
+            background-color: #e5ad38;
             color: #fff;
         }
+
         .main-content {
             margin-left: 250px;
             padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        #toggleSidebar {
+            font-size: 1.2rem;
+            border: none;
+            background: none;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -250px;
+            }
+
+            .sidebar.show {
+                margin-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -73,6 +111,12 @@
         <a class="navbar-brand" href="{{ url('/') }}">
             <img src="{{ asset('storage/logo/sc1.png') }}" alt="Logo" class="logo-img">
         </a>
+
+        <!-- Sidebar Toggle Button -->
+        <button id="toggleSidebar" class="btn me-3">
+            <i class="bi bi-list"></i>
+        </button>
+
         <div class="ms-auto d-flex align-items-center">
             @auth
                 <span class="text-dark me-3">
@@ -88,8 +132,8 @@
 </nav>
 
 <!-- Sidebar -->
-<div class="sidebar">
-    <a href="{{ route('admin') }}" class="{{ request()->routeIs('admin') ? 'active' : '' }}">
+<div class="sidebar" id="sidebar">
+    <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door me-2"></i> Dashboard
     </a>
 
@@ -106,13 +150,12 @@
         <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> Add User
         </a>
-          <a href="{{ route('Alluser') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
+        <a href="{{ route('Alluser') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> All User
         </a>
     </div>
 
-
-     <a class="d-flex justify-content-between align-items-center {{ request()->is('accounts*') ? 'active' : '' }}"
+    <a class="d-flex justify-content-between align-items-center {{ request()->is('accounts*') ? 'active' : '' }}"
        data-bs-toggle="collapse"
        href="#accountsMenu"
        role="button"
@@ -141,14 +184,53 @@
             <i class="bi bi-receipt me-2"></i> Daily Work Report
         </a>
     </div>
+
+
+    <a class="d-flex justify-content-between align-items-center {{ request()->is('userauth*') ? 'active' : '' }}"
+       data-bs-toggle="collapse"
+       href="#userauthMenu"
+       role="button"
+       aria-expanded="{{ request()->is('userauth*') ? 'true' : 'false' }}"
+       aria-controls="userauthMenu">
+        <span><i class="bi bi-clock me-2"></i>Login/Logout Time</span>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse {{ request()->is('userauth*') ? 'show' : '' }}" id="userauthMenu">
+        <a href="{{ route('attendance.report') }}" class="ps-5 {{ request()->routeIs('userauth.engineering') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> Daily Login/Logout
+        </a>
+    </div>
+
+     <a class="d-flex justify-content-between align-items-center {{ request()->is('manualattendence*') ? 'active' : '' }}"
+       data-bs-toggle="collapse"
+       href="#manualattendenceMenu"
+       role="button"
+       aria-expanded="{{ request()->is('manualattendence*') ? 'true' : 'false' }}"
+       aria-controls="manualattendenceMenu">
+        <span><i class="bi bi-clock me-2"></i>Manual Attendence</span>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse {{ request()->is('manualattendence*') ? 'show' : '' }}" id="manualattendenceMenu">
+        <a href="{{ route('attendance.manualattendence') }}" class="ps-5 {{ request()->routeIs('manualattendence.manualattendence') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> Attendence
+        </a>
+    </div>
 </div>
 
 <!-- Main Content -->
-<main class="main-content">
+<main class="main-content" id="mainContent">
     @yield('content')
 </main>
 
-<!-- Bootstrap Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Sidebar Toggle Script -->
+<script>
+    $(document).ready(function () {
+        $('#toggleSidebar').click(function () {
+            $('#sidebar').toggleClass('collapsed');
+            $('#mainContent').toggleClass('expanded');
+        });
+    });
+</script>
+
 </body>
 </html>
