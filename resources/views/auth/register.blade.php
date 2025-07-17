@@ -265,13 +265,34 @@
                 </div>
                 <div class="col-md-6">
                     <label for="role">Role</label>
-                    <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
+                    {{-- <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
                         <option value="">-- Select Role --</option>
                         <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                         <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
                         <option value="3" {{ old('role') == 'engg' ? 'selected' : '' }}>Engg</option>
                         <option value="4" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                    </select>
+                    </select> --}}
+                <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
+                    <option value="">-- Select Role --</option>
+                    <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                    <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
+                    <option value="3" {{ old('role') == 'engg' ? 'selected' : '' }}>Engg</option>
+                    <option value="4" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                    <option value="5" {{ old('role') == 'it' ? 'selected' : '' }}>IT</option>
+                    <option value="6" {{ old('role') == 'surveyor' ? 'selected' : '' }}>Surveyor</option>
+                    <option value="7" {{ old('role') == 'store_incharge' ? 'selected' : '' }}>Store Incharge</option>
+                    <option value="8" {{ old('role') == 'accountant' ? 'selected' : '' }}>Accountant</option>
+                    <option value="9" {{ old('role') == 'planning_manager' ? 'selected' : '' }}>Planning Manager</option>
+                    <option value="10" {{ old('role') == 'tellicaller' ? 'selected' : '' }}>Tellicaller</option>
+                    <option value="11" {{ old('role') == 'billing_estimation_engg' ? 'selected' : '' }}>Billing/Estimation Engg</option>
+                    <option value="12" {{ old('role') == 'architect' ? 'selected' : '' }}>Architect</option>
+                    <option value="13" {{ old('role') == 'site_coordination' ? 'selected' : '' }}>Site Coordination</option>
+                    <option value="14" {{ old('role') == 'safety' ? 'selected' : '' }}>Safety</option>
+                    <option value="15" {{ old('role') == 'pf' ? 'selected' : '' }}>PF</option>
+                    <option value="16" {{ old('role') == 'tender' ? 'selected' : '' }}>Tender</option>
+                    
+                </select>
+
                     @error('role') <div class="text-danger">{{ $message }}</div> @enderror
                 </div>
 

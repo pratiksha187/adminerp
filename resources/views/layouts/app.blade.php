@@ -214,6 +214,12 @@
         <a href="{{ route('attendance.manualattendence') }}" class="ps-5 {{ request()->routeIs('manualattendence.manualattendence') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> Attendence
         </a>
+
+        <a href="{{ route('attendance.acceptattendence') }}" class="ps-5 {{ request()->routeIs('manualattendence.manualattendence') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> Accept Attendence
+        </a>
+
+        
     </div>
 </div>
 

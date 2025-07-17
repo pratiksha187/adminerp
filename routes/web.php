@@ -58,8 +58,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attendance/export', [AttendanceController::class, 'export'])->name('attendance.export');
 
     Route::get('/manualattendence', [AttendanceController::class, 'manualattendence'])->name('attendance.manualattendence');
-    Route::post('/attendance/manual', [AttendanceController::class, 'manualEntry'])->name('attendance.manual');
+    Route::get('/acceptattendence', [AttendanceController::class, 'acceptattendence'])->name('attendance.acceptattendence');
+
     
+    Route::post('/attendance/manual', [AttendanceController::class, 'manualEntry'])->name('attendance.manual');
+    Route::get('/attendance/manual/data', [AttendanceController::class, 'getManualData'])->name('attendance.manual.data');
+
+Route::post('/attendance/manual/action', [AttendanceController::class, 'handleManualAction'])->name('attendance.manual.action');
+
+
 
 
 });
+

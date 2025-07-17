@@ -104,6 +104,10 @@ class AttendanceController extends Controller
         return view('user.manualattendence');
     }
 
+    public function acceptattendence(){
+        return view('admin.acceptattendence');
+
+    }
    public function manualEntry(Request $request)
 {
     // dd($request->all());
@@ -131,13 +135,51 @@ class AttendanceController extends Controller
     }
 
     ManualAttendance::create([
+        'date' => $user->date,
         'user_id' => $user->id,
         'clock_in' => $clockIn,
         'clock_out' => $clockOut,
+        'status' => '0'
     ]);
 
     return back()->with('success', 'Manual attendance entry saved successfully.');
 }
+
+    public function getManualData(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = ManualAttendance::query();
+            // echo"<pre>";
+            // print_r($data);
+            return DataTables::of($data)->make(true);
+        }
+    }
+
+    public function handleManualAction(Request $request)
+{
+    $request->validate([
+        'id' => 'required|exists:manual_attendances,id',
+        'action' => 'required|in:accept,reject',
+    ]);
+
+    $manual = ManualAttendance::findOrFail($request->id);
+
+    if ($request->action == 'accept') {
+        Attendance::create([
+            'user_id' => $manual->user_id,
+            'clock_in' => $manual->clock_in,
+            'clock_out' => $manual->clock_out,
+        ]);
+        $manual->status = '1';
+    } else {
+        $manual->status = '2';
+    }
+
+    $manual->save();
+
+    return response()->json(['message' => 'Manual attendance ' . $request->action . 'ed']);
+}
+
 
 
 }
