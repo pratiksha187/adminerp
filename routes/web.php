@@ -32,7 +32,7 @@ Route::middleware(['auth'])->group(function () {
     // Register / All Users
     Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('register', [RegisterController::class, 'register']);
-    Route::get('Alluser', [RegisterController::class, 'showRegistrationForm'])->name('Alluser');
+    // Route::get('Alluser', [RegisterController::class, 'Alluser'])->name('Alluser');
     Route::delete('/employees/{id}', [RegisterController::class, 'destroy'])->name('employees.destroy');
 
     // Challan

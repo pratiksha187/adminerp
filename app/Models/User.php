@@ -15,9 +15,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name', 'email', 'password', 'employee_code', 'mobile_no', 'gender', 'marital_status',
         'dob', 'join_date', 'confirmation_date', 'probation_months', 'aadhaar', 'face_id',
-        'resignation_date', 'resignation_reason', 'department', 'section', 'designation',
-        'category', 'holiday_group', 'hours_day', 'days_week', 'hours_year', 'employee_type',
-        'extra_classification', 'currency', 'manager','role'
+        'resignation_date', 'resignation_reason', 'department', 
+        'category', 'hours_day', 'days_week', 'role'
     ];
 
     protected $hidden = [

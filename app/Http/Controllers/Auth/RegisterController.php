@@ -15,7 +15,7 @@ class RegisterController extends Controller
     public function showRegistrationForm(Request $request)
     {
         if ($request->ajax()) {
-            $users = User::select(['id', 'employee_code', 'name', 'email', 'department', 'designation']);
+            $users = User::select(['id', 'employee_code', 'name', 'email', 'department','role']);
             return DataTables::of($users)->make(true);
         }
 
@@ -32,12 +32,13 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
+        // dd($request);die;
         // Validate request data
         $this->validator($request->all())->validate();
-
+// dd($a);die;
         // Create user
         $user = $this->create($request->all());
-
+// dd($user);die;
         // Log in user automatically (optional)
         auth()->login($user);
 
@@ -47,6 +48,7 @@ class RegisterController extends Controller
 
     protected function validator(array $data)
     {
+
         return Validator::make($data, [
             'name'               => ['required', 'string', 'max:255'],
             'email'              => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -63,18 +65,10 @@ class RegisterController extends Controller
             'face_id'            => ['nullable', 'string', 'max:255'],
             'resignation_date'   => ['nullable', 'date'],
             'resignation_reason' => ['nullable', 'string', 'max:255'],
-            'department'         => ['nullable', 'string', 'max:255'],
-            'section'            => ['nullable', 'string', 'max:255'],
-            'designation'        => ['nullable', 'string', 'max:255'],
-            'category'           => ['nullable', 'string', 'max:255'],
-            'holiday_group'      => ['nullable', 'string', 'max:255'],
+            //  'category'           => ['nullable', 'string', 'max:255'],
+            // 'holiday_group'      => ['nullable', 'string', 'max:255'],
             'hours_day'          => ['nullable', 'numeric', 'min:0'],
             'days_week'          => ['nullable', 'integer', 'min:0'],
-            'hours_year'         => ['nullable', 'numeric', 'min:0'],
-            'employee_type'      => ['nullable', 'string', 'max:255'],
-            'extra_classification' => ['nullable', 'string', 'max:255'],
-            'currency'           => ['nullable', 'string', 'max:10'],
-            'manager'            => ['nullable', 'string', 'max:255'],
             'role' => ['required'],
 
         ]);
@@ -83,7 +77,7 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
         // echo"<pre>";
-        // print_r($data);die;
+        // 
         return User::create([
             'name'                 => $data['name'],
             'email'                => $data['email'],
@@ -101,17 +95,17 @@ class RegisterController extends Controller
             'resignation_date'     => $data['resignation_date'] ?? null,
             'resignation_reason'   => $data['resignation_reason'] ?? null,
             'department'           => $data['department'] ?? null,
-            'section'              => $data['section'] ?? null,
-            'designation'          => $data['designation'] ?? null,
-            'category'             => $data['category'] ?? null,
-            'holiday_group'        => $data['holiday_group'] ?? null,
+            // 'section'              => $data['section'] ?? null,
+            // 'designation'          => $data['designation'] ?? null,
+            // 'category'             => $data['category'] ?? null,
+            // 'holiday_group'        => $data['holiday_group'] ?? null,
             'hours_day'            => $data['hours_day'] ?? null,
             'days_week'            => $data['days_week'] ?? null,
-            'hours_year'           => $data['hours_year'] ?? null,
-            'employee_type'        => $data['employee_type'] ?? null,
-            'extra_classification' => $data['extra_classification'] ?? null,
-            'currency'             => $data['currency'] ?? null,
-            'manager'              => $data['manager'] ?? null,
+            // 'hours_year'           => $data['hours_year'] ?? null,
+            // 'employee_type'        => $data['employee_type'] ?? null,
+            // 'extra_classification' => $data['extra_classification'] ?? null,
+            // 'currency'             => $data['currency'] ?? null,
+            // 'manager'              => $data['manager'] ?? null,
             'role' => $data['role'],
 
         ]);

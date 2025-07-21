@@ -150,7 +150,7 @@
         <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> Add User
         </a>
-        <a href="{{ route('Alluser') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
+        <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> All User
         </a>
     </div>

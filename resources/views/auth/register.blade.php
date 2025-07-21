@@ -58,7 +58,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Department</th>
-                    <th>Designation</th>
+                  
                     <th>Action</th>
                 </tr>
             </thead>
@@ -198,76 +198,32 @@
                         <input id="department" type="text" name="department" class="form-control @error('department') is-invalid @enderror" value="{{ old('department') }}">
                         @error('department') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
-                    <div class="col-md-4">
-                        <label for="section">Section</label>
-                        <input id="section" type="text" name="section" class="form-control @error('section') is-invalid @enderror" value="{{ old('section') }}">
-                        @error('section') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label for="designation">Designation</label>
-                        <input id="designation" type="text" name="designation" class="form-control @error('designation') is-invalid @enderror" value="{{ old('designation') }}">
-                        @error('designation') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
-                <div class="row mb-3">
+                   
                     <div class="col-md-4">
                         <label for="category">Category</label>
                         <input id="category" type="text" name="category" class="form-control @error('category') is-invalid @enderror" value="{{ old('category') }}">
                         @error('category') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
-                    <div class="col-md-4">
-                        <label for="holiday_group">Holiday Group</label>
-                        <input id="holiday_group" type="text" name="holiday_group" class="form-control @error('holiday_group') is-invalid @enderror" value="{{ old('holiday_group') }}">
-                        @error('holiday_group') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-4">
+                      <div class="col-md-4">
                         <label for="hours_day">Hours per Day</label>
                         <input id="hours_day" type="number" step="0.1" name="hours_day" class="form-control @error('hours_day') is-invalid @enderror" value="{{ old('hours_day') }}">
                         @error('hours_day') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
+                  
                 </div>
 
                 <div class="row mb-3">
+                   
                     <div class="col-md-4">
                         <label for="days_week">Days per Week</label>
                         <input id="days_week" type="number" name="days_week" class="form-control @error('days_week') is-invalid @enderror" value="{{ old('days_week') }}">
                         @error('days_week') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
-                    <div class="col-md-4">
-                        <label for="hours_year">Hours per Year</label>
-                        <input id="hours_year" type="number" step="0.1" name="hours_year" class="form-control @error('hours_year') is-invalid @enderror" value="{{ old('hours_year') }}">
-                        @error('hours_year') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label for="employee_type">Employee Type</label>
-                        <input id="employee_type" type="text" name="employee_type" class="form-control @error('employee_type') is-invalid @enderror" value="{{ old('employee_type') }}">
-                        @error('employee_type') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="extra_classification">Extra Classification</label>
-                        <input id="extra_classification" type="text" name="extra_classification" class="form-control @error('extra_classification') is-invalid @enderror" value="{{ old('extra_classification') }}">
-                        @error('extra_classification') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-3">
-                        <label for="currency">Currency</label>
-                        <input id="currency" type="text" name="currency" class="form-control @error('currency') is-invalid @enderror" value="{{ old('currency') }}">
-                        @error('currency') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-3">
-                        <label for="manager">Manager</label>
-                        <input id="manager" type="text" name="manager" class="form-control @error('manager') is-invalid @enderror" value="{{ old('manager') }}">
-                        @error('manager') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <label for="role">Role</label>
+                     <div class="col-md-6">
+                    <label for="role">Designation</label>
                    
                     <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
-                        <option value="">-- Select Role --</option>
+                        <option value="">-- Select Designation --</option>
                         <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                         <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
                         <option value="3" {{ old('role') == 'engg' ? 'selected' : '' }}>Engg</option>
@@ -290,6 +246,11 @@
                     @error('role') <div class="text-danger">{{ $message }}</div> @enderror
                 </div>
 
+                </div>
+
+                <div class="row mb-3">
+                   
+              
                 <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-success">Register Employee</button>
                 </div>
@@ -336,20 +297,19 @@ $(function () {
         ajax: '{{ route("register") }}',
         columns: [
             {
-                data: null,            // This tells DataTables this column won't use data from server
-                name: 'serial',        // Just a name
-                orderable: false,      // Disable sorting on this column
-                searchable: false,     // Disable searching on this column
+                data: null,            
+                name: 'serial',        
+                orderable: false,     
+                searchable: false,    
                 render: function (data, type, row, meta) {
                  
-                    return meta.row + meta.settings._iDisplayStart + 1; // serial number
+                    return meta.row + meta.settings._iDisplayStart + 1; 
                 }
             },
             { data: 'employee_code', name: 'employee_code' },
             { data: 'name', name: 'name' },
             { data: 'email', name: 'email' },
-            { data: 'department', name: 'department' },
-            { data: 'designation', name: 'designation' },
+            { data: 'role', name: 'role' },
             {
                 data: null,
                 orderable: false,
@@ -370,23 +330,20 @@ $(document).ready(function() {
     $('#users-table tbody').on('click', '.view-btn', function() {
         var data = table.row($(this).parents('tr')).data();
 
-        // Clear previous details
         $('#userDetailsBody').empty();
 
-        // Build table rows for each field you want to show
         var html = `
             <tr><th>ID</th><td>${data.id}</td></tr>
             <tr><th>Employee Code</th><td>${data.employee_code}</td></tr>
             <tr><th>Name</th><td>${data.name}</td></tr>
             <tr><th>Email</th><td>${data.email}</td></tr>
             <tr><th>Department</th><td>${data.department}</td></tr>
-            <tr><th>Designation</th><td>${data.designation}</td></tr>
-            <!-- Add more fields as needed -->
+           
+          
         `;
 
         $('#userDetailsBody').html(html);
 
-        // Show the modal
         var myModal = new bootstrap.Modal(document.getElementById('userViewModal'));
         myModal.show();
     });
@@ -398,14 +355,14 @@ $('#users-table tbody').on('click', '.delete-btn', function() {
 
     if (confirm('Are you sure you want to delete this employee?')) {
         $.ajax({
-            url: `/employees/${userId}`,  // Change this URL to your delete route
+            url: `/employees/${userId}`,  
             type: 'DELETE',
             data: {
-                _token: '{{ csrf_token() }}' // Laravel CSRF token
+                _token: '{{ csrf_token() }}' 
             },
             success: function(response) {
                 alert('Employee deleted successfully.');
-                $('#users-table').DataTable().ajax.reload(null, false); // Reload datatable without resetting paging
+                $('#users-table').DataTable().ajax.reload(null, false); 
             },
             error: function(xhr) {
                 alert('Error deleting employee.');
