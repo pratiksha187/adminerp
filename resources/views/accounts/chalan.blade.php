@@ -145,7 +145,13 @@
           <div class="row g-3 mb-3">
             <div class="col-md-6">
                 <label for="location" class="form-label">Location</label>
-                <input type="text" class="form-control" name="location">
+                {{-- <input type="text" class="form-control" name="location"> --}}
+                <select name="location" id="location" class="form-select mb-2">
+                <option value="">Select State</option>
+                    @foreach ($location as $locations)
+                        <option value="{{ $locations->id }}">{{ $locations->name }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="col-md-6">
                 <label for="time" class="form-label">Time</label>
@@ -265,19 +271,6 @@ $(document).ready(function() {
     // Load challans initially (page 1)
     loadChallans();
 
-    // $(document).on('click', '.add-material', function () {
-    //     const newField = `
-    //         <div class="input-group mb-2">
-    //             <input type="text" name="material[]" class="form-control" required>
-    //             <button type="button" class="btn btn-danger remove-material">−</button>
-    //         </div>
-    //     `;
-    //     $('#materialContainer').append(newField);
-    // });
-
-    // $(document).on('click', '.remove-material', function () {
-    //     $(this).closest('.input-group').remove();
-    // });
     $(document).on('click', '.add-material', function () {
     const newField = `
         <div class="input-group mb-2">
@@ -382,7 +375,7 @@ $(document).on('click', '.remove-material', function () {
             $('#viewMaterial').text(data.material || '-');
             $('#viewVehicleNo').text(data.vehicle_no || '-');
             $('#viewMeasurement').text(data.measurement || '-');
-            $('#viewLocation').text(data.location || '-');
+            $('#viewLocation').text(data.location_name  || '-');
             $('#viewTime').text(data.time || '-');
             $('#viewReceiverSign').text(data.receiver_sign || 'Receiver Sign.');
             $('#viewDriverSign').text(data.driver_sign || 'Driver Sign.');
