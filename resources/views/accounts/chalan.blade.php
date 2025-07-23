@@ -115,14 +115,27 @@
                 <input type="text" class="form-control" name="driver_name" required>
             </div>
         </div>
-         <div class="row g-3 mb-3">
-       
+        <div class="row g-3 mb-3">
             <div class="col-md-12">
                 <label class="form-label">Material / M/C</label>
                 <div id="materialContainer">
                     <div class="input-group mb-2">
                         <input type="text" name="material[]" class="form-control me-2" placeholder="Material" required>
-                        <input type="number" name="quantity[]" class="form-control me-2" placeholder="Qty" min="1" required>
+                        {{-- <input type="number" name="quantity[]" class="form-control me-2" placeholder="Qty" min="1" required> --}}
+                        <input type="number" name="quantity[]" class="form-control me-2" placeholder="Qty" min="0" step="any" required>
+
+                        <select name="unit[]" id="unit" class="form-select me-2" required>
+                            <option value="">Unit</option>
+                            <option value="brass">Brass</option>
+                            <option value="nos">Nos</option>
+                            <option value="cum">CUM</option>
+                            <option value="sqmtr">Sq.Mtr</option>
+                            <option value="sqfit">Sq.Fit</option>
+                            <option value="ltr">Ltr</option>
+                            <option value="mt">MT</option>
+                            <option value="kg">Kg</option>
+                            <!-- Add more units as needed -->
+                        </select>
                         <button type="button" class="btn btn-success add-material">+</button>
                     </div>
                 </div>
@@ -184,79 +197,110 @@
   </div>
 </div>
 
-<!-- Modal for Viewing Challan -->
 <div class="modal fade" id="viewChallanModal" tabindex="-1" aria-labelledby="viewChallanLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-md">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content px-4 py-3" style="border: 53px solid #ffffff; font-size: 14px; font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: auto;">
 
-    <div class="challan">
-    <div class="challan-header">
-        DELIVERY CHALLAN<br />
-        <div class="company">Shreeyash Construction</div>
-        <div class="address">Khopoli, Tal- Khalapur, Dist - Raigad</div>
-        <div class="contact">Contact No. 9923299301 / 9326216153</div>
-    </div>
-
-    <div class="challan-row">
-        <label>Challan No. :</label>
-        <div class="value" id="viewChallanNo">—</div>
-    </div>
-    <div class="challan-row">
-        <label>Date :</label>
-        <div class="value" id="viewDate">—</div>
-    </div>
-    <div class="challan-row">
-        <label>Name Of Party :</label>
-        <div class="value" id="viewPartyName">—</div>
-    </div>
-    <div class="challan-row">
-        <label>Material / M/C :</label>
-        <div class="value" id="viewMaterial">—</div>
-    </div>
-    <div class="challan-row">
-        <label>Vehicle No. :</label>
-        <div class="value" id="viewVehicleNo">—</div>
-    </div>
-    
-    <div class="challan-row">
-        <label>Location :</label>
-        <div class="value" id="viewLocation">—</div>
-    </div>
-    <div class="challan-row">
-        <label>Time :</label>
-        <div class="value" id="viewTime">—</div>
-    </div>
-
-    <div class="challan-footer">
-        <div>
-        <div class="signature-box" id="viewReceiverSign">Receiver Sign.</div>
+      <div class="challan">
+        <div class="challan-header text-center mb-3">
+          <strong>DELIVERY CHALLAN</strong><br />
+          <div class="company fw-bold fs-5 mt-1">Shreeyash Construction</div>
+          <div class="address">Khopoli, Tal- Khalapur, Dist - Raigad</div>
+          <div class="contact">Contact No. 9923299301 / 9326216153</div>
         </div>
-        <div>
-        <div class="signature-box" id="viewDriverSign">Driver Sign.</div>
-        </div>
-    </div>
-    
-    </div>
 
-    <div class="mt-3">
+        <!-- Challan Info -->
+        <div class="challan-row">
+          <label>Challan No. :</label>
+          <div class="value" id="viewChallanNo">—</div>
+        </div>
+        <div class="challan-row">
+          <label>Date :</label>
+          <div class="value" id="viewDate">—</div>
+        </div>
+
+        <!-- Consignee Details -->
+        <div class="challan-row">
+          <label>Name Of Party :</label>
+          <div class="value" id="viewPartyName">—</div>
+        </div>
+        <div class="challan-row">
+          <label>Location :</label>
+          <div class="value" id="viewLocation">—</div>
+        </div>
+        <div class="challan-row">
+          <label>Vehicle No. :</label>
+          <div class="value" id="viewVehicleNo">—</div>
+        </div>
+        <div class="challan-row">
+          <label>Driver Name :</label>
+          <div class="value" id="viewDriverName">—</div>
+        </div>
+        <div class="challan-row">
+          <label>Time :</label>
+          <div class="value" id="viewTime">—</div>
+        </div>
+
+        <!-- Material Table -->
+        <div class="challan-row mt-3">
+          <label>Materials :</label>
+          <div class="value w-100">
+            <table class="table table-bordered mt-2">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" style="width: 40px;">Sr. No.</th>
+                  <th scope="col">Description</th>
+                  {{-- <th scope="col" style="width: 80px;">Qty</th> --}}
+                  <th scope="col" style="width: 80px;">Qty (Unit)</th>
+
+                </tr>
+              </thead>
+              <tbody id="viewMaterialTable">
+                <!-- JS will populate material rows here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Remark -->
+        <div class="challan-row">
+          <label>Remark :</label>
+          <div class="value" id="viewRemark">—</div>
+        </div>
+
+        <!-- Footer Signatures -->
+        <div class="challan-footer mt-4 d-flex justify-content-between">
+          <div>
+            <label>Receiver Name :</label>
+
+            <div class="signature-box" id="viewReceiverSign"></div>
+          </div>
+          <div>
+          <label>Driver Name :</label>
+
+            <div class="signature-box" id="viewDriverSign"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Dropdown & Send Button -->
+      <div class="mt-3">
         <div class="row g-2 align-items-center">
-            <div class="col-8">
-        
+          <div class="col-8">
             <select class="form-select" id="userSelect">
-                <option selected disabled>Select User</option>
-                @foreach($users as $user)
-                    <option value="{{ $user->id }}" data-mobile="{{ $user->mobile_no }}">{{ $user->name }}</option>
-                @endforeach
+              <option selected disabled>Select User</option>
+              @foreach($users as $user)
+                <option value="{{ $user->id }}" data-mobile="{{ $user->mobile_no }}">{{ $user->name }}</option>
+              @endforeach
             </select>
-
-            </div>
-            <div class="col-4 text-end">
+          </div>
+          <div class="col-4 text-end">
             <button class="btn btn-primary" id="sendChallanBtn">Send</button>
-            </div>
-            </div>
-            </div>
-
+          </div>
         </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -267,15 +311,27 @@
 <script>
 
 $(document).ready(function() {
-
-    // Load challans initially (page 1)
     loadChallans();
 
-    $(document).on('click', '.add-material', function () {
+$(document).on('click', '.add-material', function () {
     const newField = `
         <div class="input-group mb-2">
             <input type="text" name="material[]" class="form-control me-2" placeholder="Material" required>
-            <input type="number" name="quantity[]" class="form-control me-2" placeholder="Qty" min="1" required>
+           <input type="number" name="quantity[]" class="form-control me-2" placeholder="Qty" min="0" step="any" required>
+
+            <select name="unit[]" class="form-select me-2" required>
+                <option value="">Unit</option>
+                <option value="brass">Brass</option>
+                <option value="nos">Nos</option>
+                <option value="cum">CUM</option>
+                <option value="sqmtr">Sq.Mtr</option>
+                <option value="sqfit">Sq.Fit</option>
+                <option value="ltr">Ltr</option>
+                <option value="mt">MT</option>
+                <option value="kg">Kg</option>
+
+                <!-- Add more units here -->
+            </select>
             <button type="button" class="btn btn-danger remove-material">−</button>
         </div>
     `;
@@ -285,6 +341,7 @@ $(document).ready(function() {
 $(document).on('click', '.remove-material', function () {
     $(this).closest('.input-group').remove();
 });
+
 
 
     $(document).on('click', '.page-link', function(e) {
@@ -365,26 +422,53 @@ $(document).on('click', '.remove-material', function () {
     });
 
     // On clicking the View button
-    $(document).on('click', '.view-btn', function() {
-        let challanId = $(this).data('id');
+   $(document).on('click', '.view-btn', function () {
+    let challanId = $(this).data('id');
 
-        $.get(`{{ url('challan') }}/${challanId}`, function(data) {
-            $('#viewChallanNo').text(data.challan_no || '-');
-            $('#viewDate').text(data.date || '-');
-            $('#viewPartyName').text(data.party_name || '-');
-            $('#viewMaterial').text(data.material || '-');
-            $('#viewVehicleNo').text(data.vehicle_no || '-');
-            $('#viewMeasurement').text(data.measurement || '-');
-            $('#viewLocation').text(data.location_name  || '-');
-            $('#viewTime').text(data.time || '-');
-            $('#viewReceiverSign').text(data.receiver_sign || 'Receiver Sign.');
-            $('#viewDriverSign').text(data.driver_sign || 'Driver Sign.');
-            $('#sendChallanBtn').data('pdf_path', data.pdf_path);
-            $('#viewChallanModal').modal('show');
-        }).fail(() => {
-            alert('Failed to fetch challan details.');
+    $.get(`{{ url('challan') }}/${challanId}`, function (data) {
+        // Set basic text fields
+        $('#viewChallanNo').text(data.challan_no || '—');
+        $('#viewDate').text(data.date || '—');
+        $('#viewPartyName').text(data.party_name || '—');
+        $('#viewVehicleNo').text(data.vehicle_no || '—');
+        $('#viewDriverName').text(data.driver_name || '—');
+        $('#viewLocation').text(data.location_name || '—');
+        $('#viewTime').text(data.time || '—');
+        $('#viewRemark').text(data.remark || '—');
+
+        // Set receiver & driver sign names
+        $('#viewReceiverSign').text(data.receiver_sign || 'Receiver Sign.');
+        $('#viewDriverSign').text(data.driver_name || 'Driver Sign.');
+
+        // Store PDF path on button (if used for downloading later)
+        $('#sendChallanBtn').data('pdf_path', data.pdf_path);
+
+        // Populate Materials Table
+        let materials = data.material ? data.material.split(',') : [];
+        let quantities = data.quantity ? data.quantity.split(',') : [];
+        let units = data.unit ? data.unit.split(',') : [];
+        let tableRows = '';
+
+        materials.forEach((material, index) => {
+            tableRows += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${material.trim()}</td>
+                    <td>${quantities[index] ? quantities[index].trim() : '—'} ${units[index] ? units[index].trim() : ''}</td>
+                </tr>
+            `;
         });
+
+        $('#viewMaterialTable').html(tableRows);
+
+        // Show modal
+        $('#viewChallanModal').modal('show');
+
+    }).fail(() => {
+        alert('Failed to fetch challan details.');
     });
+});
+
 
 $('#sendChallanBtn').on('click', function () {
     const selectedOption = $('#userSelect option:selected');

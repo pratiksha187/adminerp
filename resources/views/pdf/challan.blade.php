@@ -108,17 +108,6 @@
          justify-content: space-between;
          flex-wrap: wrap;
          }
-         /* .signature {
-         text-align: center;
-         width: 48%;
-         margin-top: 20px;
-         } */
-         /* .signature-line {
-         border-top: 1px solid #000;
-         margin-top: 40px;
-         font-size: 12px;
-         padding-top: 4px;
-         } */
       </style>
    </head>
    <body>
@@ -178,18 +167,23 @@
                   <th>Sr. No.</th>
                   <th class="description">Description of Goods</th>
                   <th class="qty">Qty</th>
+                  <th class="unit">Unit</th>
+
                </tr>
             </thead>
             <tbody>
                @php
                $materials = explode(',', $challan->material);
                $quantitys = explode(',', $challan->quantity);
+               $units = explode(',', $challan->unit);
+
                @endphp
                @foreach($materials as $index => $material)
                <tr>
                   <td>{{ $index + 1 }}</td>
                   <td>{{ trim($material) }}</td>
                   <td>{{ isset($quantitys[$index]) ? trim($quantitys[$index]) : '—' }}</td>
+                  <td>{{ isset($units[$index]) ? trim($units[$index]) : '—' }}</td>
                
                </tr>
                @endforeach

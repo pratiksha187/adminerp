@@ -26,41 +26,57 @@ class ChallanController extends Controller
         return view('accounts.chalan', compact('users','location'));
     }
 
+   
+
     public function store(Request $request)
     {
         \Log::info('Challan POST Data:', $request->all());
 
+        // Validate inputs
         $validated = $request->validate([
             'date' => 'required|date',
             'party_name' => 'required|string|max:100',
             'material' => 'required|array|min:1',
+            'material.*' => 'required|string|max:100',
+
+            'quantity' => 'required|array|min:1',
+            'quantity.*' => 'required|numeric|min:0',
+
+            'unit' => 'required|array|min:1',
+            'unit.*' => 'required|string|max:50',
+
             'vehicle_no' => 'nullable|string|max:50',
             'measurement' => 'nullable|string|max:50',
-            'location' => 'nullable',
+            'location' => 'nullable|string|max:100',
             'time' => 'nullable|string|max:50',
             'receiver_sign' => 'nullable|string|max:100',
             'driver_sign' => 'nullable|string|max:100',
             'driver_name' => 'nullable|string|max:100',
-            'quantity' => 'nullable',
-            'remark' => 'nullable',
+            'remark' => 'nullable|string|max:255',
         ]);
 
+        // Convert array fields to comma-separated strings
         $validated['material'] = implode(', ', $validated['material']);
-        if (isset($validated['quantity']) && is_array($validated['quantity'])) {
-            $validated['quantity'] = implode(', ', $validated['quantity']);
-        }
+        $validated['quantity'] = implode(', ', $validated['quantity']);
+        $validated['unit'] = implode(', ', $validated['unit']);
 
         try {
-           
+            // Create the challan with a temporary challan_no
             $challan = Challan::create(array_merge($validated, ['challan_no' => '']));
+
+            // Generate challan number e.g., SC/2025/01
             $year = date('Y', strtotime($validated['date']));
             $challan_no = 'SC/' . $year . '/' . str_pad($challan->id, 2, '0', STR_PAD_LEFT);
+
+            // Update with generated challan number
             $challan->update(['challan_no' => $challan_no]);
+
+            // Generate PDF
             $pdf = \PDF::loadView('pdf.challan', ['challan' => $challan]);
             $pdfFileName = 'challans/challan_' . $challan->id . '.pdf';
             Storage::disk('public')->put($pdfFileName, $pdf->output());
 
-            // Step 5: Save PDF path
+            // Save PDF path
             $challan->update(['pdf_path' => $pdfFileName]);
 
             return response()->json([
@@ -74,6 +90,7 @@ class ChallanController extends Controller
             return response()->json(['message' => 'Failed to save challan.'], 500);
         }
     }
+
 
 
 
