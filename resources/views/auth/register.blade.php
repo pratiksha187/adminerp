@@ -43,9 +43,19 @@
 <div class="card"> 
   <div class="card-body">
 <div class="container">
+    @if ($errors->any())
+  <div class="alert alert-danger">
+    <ul>
+      @foreach ($errors->all() as $error)
+          <li>{{ $error }}</li>
+      @endforeach
+    </ul>
+  </div>
+@endif
     <div class="mb-4">
         <button class="btn btn-primary" onclick="toggleUserForm()">Add New Employee</button>
     </div>
+
 
     {{-- Users Table --}}
     
@@ -167,85 +177,47 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="face_id">Face ID</label>
-                        <input id="face_id" type="text" name="face_id" class="form-control @error('face_id') is-invalid @enderror" value="{{ old('face_id') }}">
-                        @error('face_id') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                    <div class="col-md-6">
-                        <label for="resignation_date">Resignation Date</label>
-                        <input id="resignation_date" type="date" name="resignation_date" class="form-control @error('resignation_date') is-invalid @enderror" value="{{ old('resignation_date') }}">
-                        @error('resignation_date') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="resignation_reason">Resignation Reason</label>
-                    <select id="resignation_reason" name="resignation_reason" class="form-control">
-                        <option value="">-- Select --</option>
-                        <option value="Personal" {{ old('resignation_reason') == 'Personal' ? 'selected' : '' }}>Personal</option>
-                        <option value="Career Change" {{ old('resignation_reason') == 'Career Change' ? 'selected' : '' }}>Career Change</option>
-                        <option value="Retirement" {{ old('resignation_reason') == 'Retirement' ? 'selected' : '' }}>Retirement</option>
-                        <option value="Termination" {{ old('resignation_reason') == 'Termination' ? 'selected' : '' }}>Termination</option>
-                    </select>
-                </div>
-
+               
                 <h5 class="text-primary">Work Details</h5>
                 <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label for="department">Department</label>
-                        <input id="department" type="text" name="department" class="form-control @error('department') is-invalid @enderror" value="{{ old('department') }}">
-                        @error('department') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
                    
                     <div class="col-md-4">
-                        <label for="category">Category</label>
-                        <input id="category" type="text" name="category" class="form-control @error('category') is-invalid @enderror" value="{{ old('category') }}">
-                        @error('category') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
-                      <div class="col-md-4">
                         <label for="hours_day">Hours per Day</label>
                         <input id="hours_day" type="number" step="0.1" name="hours_day" class="form-control @error('hours_day') is-invalid @enderror" value="{{ old('hours_day') }}">
                         @error('hours_day') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
-                  
-                </div>
-
-                <div class="row mb-3">
-                   
-                    <div class="col-md-4">
+                   <div class="col-md-4">
                         <label for="days_week">Days per Week</label>
                         <input id="days_week" type="number" name="days_week" class="form-control @error('days_week') is-invalid @enderror" value="{{ old('days_week') }}">
                         @error('days_week') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
-                     <div class="col-md-6">
-                    <label for="role">Designation</label>
-                   
-                    <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
-                        <option value="">-- Select Designation --</option>
-                        <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
-                        <option value="3" {{ old('role') == 'engg' ? 'selected' : '' }}>Engg</option>
-                        <option value="4" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="5" {{ old('role') == 'it' ? 'selected' : '' }}>IT</option>
-                        <option value="6" {{ old('role') == 'surveyor' ? 'selected' : '' }}>Surveyor</option>
-                        <option value="7" {{ old('role') == 'store_incharge' ? 'selected' : '' }}>Store Incharge</option>
-                        <option value="8" {{ old('role') == 'accountant' ? 'selected' : '' }}>Accountant</option>
-                        <option value="9" {{ old('role') == 'planning_manager' ? 'selected' : '' }}>Planning Manager</option>
-                        <option value="10" {{ old('role') == 'tellicaller' ? 'selected' : '' }}>Tellicaller</option>
-                        <option value="11" {{ old('role') == 'billing_estimation_engg' ? 'selected' : '' }}>Billing/Estimation Engg</option>
-                        <option value="12" {{ old('role') == 'architect' ? 'selected' : '' }}>Architect</option>
-                        <option value="13" {{ old('role') == 'site_coordination' ? 'selected' : '' }}>Site Coordination</option>
-                        <option value="14" {{ old('role') == 'safety' ? 'selected' : '' }}>Safety</option>
-                        <option value="15" {{ old('role') == 'pf' ? 'selected' : '' }}>PF</option>
-                        <option value="16" {{ old('role') == 'tender' ? 'selected' : '' }}>Tender</option>
-                        
-                    </select>
 
-                    @error('role') <div class="text-danger">{{ $message }}</div> @enderror
-                </div>
+                    <div class="col-md-4">
+                        <label for="role">Designation</label>
+                    
+                        <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
+                            <option value="">-- Select Designation --</option>
+                            <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
+                            <option value="3" {{ old('role') == 'engg' ? 'selected' : '' }}>Engg</option>
+                            <option value="4" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
+                            <option value="5" {{ old('role') == 'it' ? 'selected' : '' }}>IT</option>
+                            <option value="6" {{ old('role') == 'surveyor' ? 'selected' : '' }}>Surveyor</option>
+                            <option value="7" {{ old('role') == 'store_incharge' ? 'selected' : '' }}>Store Incharge</option>
+                            <option value="8" {{ old('role') == 'accountant' ? 'selected' : '' }}>Accountant</option>
+                            <option value="9" {{ old('role') == 'planning_manager' ? 'selected' : '' }}>Planning Manager</option>
+                            <option value="10" {{ old('role') == 'tellicaller' ? 'selected' : '' }}>Tellicaller</option>
+                            <option value="11" {{ old('role') == 'billing_estimation_engg' ? 'selected' : '' }}>Billing/Estimation Engg</option>
+                            <option value="12" {{ old('role') == 'architect' ? 'selected' : '' }}>Architect</option>
+                            <option value="13" {{ old('role') == 'site_coordination' ? 'selected' : '' }}>Site Coordination</option>
+                            <option value="14" {{ old('role') == 'safety' ? 'selected' : '' }}>Safety</option>
+                            <option value="15" {{ old('role') == 'pf' ? 'selected' : '' }}>PF</option>
+                            <option value="16" {{ old('role') == 'tender' ? 'selected' : '' }}>Tender</option>
+                            
+                        </select>
 
+                        @error('role') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
                 </div>
 
                 <div class="row mb-3">

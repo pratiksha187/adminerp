@@ -14,10 +14,11 @@ class User extends Authenticatable
     protected $table ='users';
     protected $fillable = [
         'name', 'email', 'password', 'employee_code', 'mobile_no', 'gender', 'marital_status',
-        'dob', 'join_date', 'confirmation_date', 'probation_months', 'aadhaar', 'face_id',
-        'resignation_date', 'resignation_reason', 'department', 
-        'category', 'hours_day', 'days_week', 'role'
+        'dob', 'join_date', 'confirmation_date', 'probation_months', 'aadhaar', 
+        'hours_day', 'days_week', 'role'
     ];
+
+    
 
     protected $hidden = [
         'password',
