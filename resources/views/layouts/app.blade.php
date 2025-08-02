@@ -150,9 +150,7 @@
         <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> Add User
         </a>
-        <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
-            <i class="bi bi-receipt me-2"></i> All User
-        </a>
+       
     </div>
 
     <a class="d-flex justify-content-between align-items-center {{ request()->is('accounts*') ? 'active' : '' }}"
@@ -201,7 +199,7 @@
         </a>
     </div>
 
-     <a class="d-flex justify-content-between align-items-center {{ request()->is('manualattendence*') ? 'active' : '' }}"
+    <a class="d-flex justify-content-between align-items-center {{ request()->is('manualattendence*') ? 'active' : '' }}"
        data-bs-toggle="collapse"
        href="#manualattendenceMenu"
        role="button"
@@ -220,6 +218,21 @@
         </a>
 
         
+    </div>
+
+     <a class="d-flex justify-content-between align-items-center {{ request()->is('letterhead*') ? 'active' : '' }}"
+       data-bs-toggle="collapse"
+       href="#letterheadMenu"
+       role="button"
+       aria-expanded="{{ request()->is('letterhead*') ? 'true' : 'false' }}"
+       aria-controls="letterheadMenu">
+        <span><i class="bi bi-clock me-2"></i>Letter Head</span>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse {{ request()->is('letterhead*') ? 'show' : '' }}" id="letterheadMenu">
+        <a href="{{ route('letterhead') }}" class="ps-5 {{ request()->routeIs('letterhead') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> Letter Head details
+        </a>
     </div>
 </div>
 

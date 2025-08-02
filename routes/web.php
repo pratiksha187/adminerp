@@ -14,17 +14,13 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/test', [App\Http\Controllers\AdminController::class, 'test'])->name('test');
 
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard
-    // Route::get('/dashboard', function () {
-    //     return 'Welcome to dashboard!';
-    // })->name('dashboard');
-
-    // Admin
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
+    
     // Attendance
     Route::post('/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clockin');
     Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clockout');
@@ -64,10 +60,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/attendance/manual', [AttendanceController::class, 'manualEntry'])->name('attendance.manual');
     Route::get('/attendance/manual/data', [AttendanceController::class, 'getManualData'])->name('attendance.manual.data');
 
-Route::post('/attendance/manual/action', [AttendanceController::class, 'handleManualAction'])->name('attendance.manual.action');
+    Route::post('/attendance/manual/action', [AttendanceController::class, 'handleManualAction'])->name('attendance.manual.action');
 
+    Route::get('/letterhead', [AdminController::class, 'letterhead'])->name('letterhead');
 
-
+// Route::get('/letterhead', [LetterHeadController::class, 'index'])->name('letterhead.index');
+Route::post('/letterhead', [AdminController::class, 'store'])->name('letterhead.store');
 
 });
 
