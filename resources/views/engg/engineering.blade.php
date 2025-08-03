@@ -79,9 +79,11 @@
           <h5>📏 Work Description & Measurements</h5>
           <div class="mb-3 mt-2">
             <label class="form-label">Description of the Item</label>
-            <select class="form-select select2" name="description" id="descriptionSelect" required>
+            <!-- <select class="form-select select2" name="description" id="descriptionSelect" required>
               <option value="">Select description</option>
-            </select>
+            </select> -->
+            <input type="text" name="description" id="description" class="form-control" required>
+
           </div>
 
           <div class="row g-3">
@@ -126,7 +128,7 @@
               <label class="form-label">Person In-Charge</label>
               <select class="form-select" name="supervisor_id" required>
                 <option value="">Select Supervisor</option>
-                @foreach($users ?? [] as $user)
+                @foreach($users as $user)
                   <option value="{{ $user->id }}">{{ $user->name }}</option>
                 @endforeach
               </select>
@@ -218,37 +220,37 @@
     });
 
     // Load descriptions when chapter changes
-    $('#chapterSelect').on('change', function () {
-      let chapterId = $(this).val();
-      let $desc = $('#descriptionSelect');
+   // $('#chapterSelect').on('change', function () {
+      //let chapterId = $(this).val();
+     // let $desc = $('#descriptionSelect');
 
-      $desc.empty().append('<option value="">Select description</option>');
+      //$desc.empty().append('<option value="">Select description</option>');
 
-      if (chapterId) {
-        $.ajax({
-          url: `/descriptions/${chapterId}`,
-          type: 'GET',
-          success: function (data) {
-            if (data.length > 0) {
-              data.forEach(function (item) {
-                $desc.append(`<option value="${item.description}">${item.description}</option>`);
-              });
-            } else {
-              $desc.append('<option value="">No descriptions found</option>');
-            }
+      // if (chapterId) {
+        // $.ajax({
+          // url: `/descriptions/${chapterId}`,
+          // type: 'GET',
+          // success: function (data) {
+            // if (data.length > 0) {
+              // data.forEach(function (item) {
+                // $desc.append(`<option value="${item.description}">${item.description}</option>`);
+              // });
+            // } else {
+              // $desc.append('<option value="">No descriptions found</option>');
+            // }
 
-            $desc.select2({
-              placeholder: "Select description",
-              allowClear: true,
-              width: '100%'
-            });
-          },
-          error: function () {
-            alert('Failed to load descriptions.');
-          }
-        });
-      }
-    });
+            // $desc.select2({
+            //   placeholder: "Select description",
+            //   allowClear: true,
+            //   width: '100%'
+            // });
+    //       },
+    //       error: function () {
+    //         alert('Failed to load descriptions.');
+    //       }
+    //     });
+    //   }
+    // });
 
     // Auto-calculate quantity
     $('input[name="length"], input[name="breadth"], input[name="height"]').on('input', function () {

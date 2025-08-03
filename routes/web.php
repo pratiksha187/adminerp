@@ -6,6 +6,9 @@ use App\Http\Controllers\EngineeringController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\PaymentController;
+use App\Exports\PaymentsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -34,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
     // Challan
     Route::get('/challans', [ChallanController::class, 'fetch'])->name('challan.list');
     Route::get('/challan', [ChallanController::class, 'index'])->name('challan');
-    Route::post('/save-chalan', [App\Http\Controllers\ChallanController::class, 'store'])->name('challan.save');
+    Route::post('/save-chalan', [ChallanController::class, 'store'])->name('challan.save');
     Route::get('/challan/{id}', [ChallanController::class, 'show'])->name('challan.show');
     Route::get('/challan/datatables', [ChallanController::class, 'getChallanData'])->name('challan.datatables');
 
@@ -64,8 +67,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/letterhead', [AdminController::class, 'letterhead'])->name('letterhead');
 
-// Route::get('/letterhead', [LetterHeadController::class, 'index'])->name('letterhead.index');
-Route::post('/letterhead', [AdminController::class, 'store'])->name('letterhead.store');
+    // Route::get('/letterhead', [LetterHeadController::class, 'index'])->name('letterhead.index');
+    Route::post('/letterhead', [AdminController::class, 'store'])->name('letterhead.store');
+
+   Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+Route::post('/payments/generate', [PaymentController::class, 'generatePayment'])->name('payments.generate');
+Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+// routes/web.php
+// Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+Route::get('/payments/export', [PaymentController::class, 'export'])->name('payments.export');
 
 });
 

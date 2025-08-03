@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="container-fluid">
 
     <!-- 🔁 CURRENT DEVICE TIME -->
@@ -53,17 +54,23 @@
                 <div class="col-md-6">
                     <div class="p-3 bg-light rounded border d-flex justify-content-between">
                         <span><strong>Clock In</strong></span>
+                       
                         <span>
-                            {{ $attendance?->clock_in ? Carbon::parse($attendance->clock_in)->format('h:i A') : 'Not yet' }}
+                            {{ $attendance?->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('d M Y, h:i:s A') : 'Not yet' }}
                         </span>
+
+
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="p-3 bg-light rounded border d-flex justify-content-between">
                         <span><strong>Clock Out</strong></span>
+                       
                         <span>
-                            {{ $attendance?->clock_out ? Carbon::parse($attendance->clock_out)->format('h:i A') : 'Not yet' }}
+                            {{ $attendance?->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('d M Y, h:i:s A') : 'Not yet' }}
                         </span>
+
+
                     </div>
                 </div>
             </div>
@@ -71,6 +78,9 @@
             @if(!$attendance)
                 <form action="{{ route('attendance.clockin') }}" method="POST" id="clockInForm">
                     @csrf
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+
                     <input type="hidden" name="device_time" id="clockInTime">
                     <button type="submit" class="btn btn-success w-100">
                         <i class="bi bi-box-arrow-in-right me-1"></i> Clock In
@@ -121,4 +131,38 @@
         document.getElementById('clockOutTime').value = getISOTimestamp();
     });
 </script>
+
+<script>
+    let userLat = null;
+    let userLng = null;
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    userLat = position.coords.latitude;
+                    userLng = position.coords.longitude;
+                    document.getElementById('latitude').value = userLat;
+                    document.getElementById('longitude').value = userLng;
+                },
+                error => {
+                    alert("Location access denied. Cannot Clock In.");
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+
+    // Get location as soon as page loads
+    window.onload = getLocation;
+
+    document.getElementById('clockInForm')?.addEventListener('submit', function (e) {
+        if (!userLat || !userLng) {
+            e.preventDefault();
+            alert("Unable to get your location. Please allow location access.");
+        }
+    });
+</script>
+
 @endsection

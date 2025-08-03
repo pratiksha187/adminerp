@@ -149,10 +149,10 @@
                 <label for="vehicle_no" class="form-label">Vehicle No.</label>
                 <input type="text" class="form-control" name="vehicle_no">
             </div>
-            <div class="col-md-6">
+            <!-- <div class="col-md-6">
                 <label for="measurement" class="form-label">Measurement</label>
                 <input type="text" class="form-control" name="measurement">
-            </div>
+            </div> -->
           </div>
 
           <div class="row g-3 mb-3">

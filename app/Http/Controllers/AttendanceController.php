@@ -5,6 +5,7 @@ use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Location;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AttendanceExport;
 use Yajra\DataTables\DataTables;
@@ -14,23 +15,70 @@ use App\Models\ManualAttendance;
 class AttendanceController extends Controller
 {
    
+   
     public function clockIn(Request $request)
     {
-        $time = $request->device_time ?? now(); // fallback to server time
+        $maxDistanceMeters = 100;
+
+        $userLat = $request->latitude;
+        $userLng = $request->longitude;
+
+        if (!$userLat || !$userLng) {
+            return back()->with('error', 'Location not detected.');
+        }
+
+        $locations = Location::all();
+
+        $withinAllowedLocation = false;
+
+        foreach ($locations as $location) {
+            if ($this->distance($location->latitude, $location->longitude, $userLat, $userLng) <= $maxDistanceMeters) {
+                $withinAllowedLocation = true;
+                break;
+            }
+        }
+
+        if (!$withinAllowedLocation) {
+            return back()->with('error', 'You are outside the allowed clock-in zones.');
+        }
 
         Attendance::create([
-            'user_id' => auth()->id(),
-            'clock_in' => $time,
-        ]);
+                'user_id' => auth()->id(),
+                'clock_in' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata'),
+                'latitude' => $userLat,
+                'longitude' => $userLng,
+                'device_time' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata')->toDateTimeString(),
+            ]);
 
-        return redirect()->back()->with('success', 'Clock In successful!');
+
+        return back()->with('success', 'Clocked in successfully!');
     }
+    private function distance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // meters
 
+        $latFrom = deg2rad($lat1);
+        $lonFrom = deg2rad($lon1);
+        $latTo = deg2rad($lat2);
+        $lonTo = deg2rad($lon2);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $a = sin($latDelta / 2) ** 2 +
+            cos($latFrom) * cos($latTo) *
+            sin($lonDelta / 2) ** 2;
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
+    }
 
     
     public function clockOut(Request $request)
     {
-        $time = $request->device_time ?? now();
+        // $time = $request->device_time ?? now();
+        $time = $request->device_time ? Carbon::parse($request->device_time)->timezone('Asia/Kolkata') : now(); 
 
         $attendance = Attendance::where('user_id', auth()->id())
             ->whereDate('clock_in', now()->toDateString())
@@ -156,29 +204,29 @@ class AttendanceController extends Controller
     }
 
     public function handleManualAction(Request $request)
-{
-    $request->validate([
-        'id' => 'required|exists:manual_attendances,id',
-        'action' => 'required|in:accept,reject',
-    ]);
-
-    $manual = ManualAttendance::findOrFail($request->id);
-
-    if ($request->action == 'accept') {
-        Attendance::create([
-            'user_id' => $manual->user_id,
-            'clock_in' => $manual->clock_in,
-            'clock_out' => $manual->clock_out,
+    {
+        $request->validate([
+            'id' => 'required|exists:manual_attendances,id',
+            'action' => 'required|in:accept,reject',
         ]);
-        $manual->status = '1';
-    } else {
-        $manual->status = '2';
+
+        $manual = ManualAttendance::findOrFail($request->id);
+
+        if ($request->action == 'accept') {
+            Attendance::create([
+                'user_id' => $manual->user_id,
+                'clock_in' => $manual->clock_in,
+                'clock_out' => $manual->clock_out,
+            ]);
+            $manual->status = '1';
+        } else {
+            $manual->status = '2';
+        }
+
+        $manual->save();
+
+        return response()->json(['message' => 'Manual attendance ' . $request->action . 'ed']);
     }
-
-    $manual->save();
-
-    return response()->json(['message' => 'Manual attendance ' . $request->action . 'ed']);
-}
 
 
 

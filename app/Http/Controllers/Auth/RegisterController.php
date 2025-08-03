@@ -7,20 +7,41 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\DataTables;
 
 class RegisterController extends Controller
 {
     
+    // public function showRegistrationForm(Request $request)
+    // {
+    //     if ($request->ajax()) {
+    //         $users = User::select(['id', 'employee_code', 'name', 'email', 'department','role']);
+    //         return DataTables::of($users)->make(true);
+    //     }
+    //     $roles = DB::table('role')->select('id','role')->get();
+    //     return view('auth.register',compact('roles'));
+    // }
     public function showRegistrationForm(Request $request)
-    {
-        if ($request->ajax()) {
-            $users = User::select(['id', 'employee_code', 'name', 'email', 'department','role']);
-            return DataTables::of($users)->make(true);
-        }
+{
+    if ($request->ajax()) {
+        $users = DB::table('users')
+            ->leftJoin('role', 'users.role', '=', 'role.id')
+            ->select([
+                'users.id',
+                'users.employee_code',
+                'users.name',
+                'users.email',
+                'users.department',
+                'role.role as role_name'  
+                        ]);
 
-        return view('auth.register');
+        return DataTables::of($users)->make(true);
     }
+
+    $roles = DB::table('role')->select('id', 'role')->get();
+    return view('auth.register', compact('roles'));
+}
     public function destroy($id)
     {
         $employee = User::findOrFail($id);

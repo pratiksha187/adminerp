@@ -18,10 +18,10 @@ class EngineeringController extends Controller
 
         $unit  = DB::table('unit')->get();
 
-       $users = DB::table('users')
-                ->whereIn('role', [3, 4])
+        $users = DB::table('users')
+                ->whereIn('role', [4, 5])
                 ->get();
-
+// dd($users);
 
         return view('engg.engineering',compact('chapters', 'unit','users'));
     }
@@ -62,17 +62,29 @@ class EngineeringController extends Controller
             ], 500);
         }
 
+        // return response()->json([
+        //     'success' => true,
+        //     'entry' => [
+        //         'sr_no' => 0, // DataTables will handle this
+        //         'date' => $entry->date->format('Y-m-d'),
+        //         'chapter' =>  $entry->chapter->name,
+        //         'description' => $entry->description,
+        //         'total_quantity' => $entry->total_quantity,
+        //         'labour_count' => array_sum($validated['labour'] ?? []),
+        //     ],
+        // ]);
         return response()->json([
-            'success' => true,
-            'entry' => [
-                'sr_no' => 0, // DataTables will handle this
-                'date' => $entry->date->format('Y-m-d'),
-                'chapter' => ['name' => $entry->chapter->name],
-                'description' => $entry->description,
-                'total_quantity' => $entry->total_quantity,
-                'labour_count' => array_sum($validated['labour'] ?? []),
-            ],
-        ]);
+                'success' => true,
+                'entry' => [
+                    'sr_no' => 0,
+                    'date' => $entry->date->format('Y-m-d'),
+                    'chapter' => optional($entry->chapter)->chapter_name,
+                    'description' => $entry->description,
+                    'total_quantity' => $entry->total_quantity,
+                    'labour_count' => array_sum($validated['labour'] ?? []),
+                ],
+            ]);
+
     }
 
    public function data(Request $request)

@@ -46,7 +46,7 @@ class ChallanController extends Controller
             'unit.*' => 'required|string|max:50',
 
             'vehicle_no' => 'nullable|string|max:50',
-            'measurement' => 'nullable|string|max:50',
+            // 'measurement' => 'nullable|string|max:50',
             'location' => 'nullable|string|max:100',
             'time' => 'nullable|string|max:50',
             'receiver_sign' => 'nullable|string|max:100',
@@ -107,7 +107,7 @@ class ChallanController extends Controller
             ->join('location', 'challans.location', '=', 'location.id')
             ->where('challans.id', $id)
             ->first();
-// print_r($challan);die;
+            // print_r($challan);die;
         if (!$challan) {
             return response()->json(['error' => 'Not found'], 404);
         }

@@ -194,8 +194,14 @@
 
                     <div class="col-md-4">
                         <label for="role">Designation</label>
-                    
                         <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
+                            <option value="">-- Select User --</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->id }}">{{ $role->role }}</option>
+                            @endforeach
+                        </select>
+
+                        <!-- <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
                             <option value="">-- Select Designation --</option>
                             <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                             <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
@@ -214,7 +220,7 @@
                             <option value="15" {{ old('role') == 'pf' ? 'selected' : '' }}>PF</option>
                             <option value="16" {{ old('role') == 'tender' ? 'selected' : '' }}>Tender</option>
                             
-                        </select>
+                        </select> -->
 
                         @error('role') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
@@ -281,7 +287,7 @@ $(function () {
             { data: 'employee_code', name: 'employee_code' },
             { data: 'name', name: 'name' },
             { data: 'email', name: 'email' },
-            { data: 'role', name: 'role' },
+            { data: 'role_name', name: 'role_name' },
             {
                 data: null,
                 orderable: false,
@@ -309,7 +315,7 @@ $(document).ready(function() {
             <tr><th>Employee Code</th><td>${data.employee_code}</td></tr>
             <tr><th>Name</th><td>${data.name}</td></tr>
             <tr><th>Email</th><td>${data.email}</td></tr>
-            <tr><th>Department</th><td>${data.department}</td></tr>
+            <tr><th>Department</th><td>${data.role_name}</td></tr>
            
           
         `;

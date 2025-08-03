@@ -62,14 +62,34 @@
             padding: 0.75rem 1.5rem;
             display: block;
             text-decoration: none;
-            transition: 0.3s;
-            border-radius: 0 20px 20px 0;
+            border-radius: 0;
+            transition: background 0.2s, color 0.2s;
+            font-size: 15px;
         }
 
         .sidebar a:hover,
         .sidebar a.active {
-            background-color: #e5ad38;
-            color: #fff;
+            background-color: #2e3e52;
+            color: #ffffff;
+        }
+
+        .sidebar .collapse a {
+            padding-left: 2.5rem;
+            font-size: 14px;
+        }
+
+        .sidebar .collapse a.active {
+            background-color: #3e5771;
+            color: #ffffff;
+        }
+
+        .sidebar i {
+            font-size: 1rem;
+        }
+
+        .sidebar a.active-parent {
+            background-color: #2e3e52;
+            color: #ffffff;
         }
 
         .main-content {
@@ -105,6 +125,9 @@
 </head>
 <body>
 
+
+
+
 <!-- Navbar -->
 <nav class="navbar navbar-expand-md navbar-light fixed-top">
     <div class="container-fluid">
@@ -112,7 +135,6 @@
             <img src="{{ asset('storage/logo/sc1.png') }}" alt="Logo" class="logo-img">
         </a>
 
-        <!-- Sidebar Toggle Button -->
         <button id="toggleSidebar" class="btn me-3">
             <i class="bi bi-list"></i>
         </button>
@@ -133,105 +155,98 @@
 
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
+    <!-- Dashboard -->
     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door me-2"></i> Dashboard
     </a>
 
-    <a class="d-flex justify-content-between align-items-center {{ request()->is('register*') ? 'active' : '' }}"
-       data-bs-toggle="collapse"
-       href="#registerMenu"
-       role="button"
-       aria-expanded="{{ request()->is('register*') ? 'true' : 'false' }}"
-       aria-controls="registerMenu">
+    <!-- User -->
+    @php $userActive = request()->is('register*'); @endphp
+    <a class="d-flex justify-content-between align-items-center {{ $userActive ? 'active-parent' : '' }}"
+       data-bs-toggle="collapse" href="#registerMenu" aria-expanded="{{ $userActive ? 'true' : 'false' }}">
         <span><i class="bi bi-person me-2"></i> User</span>
         <i class="bi bi-chevron-down small"></i>
     </a>
-    <div class="collapse {{ request()->is('register*') ? 'show' : '' }}" id="registerMenu">
-        <a href="{{ route('register') }}" class="ps-5 {{ request()->routeIs('register.chalan') ? 'active' : '' }}">
-            <i class="bi bi-receipt me-2"></i> Add User
+    <div class="collapse {{ $userActive ? 'show' : '' }}" id="registerMenu">
+        <a href="{{ route('register') }}" class="{{ request()->routeIs('register') ? 'active' : '' }}">
+            <i class="bi bi-person-plus me-2"></i> Add User
         </a>
-       
     </div>
 
-    <a class="d-flex justify-content-between align-items-center {{ request()->is('accounts*') ? 'active' : '' }}"
-       data-bs-toggle="collapse"
-       href="#accountsMenu"
-       role="button"
-       aria-expanded="{{ request()->is('accounts*') ? 'true' : 'false' }}"
-       aria-controls="accountsMenu">
+    @php $accountsActive = request()->routeIs('challan'); @endphp
+    <a class="d-flex justify-content-between align-items-center {{ $accountsActive ? 'active-parent' : '' }}"
+    data-bs-toggle="collapse" href="#accountsMenu" aria-expanded="{{ $accountsActive ? 'true' : 'false' }}">
         <span><i class="bi bi-gear me-2"></i> Accounts</span>
         <i class="bi bi-chevron-down small"></i>
     </a>
-    <div class="collapse {{ request()->is('accounts*') ? 'show' : '' }}" id="accountsMenu">
-        <a href="{{ route('challan') }}" class="ps-5 {{ request()->routeIs('accounts.chalan') ? 'active' : '' }}">
+    <div class="collapse {{ $accountsActive ? 'show' : '' }}" id="accountsMenu">
+        <a href="{{ route('challan') }}" class="{{ request()->routeIs('challan') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> Chalan
         </a>
     </div>
 
-    <a class="d-flex justify-content-between align-items-center {{ request()->is('engg*') ? 'active' : '' }}"
-       data-bs-toggle="collapse"
-       href="#enggMenu"
-       role="button"
-       aria-expanded="{{ request()->is('engg*') ? 'true' : 'false' }}"
-       aria-controls="enggMenu">
-        <span><i class="bi bi-book me-2"></i> Engineering</span>
+
+    @php $enggActive = request()->routeIs('work-entry.index'); @endphp
+    <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
+    data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
+        <span><i class="bi bi-book me-2"></i> DPR</span>
         <i class="bi bi-chevron-down small"></i>
     </a>
-    <div class="collapse {{ request()->is('engg*') ? 'show' : '' }}" id="enggMenu">
-        <a href="{{ route('work-entry.index') }}" class="ps-5 {{ request()->routeIs('engg.engineering') ? 'active' : '' }}">
+    <div class="collapse {{ $enggActive ? 'show' : '' }}" id="enggMenu">
+        <a href="{{ route('work-entry.index') }}" class="{{ request()->routeIs('work-entry.index') ? 'active' : '' }}">
             <i class="bi bi-receipt me-2"></i> Daily Work Report
         </a>
     </div>
 
-
-    <a class="d-flex justify-content-between align-items-center {{ request()->is('userauth*') ? 'active' : '' }}"
-       data-bs-toggle="collapse"
-       href="#userauthMenu"
-       role="button"
-       aria-expanded="{{ request()->is('userauth*') ? 'true' : 'false' }}"
-       aria-controls="userauthMenu">
-        <span><i class="bi bi-clock me-2"></i>Login/Logout Time</span>
+    @php
+    $attendanceActive = request()->routeIs('attendance.report') ||
+                        request()->routeIs('attendance.manualattendence') ||
+                        request()->routeIs('attendance.acceptattendence');
+    @endphp
+    <a class="d-flex justify-content-between align-items-center {{ $attendanceActive ? 'active-parent' : '' }}"
+    data-bs-toggle="collapse" href="#userauthMenu" aria-expanded="{{ $attendanceActive ? 'true' : 'false' }}">
+        <span><i class="bi bi-clock me-2"></i> Attendance</span>
         <i class="bi bi-chevron-down small"></i>
     </a>
-    <div class="collapse {{ request()->is('userauth*') ? 'show' : '' }}" id="userauthMenu">
-        <a href="{{ route('attendance.report') }}" class="ps-5 {{ request()->routeIs('userauth.engineering') ? 'active' : '' }}">
-            <i class="bi bi-receipt me-2"></i> Daily Login/Logout
+    <div class="collapse {{ $attendanceActive ? 'show' : '' }}" id="userauthMenu">
+        <a href="{{ route('attendance.report') }}" class="{{ request()->routeIs('attendance.report') ? 'active' : '' }}">
+            <i class="bi bi-list-check me-2"></i> Daily Login/Logout
+        </a>
+        <a href="{{ route('attendance.manualattendence') }}" class="{{ request()->routeIs('attendance.manualattendence') ? 'active' : '' }}">
+            <i class="bi bi-pencil-square me-2"></i> Manual Attendance
+        </a>
+        <a href="{{ route('attendance.acceptattendence') }}" class="{{ request()->routeIs('attendance.acceptattendence') ? 'active' : '' }}">
+            <i class="bi bi-check2-circle me-2"></i> Accept Attendance
         </a>
     </div>
 
-    <a class="d-flex justify-content-between align-items-center {{ request()->is('manualattendence*') ? 'active' : '' }}"
-       data-bs-toggle="collapse"
-       href="#manualattendenceMenu"
-       role="button"
-       aria-expanded="{{ request()->is('manualattendence*') ? 'true' : 'false' }}"
-       aria-controls="manualattendenceMenu">
-        <span><i class="bi bi-clock me-2"></i>Manual Attendence</span>
+    @php $paymentActive = request()->is('payments*'); @endphp
+
+        <a class="d-flex justify-content-between align-items-center {{ $paymentActive ? 'active-parent' : '' }}"
+        data-bs-toggle="collapse" href="#paymentMenu" aria-expanded="{{ $paymentActive ? 'true' : 'false' }}">
+            <span><i class="bi bi-currency-rupee me-2"></i> Payments</span>
+            <i class="bi bi-chevron-down small"></i>
+        </a>
+        <div class="collapse {{ $paymentActive ? 'show' : '' }}" id="paymentMenu">
+            <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.index') ? 'active' : '' }}">
+                <i class="bi bi-list-ul me-2"></i> All Payments
+            </a>
+            <a href="{{ route('payments.create') }}" class="{{ request()->routeIs('payments.create') ? 'active' : '' }}">
+                <i class="bi bi-plus-circle me-2"></i> New Payment
+            </a>
+        </div>
+
+
+    <!-- Letter Head --> 
+    @php $letterheadActive = request()->is('letterhead*'); @endphp
+    <a class="d-flex justify-content-between align-items-center {{ $letterheadActive ? 'active-parent' : '' }}"
+       data-bs-toggle="collapse" href="#letterheadMenu" aria-expanded="{{ $letterheadActive ? 'true' : 'false' }}">
+        <span><i class="bi bi-file-earmark-text me-2"></i> Letter Head</span>
         <i class="bi bi-chevron-down small"></i>
     </a>
-    <div class="collapse {{ request()->is('manualattendence*') ? 'show' : '' }}" id="manualattendenceMenu">
-        <a href="{{ route('attendance.manualattendence') }}" class="ps-5 {{ request()->routeIs('manualattendence.manualattendence') ? 'active' : '' }}">
-            <i class="bi bi-receipt me-2"></i> Attendence
-        </a>
-
-        <a href="{{ route('attendance.acceptattendence') }}" class="ps-5 {{ request()->routeIs('manualattendence.manualattendence') ? 'active' : '' }}">
-            <i class="bi bi-receipt me-2"></i> Accept Attendence
-        </a>
-
-        
-    </div>
-
-     <a class="d-flex justify-content-between align-items-center {{ request()->is('letterhead*') ? 'active' : '' }}"
-       data-bs-toggle="collapse"
-       href="#letterheadMenu"
-       role="button"
-       aria-expanded="{{ request()->is('letterhead*') ? 'true' : 'false' }}"
-       aria-controls="letterheadMenu">
-        <span><i class="bi bi-clock me-2"></i>Letter Head</span>
-        <i class="bi bi-chevron-down small"></i>
-    </a>
-    <div class="collapse {{ request()->is('letterhead*') ? 'show' : '' }}" id="letterheadMenu">
-        <a href="{{ route('letterhead') }}" class="ps-5 {{ request()->routeIs('letterhead') ? 'active' : '' }}">
-            <i class="bi bi-receipt me-2"></i> Letter Head details
+    <div class="collapse {{ $letterheadActive ? 'show' : '' }}" id="letterheadMenu">
+        <a href="{{ route('letterhead') }}" class="{{ request()->routeIs('letterhead') ? 'active' : '' }}">
+            <i class="bi bi-receipt me-2"></i> Letter Head Details
         </a>
     </div>
 </div>
