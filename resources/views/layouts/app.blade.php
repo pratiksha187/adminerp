@@ -156,10 +156,13 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <!-- Dashboard -->
+      @auth
+    @if(in_array(Auth::id(), [1,2,4, 5, 6,7,8,9,10,11,12,13,14,15,16,17])) 
     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door me-2"></i> Dashboard
     </a>
-
+ @endif
+@endauth
     @auth
     @if(in_array(Auth::id(), [1,2])) 
     <!-- User -->
