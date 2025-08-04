@@ -156,15 +156,11 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <!-- Dashboard -->
-      @auth
-    @if(in_array(Auth::id(), [1,2,4, 5, 6,7,8,9,10,11,12,13,14,15,16,17])) 
+  
     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <i class="bi bi-house-door me-2"></i> Dashboard
     </a>
- @endif
-@endauth
-    @auth
-    @if(in_array(Auth::id(), [1,2])) 
+ 
     <!-- User -->
     @php $userActive = request()->is('register*'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $userActive ? 'active-parent' : '' }}"
@@ -177,12 +173,10 @@
             <i class="bi bi-person-plus me-2"></i> Add User
         </a>
     </div>
-  @endif
-@endauth
 
 
- @auth
-    @if(in_array(Auth::id(), [10,1])) 
+
+ 
     @php $accountsActive = request()->routeIs('challan'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $accountsActive ? 'active-parent' : '' }}"
     data-bs-toggle="collapse" href="#accountsMenu" aria-expanded="{{ $accountsActive ? 'true' : 'false' }}">
@@ -194,11 +188,8 @@
             <i class="bi bi-receipt me-2"></i> Chalan
         </a>
     </div>
-@endif
-@endauth
 
-@auth
-    @if(in_array(Auth::id(), [10,1])) 
+
     @php $enggActive = request()->routeIs('work-entry.index'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
     data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
@@ -210,12 +201,10 @@
             <i class="bi bi-receipt me-2"></i> Daily Work Report
         </a>
     </div>
-@endif
-@endauth
 
 
-   @auth
-    @if(in_array(Auth::id(), [1,2,4, 5, 6,7,8,9,10,11,12,13,14,15,16,17])) 
+
+   
     @php
     $attendanceActive = request()->routeIs('attendance.report') ||
                         request()->routeIs('attendance.manualattendence') ||
@@ -233,19 +222,14 @@
         <a href="{{ route('attendance.manualattendence') }}" class="{{ request()->routeIs('attendance.manualattendence') ? 'active' : '' }}">
             <i class="bi bi-pencil-square me-2"></i> Manual Attendance
         </a>
-        @endif
-        @endauth
-        @auth
-        @if(in_array(Auth::id(), [1,2]))
+      
         <a href="{{ route('attendance.acceptattendence') }}" class="{{ request()->routeIs('attendance.acceptattendence') ? 'active' : '' }}">
             <i class="bi bi-check2-circle me-2"></i> Accept Attendance
         </a>
     </div>
-        @endif
-    @endauth
+  
 
-    @auth
-    @if(in_array(Auth::id(), [1,2]))
+   
     @php $paymentActive = request()->is('payments*'); @endphp
 
         <a class="d-flex justify-content-between align-items-center {{ $paymentActive ? 'active-parent' : '' }}"
@@ -261,11 +245,9 @@
                 <i class="bi bi-plus-circle me-2"></i> New Payment
             </a>
         </div>
-@endif
-    @endauth
 
-     @auth
-        @if(in_array(Auth::id(), [1,2]))
+
+    
     <!-- Letter Head --> 
     @php $letterheadActive = request()->is('letterhead*'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $letterheadActive ? 'active-parent' : '' }}"
@@ -279,8 +261,6 @@
         </a>
     </div>
 </div>
-@endif
-    @endauth
 <!-- Main Content -->
 <main class="main-content" id="mainContent">
     @yield('content')
