@@ -68,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/letterhead', [AdminController::class, 'letterhead'])->name('letterhead');
 
     // Route::get('/letterhead', [LetterHeadController::class, 'index'])->name('letterhead.index');
-    Route::post('/letterhead', [AdminController::class, 'store'])->name('letterhead.store');
+    Route::post('/letterhead', [AdminController::class, 'storeletterhead'])->name('letterhead.store');
 
    Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
 Route::post('/payments/generate', [PaymentController::class, 'generatePayment'])->name('payments.generate');

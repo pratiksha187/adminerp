@@ -10,19 +10,24 @@
     }
 
     .letterhead-container {
-        max-width: 1000px;
+        max-width: 1100px;
         margin: 30px auto;
     }
 
     .card-custom {
         background-color: #ffffff;
         border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(28, 44, 62, 0.1);
+        box-shadow: 0 5px 20px rgba(28, 44, 62, 0.1);
         padding: 20px;
     }
 
     .table thead {
         background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f1f5f9;
     }
 
     .btn-primary {
@@ -38,6 +43,7 @@
     h3 {
         color: #1c2c3e;
         font-weight: bold;
+        font-size: 1.5rem;
     }
 
     .empty-message {
@@ -45,9 +51,40 @@
         color: #6c757d;
         padding: 40px;
     }
+
+    /* Modal styling */
+    .modal-content {
+        border-radius: 12px;
+    }
+
+    .modal-header {
+        background-color: #f25c05;
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+
+    .modal-footer {
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+    }
 </style>
 
-<div class="letterhead-container">
+<div class="">
     <div class="card card-custom">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="mb-0">Letter Head List</h3>
@@ -62,26 +99,25 @@
                     <tr>
                         <th>Date</th>
                         <th>Name</th>
+                        <th>Ref No</th>
                         <th>Description</th>
-                        <th class="text-center">Action</th>
+                        <!-- <th class="text-center">Action</th> -->
                     </tr>
                 </thead>
-                {{-- <tbody id="employeeTableBody">
-                    <tr>
-                        <td colspan="4" class="empty-message">
-                            No letter heads added yet. Click "Add Letter Head" to start.
-                        </td>
-                    </tr>
-                </tbody> --}}
                 <tbody>
                     @forelse ($letterHeads as $item)
                         <tr>
                             <td>{{ $item->date }}</td>
+                            <td>{{ $item->name }}</td>
+
                             <td>{{ $item->ref_no }}</td>
                             <td>{{ $item->description }}</td>
-                            <td class="text-center">
-                                {{-- You can add delete/edit buttons here --}}
-                            </td>
+                            <!-- <td class="text-center">
+                               
+                                <button class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td> -->
                         </tr>
                     @empty
                         <tr>
@@ -91,133 +127,52 @@
                         </tr>
                     @endforelse
                 </tbody>
-
             </table>
         </div>
     </div>
 </div>
 
 <!-- Modal -->
-{{-- <div class="modal fade" id="employeeModal" tabindex="-1">
+<div class="modal fade" id="employeeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header" style="background-color: #f25c05; color: white;">
-                <h5 class="modal-title">Add Letter Head</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="employeeForm">
+            <form action="{{ route('letterhead.store') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Letter Head</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Date</label>
-                        <input type="date" class="form-control" id="date" required>
+                        <input type="date" name="date" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" required>
+                        <label class="form-label">Name of receiver</label>
+                        <input type="text" name="name" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
-                        <input type="text" class="form-control" id="description" required>
+                        <input type="text" name="description" class="form-control" required>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer bg-light">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" id="saveEmployee">Save</button>
-            </div>
+                    <div class="mb-3">
+                        <label class="form-label">Assigned To</label>
+                        <select name="assigned_to" class="form-control" required>
+                            <option value="Pirlpl">Pirlpl</option>
+                            <option value="Shreeyash">Shreeyash</option>
+                            <option value="Apurva">Apurva</option>
+                            <option value="Swaraj">Swaraj</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
         </div>
     </div>
-</div> --}}
-<!-- Modal -->
-        <div class="modal fade" id="employeeModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content border-0 shadow">
-                    <form action="{{ route('letterhead.store') }}" method="POST">
-                        @csrf
-                        <div class="modal-header" style="background-color: #f25c05; color: white;">
-                            <h5 class="modal-title">Add Letter Head</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Date</label>
-                                <input type="date" name="date" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Name</label>
-                                <input type="text" name="name" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Description</label>
-                                <input type="text" name="description" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="modal-footer bg-light">
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+</div>
 
-<!-- Script -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    let employees = [];
-
-    document.getElementById('saveEmployee').addEventListener('click', function () {
-        const date = document.getElementById('date').value;
-        const refNo = document.getElementById('ref_no').value;
-        const description = document.getElementById('description').value;
-
-        if (date && refNo && description) {
-            employees.push({
-                id: Date.now(),
-                date: date,
-                ref_no: refNo,
-                description: description
-            });
-
-            updateTable();
-
-            const modal = bootstrap.Modal.getInstance(document.getElementById('employeeModal'));
-            modal.hide();
-            document.getElementById('employeeForm').reset();
-        }
-    });
-
-    function updateTable() {
-        const tbody = document.getElementById('employeeTableBody');
-
-        if (employees.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty-message">
-                        No letter heads added yet. Click "Add Letter Head" to start.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        tbody.innerHTML = employees.map(emp => `
-            <tr>
-                <td>${emp.date}</td>
-                <td>${emp.ref_no}</td>
-                <td>${emp.description}</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id})">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function deleteEmployee(id) {
-        employees = employees.filter(emp => emp.id !== id);
-        updateTable();
-    }
-</script>
 @endsection
