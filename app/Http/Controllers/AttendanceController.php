@@ -173,7 +173,7 @@ class AttendanceController extends Controller
     }
 
     $user = auth()->user();
-dd($user);
+
     $existing = ManualAttendance::where('user_id', $user->id)
         ->whereDate('clock_in', $clockIn->toDateString())
         ->first();
