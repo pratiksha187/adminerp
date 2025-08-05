@@ -158,7 +158,7 @@ class AttendanceController extends Controller
     }
    public function manualEntry(Request $request)
 {
-    // dd($request->all());
+    dd($request->all());
     $request->validate([
         'date' => 'required|date',
         'manual_clock_in' => 'required|date_format:H:i',
