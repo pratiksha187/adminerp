@@ -158,7 +158,7 @@ class AttendanceController extends Controller
     }
    public function manualEntry(Request $request)
 {
-   
+    
     $request->validate([
         'date' => 'required|date',
         'manual_clock_in' => 'required|date_format:H:i',
@@ -167,20 +167,22 @@ class AttendanceController extends Controller
 
     $clockIn = Carbon::parse($request->date . ' ' . $request->manual_clock_in);
     $clockOut = Carbon::parse($request->date . ' ' . $request->manual_clock_out);
-//  dd($clockIn);
+
     if ($clockOut->lessThanOrEqualTo($clockIn)) {
         return back()->with('error', 'Clock out time must be after clock in time.');
     }
 
     $user = auth()->user();
+// dd($user->id);
 
-    $existing = ManualAttendance::where('user_id', $user->id)
-        ->whereDate('clock_in', $clockIn->toDateString())
-        ->first();
 
-    if ($existing) {
-        return back()->with('error', 'Manual attendance for this date already exists.');
-    }
+    // $existing = ManualAttendance::where('user_id', $user->id)
+    //     ->whereDate('clock_in', $clockIn->toDateString())
+    //     ->first();
+// dd($existing());
+    // if ($existing) {
+    //     return back()->with('error', 'Manual attendance for this date already exists.');
+    // }
 
     ManualAttendance::create([
         'date' => $request->date,
