@@ -167,7 +167,7 @@ class AttendanceController extends Controller
 
     $clockIn = Carbon::parse($request->date . ' ' . $request->manual_clock_in);
     $clockOut = Carbon::parse($request->date . ' ' . $request->manual_clock_out);
- dd($clockIn);
+//  dd($clockIn);
     if ($clockOut->lessThanOrEqualTo($clockIn)) {
         return back()->with('error', 'Clock out time must be after clock in time.');
     }
