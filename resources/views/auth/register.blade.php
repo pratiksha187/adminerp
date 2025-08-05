@@ -306,17 +306,14 @@ $(document).ready(function() {
         $('#userDetailsBody').empty();
 
         var html = `
-            <tr><th>ID</th><td>${data.id}</td></tr>
+          
             <tr><th>Employee Code</th><td>${data.employee_code}</td></tr>
             <tr><th>Name</th><td>${data.name}</td></tr>
             <tr><th>Email</th><td>${data.email}</td></tr>
-            <tr><th>Email Verified At</th><td>${data.email_verified_at}</td></tr>
-           
+          
             <tr><th>Mobile No</th><td>${data.mobile_no}</td></tr>
-            <tr><th>Gross Salary</th><td>${data.gross_salary}</td></tr>
-            <tr><th>Role</th><td>${data.role}</td></tr>
-           
-            <tr><th>Created At</th><td>${data.created_at}</td></tr>
+            <tr><th>Gross Salary</th><td>${data.salary}</td></tr>
+            
             <tr><th>Gender</th><td>${data.gender}</td></tr>
             <tr><th>Marital Status</th><td>${data.marital_status}</td></tr>
             <tr><th>Mobile</th><td>${data.mobile}</td></tr>
@@ -325,13 +322,10 @@ $(document).ready(function() {
             <tr><th>Confirmation Date</th><td>${data.confirmation_date}</td></tr>
             <tr><th>Probation Months</th><td>${data.probation_months}</td></tr>
             <tr><th>Aadhaar</th><td>${data.aadhaar}</td></tr>
-            <tr><th>Face ID</th><td>${data.face_id}</td></tr>
-            <tr><th>Resignation Date</th><td>${data.resignation_date}</td></tr>
-            <tr><th>Resignation Reason</th><td>${data.resignation_reason}</td></tr>
-            <tr><th>Department</th><td>${data.department}</td></tr>
+        
             <tr><th>Hours / Day</th><td>${data.hours_day}</td></tr>
             <tr><th>Days / Week</th><td>${data.days_week}</td></tr>
-            <tr><th>Salary</th><td>${data.salary}</td></tr>
+          
             <tr><th>Is Active</th><td>${data.is_active == 1 ? 'Yes' : 'No'}</td></tr>
         `;
 
