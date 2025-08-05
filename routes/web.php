@@ -22,8 +22,6 @@ Route::get('/test', [App\Http\Controllers\AdminController::class, 'test'])->name
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
-
-    
     // Attendance
     Route::post('/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clockin');
     Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clockout');
@@ -33,6 +31,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('register', [RegisterController::class, 'register']);
     // Route::get('Alluser', [RegisterController::class, 'Alluser'])->name('Alluser');
     Route::delete('/employees/{id}', [RegisterController::class, 'destroy'])->name('employees.destroy');
+
+Route::post('/employees/{id}/status', [RegisterController::class, 'updateStatus']);
 
     // Challan
     Route::get('/challans', [ChallanController::class, 'fetch'])->name('challan.list');

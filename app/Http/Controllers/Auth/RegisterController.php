@@ -13,14 +13,26 @@ use Yajra\DataTables\DataTables;
 class RegisterController extends Controller
 {
     
+  
     // public function showRegistrationForm(Request $request)
     // {
     //     if ($request->ajax()) {
-    //         $users = User::select(['id', 'employee_code', 'name', 'email', 'department','role']);
+    //         $users = DB::table('users')
+    //             ->leftJoin('role', 'users.role', '=', 'role.id')
+    //             ->select([
+    //                 'users.id',
+    //                 'users.employee_code',
+    //                 'users.name',
+    //                 'users.email',
+    //                 'users.department',
+    //                 'role.role as role_name'  
+    //                         ]);
+
     //         return DataTables::of($users)->make(true);
     //     }
-    //     $roles = DB::table('role')->select('id','role')->get();
-    //     return view('auth.register',compact('roles'));
+
+    //     $roles = DB::table('role')->select('id', 'role')->get();
+    //     return view('auth.register', compact('roles'));
     // }
     public function showRegistrationForm(Request $request)
 {
@@ -28,20 +40,31 @@ class RegisterController extends Controller
         $users = DB::table('users')
             ->leftJoin('role', 'users.role', '=', 'role.id')
             ->select([
+                'users.*',
                 'users.id',
                 'users.employee_code',
                 'users.name',
                 'users.email',
                 'users.department',
-                'role.role as role_name'  
-                        ]);
+                'users.is_active',
+                'role.role as role_name'
+            ]);
 
-        return DataTables::of($users)->make(true);
+      return DataTables::of($users)
+        ->addColumn('role_name', function($user) {
+            return $user->role->role ?? 'N/A';
+        })
+        ->editColumn('is_active', function($user) {
+            return $user->is_active; // must be a field in your table
+        })
+        ->make(true);
+
     }
 
     $roles = DB::table('role')->select('id', 'role')->get();
     return view('auth.register', compact('roles'));
 }
+
     public function destroy($id)
     {
         $employee = User::findOrFail($id);
@@ -53,17 +76,13 @@ class RegisterController extends Controller
 
     public function register(Request $request)
     {
-        // dd($request);die;
-        // Validate request data
+       
         $this->validator($request->all())->validate();
-// dd($a);die;
-        // Create user
+
         $user = $this->create($request->all());
-// dd($user);die;
-        // Log in user automatically (optional)
+
         auth()->login($user);
 
-        // Redirect to intended page or dashboard
         return redirect()->route('home')->with('success', 'Employee registered successfully!');
     }
 
@@ -92,8 +111,7 @@ class RegisterController extends Controller
 
     protected function create(array $data)
     {
-        // echo"<pre>";
-        // 
+       
         return User::create([
             'name'                 => $data['name'],
             'email'                => $data['email'],
@@ -108,11 +126,21 @@ class RegisterController extends Controller
             'probation_months'     => $data['probation_months'] ?? null,
             'aadhaar'              => $data['aadhaar'] ?? null,
             'hours_day'            => $data['hours_day'] ?? null,
+            'salary'               => $data['salary'] ?? null, 
             'days_week'            => $data['days_week'] ?? null,
             'role' => $data['role'],
 
         ]);
     }
 
-   
+   public function updateStatus(Request $request, $id)
+{
+    $employee = User::findOrFail($id); 
+    $employee->is_active = $request->is_active;
+    $employee->save();
+
+    return response()->json(['success' => true]);
+}
+
+
 }

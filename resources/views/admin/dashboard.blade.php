@@ -58,8 +58,6 @@
                         <span>
                             {{ $attendance?->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('d M Y, h:i:s A') : 'Not yet' }}
                         </span>
-
-
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -69,7 +67,6 @@
                         <span>
                             {{ $attendance?->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('d M Y, h:i:s A') : 'Not yet' }}
                         </span>
-
 
                     </div>
                 </div>

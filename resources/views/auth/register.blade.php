@@ -56,8 +56,6 @@
         <button class="btn btn-primary" onclick="toggleUserForm()">Add New Employee</button>
     </div>
 
-
-    {{-- Users Table --}}
     
     <div class="mb-4">
         <table class="table table-bordered" id="users-table">
@@ -68,10 +66,11 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Department</th>
-                  
+                    <th>Status</th> <!-- New column -->
                     <th>Action</th>
                 </tr>
             </thead>
+
             <tbody>
                 
             </tbody>
@@ -179,17 +178,21 @@
 
                
                 <h5 class="text-primary">Work Details</h5>
-                <div class="row mb-3">
-                   
+                <div class="row mb-3"> 
                     <div class="col-md-4">
                         <label for="hours_day">Hours per Day</label>
                         <input id="hours_day" type="number" step="0.1" name="hours_day" class="form-control @error('hours_day') is-invalid @enderror" value="{{ old('hours_day') }}">
                         @error('hours_day') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
-                   <div class="col-md-4">
+                    <div class="col-md-4">
                         <label for="days_week">Days per Week</label>
                         <input id="days_week" type="number" name="days_week" class="form-control @error('days_week') is-invalid @enderror" value="{{ old('days_week') }}">
                         @error('days_week') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label for="salary">Salary</label>
+                        <input id="salary" type="number" name="salary" class="form-control @error('salary') is-invalid @enderror" value="{{ old('salary') }}">
+                        @error('salary') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="col-md-4">
@@ -200,28 +203,6 @@
                                 <option value="{{ $role->id }}">{{ $role->role }}</option>
                             @endforeach
                         </select>
-
-                        <!-- <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
-                            <option value="">-- Select Designation --</option>
-                            <option value="1" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                            <option value="2" {{ old('role') == 'vendor' ? 'selected' : '' }}>Vendor</option>
-                            <option value="3" {{ old('role') == 'engg' ? 'selected' : '' }}>Engg</option>
-                            <option value="4" {{ old('role') == 'supervisor' ? 'selected' : '' }}>Supervisor</option>
-                            <option value="5" {{ old('role') == 'it' ? 'selected' : '' }}>IT</option>
-                            <option value="6" {{ old('role') == 'surveyor' ? 'selected' : '' }}>Surveyor</option>
-                            <option value="7" {{ old('role') == 'store_incharge' ? 'selected' : '' }}>Store Incharge</option>
-                            <option value="8" {{ old('role') == 'accountant' ? 'selected' : '' }}>Accountant</option>
-                            <option value="9" {{ old('role') == 'planning_manager' ? 'selected' : '' }}>Planning Manager</option>
-                            <option value="10" {{ old('role') == 'tellicaller' ? 'selected' : '' }}>Tellicaller</option>
-                            <option value="11" {{ old('role') == 'billing_estimation_engg' ? 'selected' : '' }}>Billing/Estimation Engg</option>
-                            <option value="12" {{ old('role') == 'architect' ? 'selected' : '' }}>Architect</option>
-                            <option value="13" {{ old('role') == 'site_coordination' ? 'selected' : '' }}>Site Coordination</option>
-                            <option value="14" {{ old('role') == 'safety' ? 'selected' : '' }}>Safety</option>
-                            <option value="15" {{ old('role') == 'pf' ? 'selected' : '' }}>PF</option>
-                            <option value="16" {{ old('role') == 'tender' ? 'selected' : '' }}>Tender</option>
-                            
-                        </select> -->
-
                         @error('role') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
                 </div>
@@ -289,6 +270,20 @@ $(function () {
             { data: 'email', name: 'email' },
             { data: 'role_name', name: 'role_name' },
             {
+                data: 'is_active',
+                name: 'is_active',
+                render: function(data, type, row) {
+                    return `
+                        <select class="form-select form-select-sm status-dropdown" data-id="${row.id}">
+                            <option value="1" ${data == 1 ? 'selected' : ''}>Active</option>
+                            <option value="0" ${data == 0 ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    `;
+                }
+            },
+
+
+            {
                 data: null,
                 orderable: false,
                 searchable: false,
@@ -315,9 +310,29 @@ $(document).ready(function() {
             <tr><th>Employee Code</th><td>${data.employee_code}</td></tr>
             <tr><th>Name</th><td>${data.name}</td></tr>
             <tr><th>Email</th><td>${data.email}</td></tr>
-            <tr><th>Department</th><td>${data.role_name}</td></tr>
+            <tr><th>Email Verified At</th><td>${data.email_verified_at}</td></tr>
            
-          
+            <tr><th>Mobile No</th><td>${data.mobile_no}</td></tr>
+            <tr><th>Gross Salary</th><td>${data.gross_salary}</td></tr>
+            <tr><th>Role</th><td>${data.role}</td></tr>
+           
+            <tr><th>Created At</th><td>${data.created_at}</td></tr>
+            <tr><th>Gender</th><td>${data.gender}</td></tr>
+            <tr><th>Marital Status</th><td>${data.marital_status}</td></tr>
+            <tr><th>Mobile</th><td>${data.mobile}</td></tr>
+            <tr><th>Date of Birth</th><td>${data.dob}</td></tr>
+            <tr><th>Join Date</th><td>${data.join_date}</td></tr>
+            <tr><th>Confirmation Date</th><td>${data.confirmation_date}</td></tr>
+            <tr><th>Probation Months</th><td>${data.probation_months}</td></tr>
+            <tr><th>Aadhaar</th><td>${data.aadhaar}</td></tr>
+            <tr><th>Face ID</th><td>${data.face_id}</td></tr>
+            <tr><th>Resignation Date</th><td>${data.resignation_date}</td></tr>
+            <tr><th>Resignation Reason</th><td>${data.resignation_reason}</td></tr>
+            <tr><th>Department</th><td>${data.department}</td></tr>
+            <tr><th>Hours / Day</th><td>${data.hours_day}</td></tr>
+            <tr><th>Days / Week</th><td>${data.days_week}</td></tr>
+            <tr><th>Salary</th><td>${data.salary}</td></tr>
+            <tr><th>Is Active</th><td>${data.is_active == 1 ? 'Yes' : 'No'}</td></tr>
         `;
 
         $('#userDetailsBody').html(html);
@@ -327,27 +342,27 @@ $(document).ready(function() {
     });
 });
 
-
-$('#users-table tbody').on('click', '.delete-btn', function() {
+$('#users-table tbody').on('change', '.status-dropdown', function() {
     var userId = $(this).data('id');
+    var newStatus = $(this).val(); // Will be "0" or "1"
 
-    if (confirm('Are you sure you want to delete this employee?')) {
-        $.ajax({
-            url: `/employees/${userId}`,  
-            type: 'DELETE',
-            data: {
-                _token: '{{ csrf_token() }}' 
-            },
-            success: function(response) {
-                alert('Employee deleted successfully.');
-                $('#users-table').DataTable().ajax.reload(null, false); 
-            },
-            error: function(xhr) {
-                alert('Error deleting employee.');
-            }
-        });
-    }
+    $.ajax({
+        url: `/employees/${userId}/status`,
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            is_active: newStatus // use the correct column name
+        },
+        success: function(response) {
+            alert('Status updated successfully.');
+        },
+        error: function(xhr) {
+            alert('Error updating status.');
+        }
+    });
 });
+
+
 
 </script>
 
