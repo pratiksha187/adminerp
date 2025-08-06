@@ -18,7 +18,7 @@ class AttendanceController extends Controller
    
     public function clockIn(Request $request)
     {
-        $maxDistanceMeters = 100;
+        $maxDistanceMeters = 500;
 
         $userLat = $request->latitude;
         $userLng = $request->longitude;
