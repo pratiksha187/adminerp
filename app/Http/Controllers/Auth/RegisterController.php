@@ -14,56 +14,36 @@ class RegisterController extends Controller
 {
     
   
-    // public function showRegistrationForm(Request $request)
-    // {
-    //     if ($request->ajax()) {
-    //         $users = DB::table('users')
-    //             ->leftJoin('role', 'users.role', '=', 'role.id')
-    //             ->select([
-    //                 'users.id',
-    //                 'users.employee_code',
-    //                 'users.name',
-    //                 'users.email',
-    //                 'users.department',
-    //                 'role.role as role_name'  
-    //                         ]);
-
-    //         return DataTables::of($users)->make(true);
-    //     }
-
-    //     $roles = DB::table('role')->select('id', 'role')->get();
-    //     return view('auth.register', compact('roles'));
-    // }
     public function showRegistrationForm(Request $request)
-{
-    if ($request->ajax()) {
-        $users = DB::table('users')
-            ->leftJoin('role', 'users.role', '=', 'role.id')
-            ->select([
-                'users.*',
-                'users.id',
-                'users.employee_code',
-                'users.name',
-                'users.email',
-                'users.department',
-                'users.is_active',
-                'role.role as role_name'
-            ]);
+    {
+        if ($request->ajax()) {
+            $users = DB::table('users')
+                ->leftJoin('role', 'users.role', '=', 'role.id')
+                ->select([
+                    'users.*',
+                    'users.id',
+                    'users.employee_code',
+                    'users.name',
+                    'users.email',
+                    'users.department',
+                    'users.is_active',
+                    'role.role as role_name'
+                ]);
 
-      return DataTables::of($users)
-        ->addColumn('role_name', function($user) {
-            return $user->role->role ?? 'N/A';
-        })
-        ->editColumn('is_active', function($user) {
-            return $user->is_active; // must be a field in your table
-        })
-        ->make(true);
+        return DataTables::of($users)
+            ->addColumn('role_name', function($user) {
+                return $user->role->role ?? 'N/A';
+            })
+            ->editColumn('is_active', function($user) {
+                return $user->is_active; // must be a field in your table
+            })
+            ->make(true);
 
+        }
+
+        $roles = DB::table('role')->select('id', 'role')->get();
+        return view('auth.register', compact('roles'));
     }
-
-    $roles = DB::table('role')->select('id', 'role')->get();
-    return view('auth.register', compact('roles'));
-}
 
     public function destroy($id)
     {

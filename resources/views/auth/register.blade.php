@@ -316,7 +316,7 @@ $(document).ready(function() {
             
             <tr><th>Gender</th><td>${data.gender}</td></tr>
             <tr><th>Marital Status</th><td>${data.marital_status}</td></tr>
-            <tr><th>Mobile</th><td>${data.mobile}</td></tr>
+           
             <tr><th>Date of Birth</th><td>${data.dob}</td></tr>
             <tr><th>Join Date</th><td>${data.join_date}</td></tr>
             <tr><th>Confirmation Date</th><td>${data.confirmation_date}</td></tr>
@@ -325,8 +325,7 @@ $(document).ready(function() {
         
             <tr><th>Hours / Day</th><td>${data.hours_day}</td></tr>
             <tr><th>Days / Week</th><td>${data.days_week}</td></tr>
-          
-            <tr><th>Is Active</th><td>${data.is_active == 1 ? 'Yes' : 'No'}</td></tr>
+        
         `;
 
         $('#userDetailsBody').html(html);
