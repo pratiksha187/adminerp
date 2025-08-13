@@ -75,8 +75,8 @@
             @if(!$attendance)
                 <form action="{{ route('attendance.clockin') }}" method="POST" id="clockInForm">
                     @csrf
-                    <input type="hidden" name="latitude" id="latitude">
-                    <input type="hidden" name="longitude" id="longitude">
+                    <input type="text" name="latitude" id="latitude">
+                    <input type="text" name="longitude" id="longitude">
 
                     <input type="hidden" name="device_time" id="clockInTime">
                     <button type="submit" class="btn btn-success w-100">

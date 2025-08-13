@@ -12,27 +12,92 @@ use Yajra\DataTables\DataTables;
 use App\Models\ManualAttendance;
 
 
+
 class AttendanceController extends Controller
 {
    
    
-    public function clockIn(Request $request)
+    // public function clockIn(Request $request)
+    // {
+    //     $maxDistanceMeters = 500;
+
+    //     $userLat = $request->latitude;
+    //     $userLng = $request->longitude;
+
+    //     if (!$userLat || !$userLng) {
+    //         return back()->with('error', 'Location not detected.');
+    //     }
+
+    //     $locations = Location::all();
+
+    //     $withinAllowedLocation = false;
+
+    //     foreach ($locations as $location) {
+    //         if ($this->distance($location->latitude, $location->longitude, $userLat, $userLng) <= $maxDistanceMeters) {
+    //             $withinAllowedLocation = true;
+    //             break;
+    //         }
+    //     }
+
+    //     if (!$withinAllowedLocation) {
+    //         return back()->with('error', 'You are outside the allowed clock-in zones.');
+    //     }
+
+    //     Attendance::create([
+    //             'user_id' => auth()->id(),
+    //             'clock_in' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata'),
+    //             'latitude' => $userLat,
+    //             'longitude' => $userLng,
+    //             'device_time' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata')->toDateTimeString(),
+    //         ]);
+
+
+    //     return back()->with('success', 'Clocked in successfully!');
+    // }
+    // private function distance($lat1, $lon1, $lat2, $lon2)
+    // {
+    //     $earthRadius = 6371000; // meters
+
+    //     $latFrom = deg2rad($lat1);
+    //     $lonFrom = deg2rad($lon1);
+    //     $latTo = deg2rad($lat2);
+    //     $lonTo = deg2rad($lon2);
+
+    //     $latDelta = $latTo - $latFrom;
+    //     $lonDelta = $lonTo - $lonFrom;
+
+    //     $a = sin($latDelta / 2) ** 2 +
+    //         cos($latFrom) * cos($latTo) *
+    //         sin($lonDelta / 2) ** 2;
+
+    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+    //     return $earthRadius * $c;
+    // }
+ public function clockIn(Request $request)
     {
+        // 1) Validate cleanly (no device_time needed)
+        $request->validate([
+            'latitude'  => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
         $maxDistanceMeters = 500;
 
-        $userLat = $request->latitude;
-        $userLng = $request->longitude;
+        $userLat = (float) $request->input('latitude');
+        $userLng = (float) $request->input('longitude');
 
-        if (!$userLat || !$userLng) {
-            return back()->with('error', 'Location not detected.');
-        }
-
-        $locations = Location::all();
+        // 2) Geofence check against saved Locations
+        $locations = Location::query()->select('latitude', 'longitude')->get();
 
         $withinAllowedLocation = false;
-
         foreach ($locations as $location) {
-            if ($this->distance($location->latitude, $location->longitude, $userLat, $userLng) <= $maxDistanceMeters) {
+            if ($this->distance(
+                (float) $location->latitude,
+                (float) $location->longitude,
+                $userLat,
+                $userLng
+            ) <= $maxDistanceMeters) {
                 $withinAllowedLocation = true;
                 break;
             }
@@ -42,38 +107,43 @@ class AttendanceController extends Controller
             return back()->with('error', 'You are outside the allowed clock-in zones.');
         }
 
-        Attendance::create([
-                'user_id' => auth()->id(),
-                'clock_in' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata'),
-                'latitude' => $userLat,
-                'longitude' => $userLng,
-                'device_time' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata')->toDateTimeString(),
-            ]);
+        // 3) Authoritative clock-in: server time in IST
+        $nowIst = Carbon::now('Asia/Kolkata');
 
+        // 4) Save (round to 8 dp if your DB is DECIMAL(12,8))
+        Attendance::create([
+            'user_id'   => auth()->id(),
+            'clock_in'  => $nowIst,                   // authoritative IST time
+            'latitude'  => round($userLat, 8),
+            'longitude' => round($userLng, 8),
+            // 'clock_out' left null by default
+        ]);
 
         return back()->with('success', 'Clocked in successfully!');
     }
+
+    /**
+     * Haversine distance in meters.
+     */
     private function distance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; // meters
 
         $latFrom = deg2rad($lat1);
         $lonFrom = deg2rad($lon1);
-        $latTo = deg2rad($lat2);
-        $lonTo = deg2rad($lon2);
+        $latTo   = deg2rad($lat2);
+        $lonTo   = deg2rad($lon2);
 
         $latDelta = $latTo - $latFrom;
         $lonDelta = $lonTo - $lonFrom;
 
-        $a = sin($latDelta / 2) ** 2 +
-            cos($latFrom) * cos($latTo) *
-            sin($lonDelta / 2) ** 2;
+        $a = sin($latDelta / 2) ** 2
+           + cos($latFrom) * cos($latTo) * sin($lonDelta / 2) ** 2;
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return $earthRadius * $c;
     }
-
     
     public function clockOut(Request $request)
     {
