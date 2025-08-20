@@ -158,7 +158,7 @@
     <!-- Dashboard -->
   
     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <i class="bi bi-house-door me-2"></i> Dashboard
+        <i class="bi bi-house-door me-2"></i> Dashboard<h1>{{ Auth::user()->id }}</h1>
     </a>
  
     <!-- User -->
