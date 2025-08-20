@@ -1,4 +1,3 @@
-{{-- resources/views/attendance/calendar.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Attendance Calendar')
@@ -8,9 +7,9 @@
   /* badges for late/early/OT */
   .att-flags { margin-top: 2px; display: flex; gap: 6px; flex-wrap: wrap; }
   .flag { display:inline-block; padding:1px 6px; border-radius: 999px; font-size: 11px; font-weight:700; }
-  .flag-late  { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }  /* red tint */
-  .flag-early { background:#fff3df; color:#7c2d12; border:1px solid #ffe2b9; }  /* amber tint */
-  .flag-ot    { background:#e0ebff; color:#1e3a8a; border:1px solid #bfdbfe; }  /* blue tint */
+  .flag-late  { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+  .flag-early { background:#fff3df; color:#7c2d12; border:1px solid #ffe2b9; }
+  .flag-ot    { background:#e0ebff; color:#1e3a8a; border:1px solid #bfdbfe; }
 </style>
 
 <div class="container-fluid py-4">
@@ -27,7 +26,6 @@
         <p class="mb-0 opacity-75 small mt-2">Track your daily punches, holidays & weekly offs at a glance.</p>
       </div>
 
-      {{-- Quick actions --}}
       <div class="d-flex align-items-center gap-2">
         <button id="btnToday" class="btn btn-light btn-sm">
           <i class="bi bi-compass me-1"></i> Today
@@ -55,7 +53,6 @@
       </div>
     </div>
 
-    {{-- Stats --}}
     <div class="col-12 col-xl-4">
       <div class="row g-3">
         <div class="col-6">
@@ -90,84 +87,59 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-{{-- Icons (Bootstrap Icons) --}}
+{{-- Icons --}}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
 <style>
   :root{
-    /* Brand */
-    --ck-navy:#1c2c3e;
-    --ck-orange:#f25c05;
-
-    /* Accents */
-    --ck-green:#16a34a;
-    --ck-amber:#f59e0b;
-    --ck-mint:#ECFDF5;
-    --ck-rose:#FEE2E2;
-    --ck-apricot:#FFEFE3;
-
-    --ck-text:#2a3344;
-    --ck-muted:#6b7280;
-    --ck-card:#ffffff;
-    --ck-border:#e9eef7;
-    --ck-bg:#f6f8fc;
+    --ck-navy:#1c2c3e; --ck-orange:#f25c05;
+    --ck-green:#16a34a; --ck-amber:#f59e0b; --ck-mint:#ECFDF5;
+    --ck-rose:#FEE2E2; --ck-apricot:#FFEFE3;
+    --ck-text:#2a3344; --ck-muted:#6b7280; --ck-card:#ffffff;
+    --ck-border:#e9eef7; --ck-bg:#f6f8fc;
   }
-
   body{ background: var(--ck-bg); color: var(--ck-text); }
+  .ck-hero{ background: linear-gradient(135deg, var(--ck-navy) 0%, #0f1f33 100%); }
+  .ck-hero-icon{ width: 42px; height: 42px; background: rgba(255,255,255,.15); font-size: 18px; }
 
-  .ck-hero{
-    background: linear-gradient(135deg, var(--ck-navy) 0%, #0f1f33 100%);
-  }
-  .ck-hero-icon{
-    width: 42px; height: 42px; background: rgba(255,255,255,.15); font-size: 18px;
-  }
-
-  .chip{
-    display:inline-flex; align-items:center; gap:.35rem;
-    padding: .35rem .6rem; border-radius: 999px; font-weight: 600; font-size: .85rem;
-  }
+  .chip{ display:inline-flex; align-items:center; gap:.35rem; padding:.35rem .6rem; border-radius:999px; font-weight:600; font-size:.85rem; }
   .chip-green{ background:#e8f7ee; color:#136c34; border:1px solid #bce6ca; }
   .chip-amber{ background:#fff3df; color:#915d06; border:1px solid #ffe2b9; }
   .chip-mint{ background:var(--ck-mint); color:#065f46; border:1px solid #86efac; }
   .chip-rose{ background:var(--ck-rose); color:#7f1d1d; border:1px solid #fca5a5; }
   .chip-apricot{ background:var(--ck-apricot); color:#7c2d12; border:1px solid #fdba74; }
 
-  .ck-stat .ck-stat-label{ font-size: .8rem; color: var(--ck-muted); }
-  .ck-stat .ck-stat-value{ font-weight:800; font-size: 1.25rem; color: var(--ck-navy); }
+  .ck-stat .ck-stat-label{ font-size:.8rem; color:var(--ck-muted); }
+  .ck-stat .ck-stat-value{ font-weight:800; font-size:1.25rem; color:var(--ck-navy); }
 
-  /* FullCalendar theming */
   .fc{
     --fc-border-color: var(--ck-border);
-    --fc-button-text-color: #fff;
+    --fc-button-text-color:#fff;
     --fc-button-bg-color: var(--ck-navy);
     --fc-button-border-color: var(--ck-navy);
-    --fc-button-hover-bg-color: #21334b;
-    --fc-button-hover-border-color: #21334b;
+    --fc-button-hover-bg-color:#21334b;
+    --fc-button-hover-border-color:#21334b;
     --fc-button-active-bg-color: var(--ck-orange);
     --fc-button-active-border-color: var(--ck-orange);
     --fc-today-bg-color: rgba(242,92,5,.08);
-    font-size: 14px;
+    font-size:14px;
   }
-  .fc .fc-toolbar-title{ font-weight: 800; color: var(--ck-navy); }
-  .fc .fc-daygrid-day-number{ font-weight: 700; }
-  .fc .fc-daygrid-event{ padding: 4px 6px; border-radius: .5rem; box-shadow: 0 1px 0 rgba(16,24,40,.04); }
+  .fc .fc-toolbar-title{ font-weight:800; color:var(--ck-navy); }
+  .fc .fc-daygrid-day-number{ font-weight:700; }
+  .fc .fc-daygrid-event{ padding:4px 6px; border-radius:.5rem; box-shadow:0 1px 0 rgba(16,24,40,.04); }
   .fc .fc-daygrid-event .fc-event-title,
-  .fc .fc-daygrid-event .fc-event-title-container { white-space: normal !important; }
-  .fc .att-wrap { white-space: normal; }
-  .fc .att-line { display:block !important; line-height:1.25; }
-  .fc .att-label { font-weight:700; margin-right:4px; color: var(--ck-navy); }
-  .fc .att-dur { font-size:.85em; opacity:.85; }
+  .fc .fc-daygrid-event .fc-event-title-container{ white-space:normal !important; }
+  .fc .att-wrap{ white-space:normal; }
+  .fc .att-line{ display:block !important; line-height:1.25; }
+  .fc .att-label{ font-weight:700; margin-right:4px; color:var(--ck-navy); }
+  .fc .att-dur{ font-size:.85em; opacity:.85; }
 
-  /* Pills for labels */
-  .fc .holiday-pill, .fc .weeklyoff-pill {
-    display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:700; color:#fff;
-  }
-  .fc .holiday-pill { background:#ef4444; }
-  .fc .weeklyoff-pill { background:#fb923c; }
+  .fc .holiday-pill, .fc .weeklyoff-pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:700; color:#fff; }
+  .fc .holiday-pill{ background:#ef4444; }
+  .fc .weeklyoff-pill{ background:#fb923c; }
 
-  /* Print tweaks */
-  @media print {
-    .ck-hero, #btnPrint, #btnToday { display:none !important; }
+  @media print{
+    .ck-hero, #btnPrint, #btnToday{ display:none !important; }
     .container-fluid{ padding:0 !important; }
     .card, .shadow-sm{ box-shadow:none !important; }
   }
@@ -186,20 +158,15 @@ document.addEventListener('DOMContentLoaded', function () {
     navLinks: true,
     dayMaxEvents: true,
 
-    // We render our own lines inside events
-    displayEventTime: false,
-
+    displayEventTime: false,          // we render our own text
     views: { dayGridMonth: { eventDisplay: 'block' } },
-
-    // For week/day/list views if used
     eventTimeFormat: { hour: 'numeric', minute: '2-digit', hour12: true },
 
     events: { url: "{{ route('attendance.calendar.events') }}", failure: () => alert('Could not load events.') },
 
-    // Render different kinds of events
     eventContent(arg) {
       const p = arg.event.extendedProps || {};
-      if (!p.kind) return true; // background events have no content
+      if (!p.kind) return true;
 
       if (p.kind === 'holiday-label') {
         const n = document.createElement('div');
@@ -244,8 +211,8 @@ document.addEventListener('DOMContentLoaded', function () {
       info.el.setAttribute('title', tip);
     },
 
-    // After events load/change, compute mini-stats
     eventsSet() {
+      // compute monthly hours + present days
       const events = calendar.getEvents();
       let totalMins = 0;
       const presentDates = new Set();
@@ -258,8 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const m = p.durText.match(/(\d+)h(\d{1,2})m/);
             if (m) totalMins += (+m[1])*60 + (+m[2]);
           }
-          const d = ev.start;
-          if (d) presentDates.add(d.toISOString().slice(0,10));
+          const d = ev.start; if (d) presentDates.add(d.toISOString().slice(0,10));
         }
       });
 
@@ -272,7 +238,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   calendar.render();
 
-  // external controls
   document.getElementById('btnToday').addEventListener('click', () => calendar.today());
   document.getElementById('btnPrint').addEventListener('click', () => window.print());
 });
