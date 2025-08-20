@@ -212,7 +212,7 @@
 
         $canSee = [
             'attendance.calendar.view'     => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),  
-            'attendance.report'            => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),  
+            'attendance.report'            => in_array($uid, [1,4]),  
             'attendance.manualattendence'  => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),     
             'attendance.acceptattendence'  => in_array($uid, [1,4]),     
         ];
