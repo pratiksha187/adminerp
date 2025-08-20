@@ -162,6 +162,7 @@
     </a>
  
     <!-- User -->
+    @if(in_array(Auth::user()->id, [1,2])) 
     @php $userActive = request()->is('register*'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $userActive ? 'active-parent' : '' }}"
        data-bs-toggle="collapse" href="#registerMenu" aria-expanded="{{ $userActive ? 'true' : 'false' }}">
@@ -173,10 +174,10 @@
             <i class="bi bi-person-plus me-2"></i> Add User
         </a>
     </div>
+    @endif
 
 
-
- 
+    @if(in_array(Auth::user()->id, [1,2,10]))   
     @php $accountsActive = request()->routeIs('challan'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $accountsActive ? 'active-parent' : '' }}"
     data-bs-toggle="collapse" href="#accountsMenu" aria-expanded="{{ $accountsActive ? 'true' : 'false' }}">
@@ -188,8 +189,9 @@
             <i class="bi bi-receipt me-2"></i> Chalan
         </a>
     </div>
+    @endif
 
-
+    @if(in_array(Auth::user()->id, [1,4,2])) 
     @php $enggActive = request()->routeIs('work-entry.index'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
     data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
@@ -201,35 +203,54 @@
             <i class="bi bi-receipt me-2"></i> Daily Work Report
         </a>
     </div>
+    @endif
 
 
-
-   
     @php
-    $attendanceActive = request()->routeIs('attendance.report') ||
-                        request()->routeIs('attendance.manualattendence') ||
-                        request()->routeIs('attendance.acceptattendence');
-    @endphp
-    <a class="d-flex justify-content-between align-items-center {{ $attendanceActive ? 'active-parent' : '' }}"
-    data-bs-toggle="collapse" href="#userauthMenu" aria-expanded="{{ $attendanceActive ? 'true' : 'false' }}">
-        <span><i class="bi bi-clock me-2"></i> Attendance</span>
-        <i class="bi bi-chevron-down small"></i>
-    </a>
-    <div class="collapse {{ $attendanceActive ? 'show' : '' }}" id="userauthMenu">
-        <a href="{{ route('attendance.report') }}" class="{{ request()->routeIs('attendance.report') ? 'active' : '' }}">
-            <i class="bi bi-list-check me-2"></i> Daily Login/Logout
-        </a>
-        <a href="{{ route('attendance.manualattendence') }}" class="{{ request()->routeIs('attendance.manualattendence') ? 'active' : '' }}">
-            <i class="bi bi-pencil-square me-2"></i> Manual Attendance
-        </a>
-      
-        <a href="{{ route('attendance.acceptattendence') }}" class="{{ request()->routeIs('attendance.acceptattendence') ? 'active' : '' }}">
-            <i class="bi bi-check2-circle me-2"></i> Accept Attendance
-        </a>
-    </div>
-  
+        $uid = Auth::id();
 
-   
+        $canSee = [
+            'attendance.report'            => in_array($uid, [1,2]),  
+            'attendance.manualattendence'  => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),     
+            'attendance.acceptattendence'  => in_array($uid, [1,4]),     
+        ];
+
+        $showAttendance = in_array(true, $canSee, true);
+
+        // Active state should consider only links the user can actually see
+        $attendanceRoutes = array_keys(array_filter($canSee));
+        $attendanceActive = collect($attendanceRoutes)->contains(fn($r) => request()->routeIs($r));
+    @endphp
+
+    @if($showAttendance)
+        <a class="d-flex justify-content-between align-items-center {{ $attendanceActive ? 'active-parent' : '' }}"
+        data-bs-toggle="collapse" href="#userauthMenu" aria-expanded="{{ $attendanceActive ? 'true' : 'false' }}">
+            <span><i class="bi bi-clock me-2"></i> Attendance</span>
+            <i class="bi bi-chevron-down small"></i>
+        </a>
+
+        <div class="collapse {{ $attendanceActive ? 'show' : '' }}" id="userauthMenu">
+            @if($canSee['attendance.report'])
+                <a href="{{ route('attendance.report') }}" class="{{ request()->routeIs('attendance.report') ? 'active' : '' }}">
+                    <i class="bi bi-list-check me-2"></i> Daily Login/Logout
+                </a>
+            @endif
+
+            @if($canSee['attendance.manualattendence'])
+                <a href="{{ route('attendance.manualattendence') }}" class="{{ request()->routeIs('attendance.manualattendence') ? 'active' : '' }}">
+                    <i class="bi bi-pencil-square me-2"></i> Manual Attendance
+                </a>
+            @endif
+
+            @if($canSee['attendance.acceptattendence'])
+                <a href="{{ route('attendance.acceptattendence') }}" class="{{ request()->routeIs('attendance.acceptattendence') ? 'active' : '' }}">
+                    <i class="bi bi-check2-circle me-2"></i> Accept Attendance
+                </a>
+            @endif
+        </div>
+    @endif
+
+    @if(in_array(Auth::user()->id, [1,9,2])) 
     @php $paymentActive = request()->is('payments*'); @endphp
 
         <a class="d-flex justify-content-between align-items-center {{ $paymentActive ? 'active-parent' : '' }}"
@@ -245,9 +266,9 @@
                 <i class="bi bi-plus-circle me-2"></i> New Payment
             </a>
         </div>
+    @endif
 
-
-    
+     @if(in_array(Auth::user()->id, [1,2])) 
     <!-- Letter Head --> 
     @php $letterheadActive = request()->is('letterhead*'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $letterheadActive ? 'active-parent' : '' }}"
@@ -260,6 +281,7 @@
             <i class="bi bi-receipt me-2"></i> Letter Head Details
         </a>
     </div>
+     @endif
 </div>
 <!-- Main Content -->
 <main class="main-content" id="mainContent">
