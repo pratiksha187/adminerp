@@ -75,6 +75,13 @@
             @if(!$attendance)
                 <form action="{{ route('attendance.clockin') }}" method="POST" id="clockInForm">
                     @csrf
+
+                     <h1>Get My Location</h1>
+                    <button onclick="getLocation()">Get Location</button>
+                    <p id="status"></p>
+                    <p id="coords"></p>
+
+
                     <input type="text" name="latitude" id="latitude">
                     <input type="text" name="longitude" id="longitude">
 
@@ -161,5 +168,34 @@
         }
     });
 </script>
+ <script>
+        function getLocation() {
+            const status = document.getElementById("status");
+            const coords = document.getElementById("coords");
 
+            if (!navigator.geolocation) {
+                status.innerText = "Geolocation is not supported by your browser";
+                return;
+            }
+
+            status.innerText = "Locating…";
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    status.innerText = "Location found!";
+                    coords.innerHTML = `Latitude: ${position.coords.latitude}<br>
+                                         Longitude: ${position.coords.longitude}<br>
+                                         Accuracy: ±${position.coords.accuracy} meters`;
+                },
+                (error) => {
+                    status.innerText = "Unable to retrieve location: " + error.message;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+    </script>
 @endsection

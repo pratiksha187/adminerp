@@ -5,6 +5,17 @@
     <div class="card shadow p-4" style="width: 100%; max-width: 450px;">
         <h4 class="mb-4 text-center">Login</h4>
 
+        {{-- ✅ Show any error messages --}}
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         @if(session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
@@ -14,12 +25,21 @@
 
             <div class="mb-3">
                 <label for="email" class="form-label">Email Address</label>
-                <input id="email" type="email" class="form-control" name="email" required autofocus>
+                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
+                       name="email" value="{{ old('email') }}" required autofocus>
+                {{-- Field-specific error --}}
+                @error('email')
+                    <div class="text-danger small">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input id="password" type="password" class="form-control" name="password" required>
+                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror"
+                       name="password" required>
+                @error('password')
+                    <div class="text-danger small">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="mb-3 form-check">
