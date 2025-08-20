@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -16,13 +16,27 @@ class PaymentController extends Controller
 
    public function index()
 {
+      $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
     $payments = \App\Models\Payment::with('user')->latest()->get();
-    return view('payments.index', compact('payments'));
+    return view('payments.index', compact('payments','role'));
 }
 public function create()
 {
+      $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
     $users = \App\Models\User::all(); // fetch employees for dropdown
-    return view('payments.create', compact('users'));
+    return view('payments.create', compact('users','role'));
 }
 
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Challan;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 
@@ -15,6 +16,13 @@ class ChallanController extends Controller
 {
     public function index()
     {
+        $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
         $users = User::
         // where('role', '2')
                     whereNotNull('mobile_no')
@@ -23,7 +31,7 @@ class ChallanController extends Controller
         
         $location = DB::table('location')->get();        
 
-        return view('accounts.chalan', compact('users','location'));
+        return view('accounts.chalan', compact('users','location','role'));
     }
 
    

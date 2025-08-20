@@ -10,6 +10,7 @@ class AdminController extends Controller
 {
     public function index()
     {
+        
       $userId = Auth::id();
       $userDetails = DB::table('users')
                     ->select('role')
@@ -21,8 +22,15 @@ class AdminController extends Controller
     }
 
     public function letterhead(){
+         $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
         $letterHeads = LetterHead::latest()->get();
-        return view('admin.letterhead', compact('letterHeads'));
+        return view('admin.letterhead', compact('letterHeads','role'));
     }
 
   

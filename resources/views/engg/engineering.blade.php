@@ -2,37 +2,124 @@
 
 @section('content')
 
-<!-- ✅ Select2 CSS -->
+<!-- ✅ Select2 + DataTables CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
 <style>
+  /* ===== Slate design tokens ===== */
+  :root{
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --ink:#0f172a;
+    --muted:#64748b;
+    --brand:#475569;          /* slate */
+    --brand-2:#334155;
+    --ring:#cbd5e1;           /* focus ring */
+    --head-bg:#f1f5f9;        /* table head bg */
+    --row-alt:#f8fafc;
+    --hover:#eef2f7;
+    --border:#e5e7eb;
+    --success:#16a34a;
+    --primary:#2563eb;
+  }
+
+  body{ background:var(--bg); }
+
+  /* ===== Page card ===== */
+  .card{
+    border:1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+  }
+  .card.shadow-sm{ box-shadow: 0 10px 30px rgba(2,6,23,.05)!important; }
+
+  /* ===== Header (top title) ===== */
   .header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;
+    background: linear-gradient(135deg, rgba(71,85,105,.95), rgba(71,85,105,.75));
+    color:#fff; padding:14px 16px; border-radius:12px;
   }
-  .header-icon {
-    background: rgba(255 255 255 / 0.3);
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+  .header-icon{
+    background: rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25);
+    width:48px; height:48px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
   }
-  .header-icon svg {
-    width: 32px;
-    height: 32px;
-    fill: white;
+  .header-icon svg{ width:26px; height:26px; fill:#fff; }
+  .header-title, .header h4{ font-weight:800; letter-spacing:.2px; margin:0; }
+
+  /* ===== Section titles ===== */
+  .card-body > h5{
+    font-weight:800; color:var(--brand-2); margin-bottom:.75rem;
+    display:flex; align-items:center; gap:.5rem;
+    position:relative; padding-left:.75rem;
   }
-  .header-title {
-    font-weight: 700;
-    font-size: 1.5rem;
-    line-height: 1;
+  .card-body > h5::before{
+    content:""; position:absolute; left:0; width:4px; height:1.2em; border-radius:3px; background:var(--brand);
+    top:50%; transform:translateY(-50%);
   }
+
+  /* ===== Forms ===== */
+  .form-label{ font-weight:600; color:var(--ink) }
+  .form-control, .form-select{
+    border:1px solid var(--border); border-radius:10px;
+  }
+  .form-control:focus, .form-select:focus{
+    border-color: var(--brand); box-shadow: 0 0 0 .25rem rgba(71,85,105,.15);
+  }
+  input[readonly].bg-light{ background:#f8fafc!important; border-color:var(--border)!important; }
+
+  /* Dimension fields align right */
+  input[name="length"], input[name="breadth"], input[name="height"]{ text-align:right; }
+
+  /* ===== Labour tiles ===== */
+  .rounded-circle.bg-opacity-25{ box-shadow: inset 0 0 0 2px rgba(0,0,0,.04); }
+  .d-flex.flex-column.align-items-center .form-control{
+    border-radius: 12px; text-align:center; font-weight:700;
+  }
+
+  /* ===== Select2 (Bootstrap-ish) ===== */
+  .select2-container .select2-selection--single{
+    height: 38px; border:1px solid var(--border)!important; border-radius:10px!important;
+    display:flex; align-items:center;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered{
+    line-height:38px; padding-left:12px;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow{ height:36px; right:8px; }
+  .select2-dropdown{ border-color:var(--border)!important; border-radius:10px!important; }
+  .select2-results__option--highlighted{ background:var(--head-bg)!important; color:var(--brand-2)!important; }
+
+  /* ===== DataTables ===== */
+  .dataTables_wrapper .dataTables_length select,
+  .dataTables_wrapper .dataTables_filter input{
+    border:1px solid var(--border); border-radius:10px; height:38px; padding:.375rem .75rem;
+  }
+  .dataTables_wrapper .dataTables_filter label{ color:var(--muted); }
+  .dataTables_wrapper .dataTables_paginate .paginate_button{
+    border:1px solid var(--border)!important; border-radius:8px!important; padding:.25rem .6rem!important;
+    color:var(--brand-2)!important; margin:0 .15rem!important;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current{
+    background:var(--brand)!important; color:#fff!important; border-color:var(--brand)!important;
+  }
+  .table{ border-color:var(--border)!important; }
+  .table thead th{
+    background:var(--head-bg)!important; color:var(--ink); position:sticky; top:0; z-index:1;
+    border-bottom:1px solid var(--border)!important;
+  }
+  .table tbody tr:nth-child(odd){ background:var(--row-alt); }
+  .table tbody tr:hover{ background:var(--hover); }
+
+  /* ===== Buttons ===== */
+  .btn-primary{
+    background: linear-gradient(180deg, #2563eb, #1d4ed8);
+    border-color:#1e40af;
+  }
+  .btn-primary:hover{ background: linear-gradient(180deg, #1d4ed8, #1e40af); }
+  .btn-outline-secondary{ border-radius:10px }
+  .btn{ border-radius:10px }
 </style>
 
 <div class="card p-4 shadow-sm">
@@ -79,23 +166,17 @@
           <h5>📏 Work Description & Measurements</h5>
           <div class="mb-3 mt-2">
             <label class="form-label">Description of the Item</label>
-            <!-- <select class="form-select select2" name="description" id="descriptionSelect" required>
-              <option value="">Select description</option>
-            </select> -->
             <input type="text" name="description" id="description" class="form-control" required>
-
           </div>
 
           <div class="row g-3">
             <div class="col-md-2">
               <label class="form-label">Unit</label>
               <select class="form-select select2" name="unit" required>
-                
                 <option value="">Select unit</option>
                 @foreach($unit ?? [] as $units)
                   <option value="{{ $units->id }}">{{ $units->unit }}</option>
                 @endforeach
-            
               </select>
             </div>
             <div class="col-md-2">
@@ -203,8 +284,7 @@
   </div>
 </div>
 
-<!-- ✅ JS CDN -->
-
+<!-- ✅ JS CDN (assumes jQuery is already included in your layout) -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
@@ -212,52 +292,21 @@
 <script>
   $(document).ready(function () {
 
-    // Initialize all Select2
+    // Initialize Select2
     $('.select2').select2({
       placeholder: "Select option",
       allowClear: true,
       width: '100%'
     });
 
-    // Load descriptions when chapter changes
-   // $('#chapterSelect').on('change', function () {
-      //let chapterId = $(this).val();
-     // let $desc = $('#descriptionSelect');
-
-      //$desc.empty().append('<option value="">Select description</option>');
-
-      // if (chapterId) {
-        // $.ajax({
-          // url: `/descriptions/${chapterId}`,
-          // type: 'GET',
-          // success: function (data) {
-            // if (data.length > 0) {
-              // data.forEach(function (item) {
-                // $desc.append(`<option value="${item.description}">${item.description}</option>`);
-              // });
-            // } else {
-              // $desc.append('<option value="">No descriptions found</option>');
-            // }
-
-            // $desc.select2({
-            //   placeholder: "Select description",
-            //   allowClear: true,
-            //   width: '100%'
-            // });
-    //       },
-    //       error: function () {
-    //         alert('Failed to load descriptions.');
-    //       }
-    //     });
-    //   }
-    // });
-
-    // Auto-calculate quantity
+    // Auto-calc quantity (L*B*H) + tiny visual feedback
     $('input[name="length"], input[name="breadth"], input[name="height"]').on('input', function () {
       let l = parseFloat($('input[name="length"]').val()) || 0;
       let b = parseFloat($('input[name="breadth"]').val()) || 0;
       let h = parseFloat($('input[name="height"]').val()) || 0;
-      $('input[name="total_quantity"]').val((l * b * h).toFixed(2));
+      const $qty = $('input[name="total_quantity"]');
+      $qty.val((l * b * h).toFixed(2));
+      $qty.addClass('is-valid'); setTimeout(()=> $qty.removeClass('is-valid'), 350);
     });
 
     // Total Labour Count
@@ -290,10 +339,9 @@
       }
     });
 
-    // Form Submit
+    // Form Submit (same logic)
     $('#workEntryForm').submit(function (e) {
       e.preventDefault();
-
       let form = $(this);
 
       $.post("{{ route('work-entry.save') }}", form.serialize())

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WorkEntry;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 
@@ -13,6 +13,13 @@ class EngineeringController extends Controller
 {
     public function index()
     {
+        $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
         // $chapters = \App\Models\Chapter::all();
         $chapters = DB::table('chapter')->get();
 
@@ -23,7 +30,7 @@ class EngineeringController extends Controller
                 ->get();
 // dd($users);
 
-        return view('engg.engineering',compact('chapters', 'unit','users'));
+        return view('engg.engineering',compact('chapters', 'unit','users','role'));
     }
 
     public function saveworkdata(Request $request)

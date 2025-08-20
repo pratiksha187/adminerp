@@ -181,7 +181,14 @@ class AttendanceController extends Controller
     }
 
     public function acceptattendence(){
-        return view('admin.acceptattendence');
+        $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
+        return view('admin.acceptattendence',compact('role'));
 
     }
    public function manualEntry(Request $request)

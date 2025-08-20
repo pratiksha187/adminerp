@@ -180,9 +180,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       if (p.kind === 'attendance') {
         const dur  = p.durText ? ` <span class="att-dur">(${p.durText})</span>` : '';
-        // const late = (p.lateMins  && p.lateMins  > 0) ? `<span class="flag flag-late">Late In +${p.lateMins}m</span>` : '';
-        // const early= (p.earlyMins && p.earlyMins > 0) ? `<span class="flag flag-early">Early Leave ${p.earlyMins}m</span>` : '';
-        // const ot   = (p.otMins    && p.otMins    > 0) ? `<span class="flag flag-ot">OT +${p.otMins}m</span>` : '';
         const late  = (p.lateMins  > 0) ? `<span class="flag flag-late">Late In ${p.lateText}</span>` : '';
         const early = (p.earlyMins > 0) ? `<span class="flag flag-early">Early Leave ${p.earlyText}</span>` : '';
         const ot    = (p.otMins    > 0) ? `<span class="flag flag-ot">OT ${p.otText}</span>` : '';
