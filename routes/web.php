@@ -9,6 +9,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PaymentController;
 use App\Exports\PaymentsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\AttendanceCalendarController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -19,7 +20,12 @@ Auth::routes();
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/test', [App\Http\Controllers\AdminController::class, 'test'])->name('test');
 
+
 Route::middleware(['auth'])->group(function () {
+
+Route::get('/attendance/calendar', [AttendanceCalendarController::class, 'view'])->name('attendance.calendar.view');
+Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 'events'])->name('attendance.calendar.events');
+
 
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     // Attendance

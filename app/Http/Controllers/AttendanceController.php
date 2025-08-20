@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Location;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AttendanceExport;
 use Yajra\DataTables\DataTables;
@@ -17,64 +18,7 @@ class AttendanceController extends Controller
 {
    
    
-    // public function clockIn(Request $request)
-    // {
-    //     $maxDistanceMeters = 500;
-
-    //     $userLat = $request->latitude;
-    //     $userLng = $request->longitude;
-
-    //     if (!$userLat || !$userLng) {
-    //         return back()->with('error', 'Location not detected.');
-    //     }
-
-    //     $locations = Location::all();
-
-    //     $withinAllowedLocation = false;
-
-    //     foreach ($locations as $location) {
-    //         if ($this->distance($location->latitude, $location->longitude, $userLat, $userLng) <= $maxDistanceMeters) {
-    //             $withinAllowedLocation = true;
-    //             break;
-    //         }
-    //     }
-
-    //     if (!$withinAllowedLocation) {
-    //         return back()->with('error', 'You are outside the allowed clock-in zones.');
-    //     }
-
-    //     Attendance::create([
-    //             'user_id' => auth()->id(),
-    //             'clock_in' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata'),
-    //             'latitude' => $userLat,
-    //             'longitude' => $userLng,
-    //             'device_time' => Carbon::parse($request->device_time)->timezone('Asia/Kolkata')->toDateTimeString(),
-    //         ]);
-
-
-    //     return back()->with('success', 'Clocked in successfully!');
-    // }
-    // private function distance($lat1, $lon1, $lat2, $lon2)
-    // {
-    //     $earthRadius = 6371000; // meters
-
-    //     $latFrom = deg2rad($lat1);
-    //     $lonFrom = deg2rad($lon1);
-    //     $latTo = deg2rad($lat2);
-    //     $lonTo = deg2rad($lon2);
-
-    //     $latDelta = $latTo - $latFrom;
-    //     $lonDelta = $lonTo - $lonFrom;
-
-    //     $a = sin($latDelta / 2) ** 2 +
-    //         cos($latFrom) * cos($latTo) *
-    //         sin($lonDelta / 2) ** 2;
-
-    //     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-    //     return $earthRadius * $c;
-    // }
- public function clockIn(Request $request)
+    public function clockIn(Request $request)
     {
         // 1) Validate cleanly (no device_time needed)
         $request->validate([
@@ -163,6 +107,13 @@ class AttendanceController extends Controller
 
     public function report(Request $request)
     {
+        $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+        $role = $userDetails->role;
         $start = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
         $end = $request->end_date ?? Carbon::now()->endOfMonth()->toDateString();
 
@@ -171,7 +122,7 @@ class AttendanceController extends Controller
             ->orderBy('clock_in', 'desc')
             ->get();
 
-        return view('admin.attendance_report', compact('attendances', 'start', 'end'));
+        return view('admin.attendance_report', compact('attendances', 'start', 'end','role'));
     }
 
     public function export(Request $request)
@@ -219,7 +170,14 @@ class AttendanceController extends Controller
 
 
     public function  manualattendence(){
-        return view('user.manualattendence');
+        $userId = Auth::id();
+        $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
+
+       $role = $userDetails->role;
+        return view('user.manualattendence',compact('role'));
     }
 
     public function acceptattendence(){
@@ -265,16 +223,27 @@ class AttendanceController extends Controller
     return back()->with('success', 'Manual attendance entry saved successfully.');
 }
 
-    public function getManualData(Request $request)
-    {
-        if ($request->ajax()) {
-            $data = ManualAttendance::query();
-            // echo"<pre>";
-            // print_r($data);
-            return DataTables::of($data)->make(true);
-        }
-    }
+    // public function getManualData(Request $request)
+    // {
+    //     $userId = Auth::id();
+    //     if ($request->ajax()) {
+    //         $data = ManualAttendance::query();
+           
+    //         // dd($data);
+    //         return DataTables::of($data)->make(true);
+    //     }
+    // }
+public function getManualData(Request $request)
+{
+    $userId = Auth::id();
 
+    if ($request->ajax()) {
+        $data = ManualAttendance::query()
+                  ->where('user_id', $userId);  // ✅ filter by logged-in user
+
+        return DataTables::of($data)->make(true);
+    }
+}
     public function handleManualAction(Request $request)
     {
         $request->validate([

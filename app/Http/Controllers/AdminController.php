@@ -11,11 +11,12 @@ class AdminController extends Controller
     public function index()
     {
       $userId = Auth::id();
-      $user_details = DB::table('users')
-                ->where('role', $userId)
-                ->first();
+      $userDetails = DB::table('users')
+                    ->select('role')
+                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->first();
 
-      $role = $user_details->role;
+       $role = $userDetails->role;
         return view('admin.dashboard',compact('role'));
     }
 
