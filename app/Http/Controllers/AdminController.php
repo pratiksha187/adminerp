@@ -1,15 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\LetterHead;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
     public function index()
     {
-        return view('admin.dashboard');
+      $userId = Auth::id();
+      $user_details = DB::table('users')
+                ->where('role', $userId)
+                ->first();
+
+      $role = $user_details->role;
+        return view('admin.dashboard',compact('role'));
     }
 
     public function letterhead(){

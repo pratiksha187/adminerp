@@ -143,6 +143,7 @@
             @auth
                 <span class="text-dark me-3">
                     <i class="bi bi-person-circle me-1"></i> {{ Auth::user()->name }}
+
                 </span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -158,11 +159,11 @@
     <!-- Dashboard -->
   
     <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <i class="bi bi-house-door me-2"></i> Dashboard<h1>{{ Auth::user()->id }}</h1>
+        <i class="bi bi-house-door me-2"></i> Dashboard
     </a>
  
     <!-- User -->
-    @if(in_array(Auth::user()->id, [1,2])) 
+    @if(in_array($role, [1,2])) 
     @php $userActive = request()->is('register*'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $userActive ? 'active-parent' : '' }}"
        data-bs-toggle="collapse" href="#registerMenu" aria-expanded="{{ $userActive ? 'true' : 'false' }}">
@@ -177,7 +178,7 @@
     @endif
 
 
-    @if(in_array(Auth::user()->id, [1,2,10]))   
+    @if(in_array($role, [1,2,10]))   
     @php $accountsActive = request()->routeIs('challan'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $accountsActive ? 'active-parent' : '' }}"
     data-bs-toggle="collapse" href="#accountsMenu" aria-expanded="{{ $accountsActive ? 'true' : 'false' }}">
@@ -191,7 +192,7 @@
     </div>
     @endif
 
-    @if(in_array(Auth::user()->id, [1,4,2])) 
+    @if(in_array($role, [1,4,2])) 
     @php $enggActive = request()->routeIs('work-entry.index'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
     data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
@@ -250,7 +251,7 @@
         </div>
     @endif
 
-    @if(in_array(Auth::user()->id, [1,9,2])) 
+    @if(in_array($role, [1,9,2])) 
     @php $paymentActive = request()->is('payments*'); @endphp
 
         <a class="d-flex justify-content-between align-items-center {{ $paymentActive ? 'active-parent' : '' }}"
@@ -268,7 +269,7 @@
         </div>
     @endif
 
-     @if(in_array(Auth::user()->id, [1,2])) 
+     @if(in_array($role, [1,2])) 
     <!-- Letter Head --> 
     @php $letterheadActive = request()->is('letterhead*'); @endphp
     <a class="d-flex justify-content-between align-items-center {{ $letterheadActive ? 'active-parent' : '' }}"
