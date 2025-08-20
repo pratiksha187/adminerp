@@ -211,6 +211,7 @@
         $uid = $role;
 
         $canSee = [
+            'attendance.calendar.view'     => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),  
             'attendance.report'            => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),  
             'attendance.manualattendence'  => in_array($uid, [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]),     
             'attendance.acceptattendence'  => in_array($uid, [1,4]),     
@@ -231,6 +232,13 @@
         </a>
 
         <div class="collapse {{ $attendanceActive ? 'show' : '' }}" id="userauthMenu">
+           
+            @if($canSee['attendance.calendar.view'])
+                <a href="{{ route('attendance.calendar.view') }}" class="{{ request()->routeIs('attendance.calendar.view') ? 'active' : '' }}">
+                    <i class="bi bi-list-check me-2"></i> Attendance Calendar
+                </a>
+            @endif
+
             @if($canSee['attendance.report'])
                 <a href="{{ route('attendance.report') }}" class="{{ request()->routeIs('attendance.report') ? 'active' : '' }}">
                     <i class="bi bi-list-check me-2"></i> Daily Login/Logout
