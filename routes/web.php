@@ -85,3 +85,7 @@ Route::get('/payments/export', [PaymentController::class, 'export'])->name('paym
 
 });
 
+Route::get('/test-pass', function () {
+    $hash = '$2y$12$ppV0p0fTxwmTAhVidCMjpOVBptoQaXHnJZHD/xehTX.D31naG6gQ2';
+    return \Illuminate\Support\Facades\Hash::check('pratiksha@123', $hash) ? 'MATCH' : 'NO MATCH';
+});

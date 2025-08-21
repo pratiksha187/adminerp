@@ -83,7 +83,7 @@
 
     {{-- ===== User (roles 1,2) ===== --}}
     @php $userActive = request()->routeIs('register*'); @endphp
-    @if(in_array($roleId, [1, 2], true))
+    @if(in_array($roleId, [1, 2,17], true))
         <a class="d-flex justify-content-between align-items-center {{ $userActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#registerMenu" aria-expanded="{{ $userActive ? 'true' : 'false' }}">
             <span><i class="bi bi-person me-2"></i> User</span>
@@ -98,7 +98,7 @@
 
     {{-- ===== Accounts (roles 1,2,10) - challan* ===== --}}
     @php $accountsActive = request()->routeIs('challan*'); @endphp
-    @if(in_array($roleId, [1, 2, 10], true))
+    @if(in_array($roleId, [1, 2, 10,17], true))
         <a class="d-flex justify-content-between align-items-center {{ $accountsActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#accountsMenu" aria-expanded="{{ $accountsActive ? 'true' : 'false' }}">
             <span><i class="bi bi-gear me-2"></i> Accounts</span>
@@ -111,9 +111,9 @@
         </div>
     @endif
 
-    {{-- ===== DPR (roles 1,2,4) - work-entry.* ===== --}}
+    {{-- ===== DPR (roles 1,2,4,17) - work-entry.* ===== --}}
     @php $enggActive = request()->routeIs('work-entry.*'); @endphp
-    @if(in_array($roleId, [1, 2, 4], true))
+    @if(in_array($roleId, [1, 2, 4,17], true))
         <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
             <span><i class="bi bi-book me-2"></i> DPR</span>
@@ -129,7 +129,7 @@
     {{-- ===== Attendance (mixed role gates) ===== --}}
     @php
         $allowAll     = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
-        $allowManager = [1,4];
+        $allowManager = [1,2,17];
 
         $canSee = [
             'attendance.calendar.view'    => in_array($roleId, $allowAll, true),
@@ -181,7 +181,7 @@
 
     {{-- ===== Payments (roles 1,2,9) - payments.* ===== --}}
     @php $paymentActive = request()->routeIs('payments.*'); @endphp
-    @if(in_array($roleId, [1, 2, 9], true))
+    @if(in_array($roleId, [1, 2, 9,17], true))
         <a class="d-flex justify-content-between align-items-center {{ $paymentActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#paymentMenu" aria-expanded="{{ $paymentActive ? 'true' : 'false' }}">
             <span><i class="bi bi-currency-rupee me-2"></i> Payments</span>
@@ -199,7 +199,7 @@
 
     {{-- ===== Letterhead (roles 1,2) - letterhead / letterhead.* ===== --}}
     @php $letterheadActive = request()->routeIs('letterhead*'); @endphp
-    @if(in_array($roleId, [1, 2], true))
+    @if(in_array($roleId, [1, 2,17], true))
         <a class="d-flex justify-content-between align-items-center {{ $letterheadActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#letterheadMenu" aria-expanded="{{ $letterheadActive ? 'true' : 'false' }}">
             <span><i class="bi bi-file-earmark-text me-2"></i> Letter Head</span>
