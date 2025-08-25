@@ -34,6 +34,10 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
 
     // Register / All Users
     Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::get('/employees/{user}', [RegisterController::class, 'show']);          // fetch one (JSON)
+    Route::put('/employees/{user}', [RegisterController::class, 'update']);        // update
+    // You already have:
+    // Route::post('/employees/{user}/status', [RegisterController::class, 'status']); // status toggle
     Route::post('register', [RegisterController::class, 'register']);
     // Route::get('Alluser', [RegisterController::class, 'Alluser'])->name('Alluser');
     Route::delete('/employees/{id}', [RegisterController::class, 'destroy'])->name('employees.destroy');

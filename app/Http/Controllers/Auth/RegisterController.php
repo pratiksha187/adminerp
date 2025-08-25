@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables; // ← use the facade
@@ -22,6 +23,7 @@ class RegisterController extends Controller
             $users = DB::table('users')
                 ->leftJoin('role', 'users.role', '=', 'role.id')
                 ->select([
+                    'users.*',
                     'users.id',
                     'users.employee_code',
                     'users.name',
@@ -111,4 +113,88 @@ class RegisterController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+       public function show(User $user)
+    {
+        // Ensure role_id is present if you store it on users table
+        // If you use Spatie roles instead, return a matching role id/name accordingly.
+        return response()->json([
+            'id'                  => $user->id,
+            'employee_code'       => $user->employee_code,
+            'name'                => $user->name,
+            'email'               => $user->email,
+            'mobile_no'           => $user->mobile_no,
+            'role_id'             => $user->role_id ?? null,
+            'salary'              => $user->salary,
+            'gender'              => $user->gender,
+            'marital_status'      => $user->marital_status,
+            'aadhaar'             => $user->aadhaar,
+            'dob'                 => $user->dob,
+            'join_date'           => $user->join_date,
+            'confirmation_date'   => $user->confirmation_date,
+            'probation_months'    => $user->probation_months,
+            'hours_day'           => $user->hours_day,
+            'days_week'           => $user->days_week,
+            'is_active'           => $user->is_active,
+        ]);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'employee_code'     => ['required', 'string', Rule::unique('users', 'employee_code')->ignore($user->id)],
+            'name'              => ['required', 'string', 'max:255'],
+            'email'             => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'mobile_no'         => ['nullable', 'string', 'max:20'],
+            'role'              => ['nullable', 'integer'], // role_id
+            'salary'            => ['nullable', 'numeric'],
+            'gender'            => ['nullable', Rule::in(['Male','Female'])],
+            'marital_status'    => ['nullable', Rule::in(['Single','Married'])],
+            'aadhaar'           => ['nullable', 'string', 'max:20'],
+            'dob'               => ['nullable', 'date'],
+            'join_date'         => ['nullable', 'date'],
+            'confirmation_date' => ['nullable', 'date'],
+            'probation_months'  => ['nullable', 'integer'],
+            'hours_day'         => ['nullable', 'numeric'],
+            'days_week'         => ['nullable', 'integer'],
+            'is_active'         => ['required', Rule::in([0,1,'0','1'])],
+            'password'          => ['nullable', 'confirmed', 'min:6'],
+        ]);
+
+        $user->employee_code     = $validated['employee_code'];
+        $user->name              = $validated['name'];
+        $user->email             = $validated['email'];
+        $user->mobile_no         = $validated['mobile_no'] ?? null;
+        $user->salary            = $validated['salary'] ?? null;
+        $user->gender            = $validated['gender'] ?? null;
+        $user->marital_status    = $validated['marital_status'] ?? null;
+        $user->aadhaar           = $validated['aadhaar'] ?? null;
+        $user->dob               = $validated['dob'] ?? null;
+        $user->join_date         = $validated['join_date'] ?? null;
+        $user->confirmation_date = $validated['confirmation_date'] ?? null;
+        $user->probation_months  = $validated['probation_months'] ?? null;
+        $user->hours_day         = $validated['hours_day'] ?? null;
+        $user->days_week         = $validated['days_week'] ?? null;
+        $user->is_active         = (int)($validated['is_active'] ?? 1);
+
+        // If you store role_id on users table
+        if (array_key_exists('role', $validated) && !is_null($validated['role'])) {
+            $user->role_id = $validated['role'];
+        }
+
+        // If password provided, update it
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        // If you're using Spatie roles instead of role_id:
+        // if (!empty($validated['role'])) {
+        //     $user->syncRoles([$validated['role']]); // adjust to role name if needed
+        // }
+
+        return response()->json(['status' => 'ok']);
+    }
+
 }
