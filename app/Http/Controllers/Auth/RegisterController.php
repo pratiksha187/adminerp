@@ -114,30 +114,35 @@ class RegisterController extends Controller
         return response()->json(['success' => true]);
     }
 
-       public function show(User $user)
-    {
-        // Ensure role_id is present if you store it on users table
-        // If you use Spatie roles instead, return a matching role id/name accordingly.
-        return response()->json([
-            'id'                  => $user->id,
-            'employee_code'       => $user->employee_code,
-            'name'                => $user->name,
-            'email'               => $user->email,
-            'mobile_no'           => $user->mobile_no,
-            'role_id'             => $user->role_id ?? null,
-            'salary'              => $user->salary,
-            'gender'              => $user->gender,
-            'marital_status'      => $user->marital_status,
-            'aadhaar'             => $user->aadhaar,
-            'dob'                 => $user->dob,
-            'join_date'           => $user->join_date,
-            'confirmation_date'   => $user->confirmation_date,
-            'probation_months'    => $user->probation_months,
-            'hours_day'           => $user->hours_day,
-            'days_week'           => $user->days_week,
-            'is_active'           => $user->is_active,
-        ]);
-    }
+   public function show(User $user)
+{
+    $roleRow = DB::table('role')
+        ->select('id','role')
+        ->where('id', $user->role)
+        ->first();
+
+    return response()->json([
+        'id'                  => $user->id,
+        'employee_code'       => $user->employee_code,
+        'name'                => $user->name,
+        'email'               => $user->email,
+        'mobile_no'           => $user->mobile_no,
+        'role_id'             => $user->role,                 // ✅ use users.role
+        'role_name'           => $roleRow?->role,             // optional, handy in UI
+        'salary'              => $user->salary,
+        'gender'              => $user->gender,
+        'marital_status'      => $user->marital_status,
+        'aadhaar'             => $user->aadhaar,
+        'dob'                 => $user->dob,
+        'join_date'           => $user->join_date,
+        'confirmation_date'   => $user->confirmation_date,
+        'probation_months'    => $user->probation_months,
+        'hours_day'           => $user->hours_day,
+        'days_week'           => $user->days_week,
+        'is_active'           => $user->is_active,
+    ]);
+}
+
 
     public function update(Request $request, User $user)
     {
@@ -178,8 +183,9 @@ class RegisterController extends Controller
         $user->is_active         = (int)($validated['is_active'] ?? 1);
 
         // If you store role_id on users table
+      
         if (array_key_exists('role', $validated) && !is_null($validated['role'])) {
-            $user->role_id = $validated['role'];
+            $user->role = $validated['role'];   // ✅ not $user->role_id
         }
 
         // If password provided, update it

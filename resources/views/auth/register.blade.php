@@ -495,7 +495,8 @@ $(function () {
       $('#edit_name').val(res.name || '');
       $('#edit_email').val(res.email || '');
       $('#edit_mobile_no').val(res.mobile_no || '');
-      $('#edit_role').val(res.role_id || '');
+    //   $('#edit_role').val(res.role_id || '');
+      $('#edit_role').val(res.role_id != null ? String(res.role_id) : '');
       $('#edit_salary').val(res.salary || '');
       $('#edit_gender').val(res.gender || '');
       $('#edit_marital_status').val(res.marital_status || '');
