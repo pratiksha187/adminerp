@@ -79,7 +79,7 @@ Route::post('/employees/{id}/status', [RegisterController::class, 'updateStatus'
 
     // Route::get('/letterhead', [LetterHeadController::class, 'index'])->name('letterhead.index');
     Route::post('/letterhead', [AdminController::class, 'storeletterhead'])->name('letterhead.store');
-
+Route::post('import-letterhead', [AdminController::class, 'importLetterhead'])->name('letterhead.import');
    Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
 Route::post('/payments/generate', [PaymentController::class, 'generatePayment'])->name('payments.generate');
 Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');

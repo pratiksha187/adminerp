@@ -84,7 +84,16 @@
   }
   .modal-footer{ border-top:1px solid var(--border) }
 </style>
-
+<form action="{{ route('letterhead.import') }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    <div class="form-group">
+        <label for="file" class="form-label">Upload CSV/Excel File</label>
+        <input type="file" name="file" class="form-control" accept=".csv,.xlsx,.xls" required>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">
+        <i class="bi bi-upload me-1"></i> Import CSV/Excel
+    </button>
+</form>
 <div class="letterhead-container">
   <div class="card card-custom">
     @if(session('success'))
@@ -101,42 +110,23 @@
 
     <!-- Table -->
     <div class="table-responsive">
-      <table class="table table-bordered align-middle">
+      <table id="letterhead-table" class="table table-bordered align-middle">
         <thead class="table-light">
           <tr>
+            <th>ID</th>  <!-- Added ID Column -->
             <th>Date</th>
             <th>Name</th>
             <th>Ref No</th>
             <th>Description</th>
-            <!-- <th class="text-center">Action</th> -->
           </tr>
         </thead>
-        <tbody>
-          @forelse ($letterHeads as $item)
-            <tr>
-              <td><span class="chip">{{ $item->date }}</span></td>
-              <td>{{ $item->name }}</td>
-              <td><span class="chip">{{ $item->ref_no }}</span></td>
-              <td>{{ $item->description }}</td>
-              <!-- <td class="text-center">
-                <button class="btn btn-sm btn-danger">
-                  <i class="bi bi-trash"></i> Delete
-                </button>
-              </td> -->
-            </tr>
-          @empty
-            <tr>
-              <td colspan="4" class="empty-message">
-                <i class="bi bi-inbox me-2"></i>No letter heads added yet. Click <strong>“Add Letter Head”</strong> to start.
-              </td>
-            </tr>
-          @endforelse
-        </tbody>
       </table>
     </div>
-
   </div>
 </div>
+
+
+
 
 <!-- Modal -->
 <div class="modal fade" id="employeeModal" tabindex="-1" aria-hidden="true">
@@ -185,4 +175,24 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#letterhead-table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('letterhead') }}", // The URL for the data source
+            columns: [
+                { data: 'id', name: 'id' },                // Add the ID column here
+                { data: 'date', name: 'date' },
+                { data: 'name', name: 'name' },
+                { data: 'ref_no', name: 'ref_no' },
+                { data: 'description', name: 'description' }
+            ]
+        });
+    });
+</script>
+
+
 @endsection
