@@ -10,28 +10,43 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 class AdminController extends Controller
 {
-    public function letterhead(Request $request)
-{
-    $userId = Auth::id();
-    $userDetails = DB::table('users')
+
+     public function index()
+    {
+        // dd($request);
+      $userId = Auth::id();
+    //   dd($userId);
+      $userDetails = DB::table('users')
                     ->select('role')
                     ->where('id', $userId)
                     ->first();
 
-    $role = $userDetails->role;
-    $letterHeads = LetterHead::latest(); // Fetch the latest letter heads
-
-    if ($request->ajax()) {
-        return DataTables::of($letterHeads)
-            ->addIndexColumn() // Add an auto-incrementing index column
-            ->addColumn('date', function($row) {
-                return \Carbon\Carbon::parse($row->date)->format('Y-m-d');
-            })
-            ->make(true);
+       $role = $userDetails->role;
+    // $role = 2
+        return view('admin.dashboard',compact('role'));
     }
+    public function letterhead(Request $request)
+    {
+        $userId = Auth::id();
+        $userDetails = DB::table('users')
+                        ->select('role')
+                        ->where('id', $userId)
+                        ->first();
 
-    return view('admin.letterhead',compact('letterHeads', 'role'));
-}
+        $role = $userDetails->role;
+        $letterHeads = LetterHead::latest(); // Fetch the latest letter heads
+
+        if ($request->ajax()) {
+            return DataTables::of($letterHeads)
+                ->addIndexColumn() // Add an auto-incrementing index column
+                ->addColumn('date', function($row) {
+                    return \Carbon\Carbon::parse($row->date)->format('Y-m-d');
+                })
+                ->make(true);
+        }
+
+        return view('admin.letterhead',compact('letterHeads', 'role'));
+    }
 
 
     public function storeletterhead(Request $request)

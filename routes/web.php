@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PaymentController;
 use App\Exports\PaymentsExport;
+use App\Http\Controllers\HomeController;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\AttendanceCalendarController;
 

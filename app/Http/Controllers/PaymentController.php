@@ -52,7 +52,8 @@ public function create()
     $from = Carbon::parse($request->from_date);
     $to = Carbon::parse($request->to_date);
 
-    $gross_salary = $user->gross_salary ?? 0;
+    $gross_salary = $user->salary ?? 0;
+   
     $per_day_rate = round($gross_salary / 31, 2);
 
     // Get present days
@@ -61,7 +62,7 @@ public function create()
         ->selectRaw('DATE(clock_in) as day')
         ->distinct()
         ->count();
-
+//  dd($present_days);
     // Payment logic
     $basic_60 = round($gross_salary * 0.6, 2);
     $hra_5 = round($basic_60 * 0.05, 2);
