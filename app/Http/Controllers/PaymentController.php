@@ -182,7 +182,7 @@ public function generatePayment(Request $request)
   
     $daysInMonth = $from->daysInMonth; 
    
-    $per_day_rate = round($gross_salary / $daysInMonth, 2);
+    $per_day_rate = round($gross_salary / $daysInMonth);
 dd($per_day_rate);
     $present_days_in_month = Attendance::where('user_id', $user->id)
         ->whereBetween('clock_in', [$from, $to])
