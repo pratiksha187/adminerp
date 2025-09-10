@@ -14,33 +14,32 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class PaymentController extends Controller
 {
 
-   public function index()
+public function index()
 {
-      $userId = Auth::id();
+        $userId = Auth::id();
         $userDetails = DB::table('users')
                     ->select('role')
-                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->where('id', $userId)   
                     ->first();
 
         $role = $userDetails->role;
-    $payments = \App\Models\Payment::with('user')->latest()->get();
+    $payments = Payment::with('user')->latest()->get();
     return view('payments.index', compact('payments','role'));
 }
 public function create()
 {
-      $userId = Auth::id();
-        $userDetails = DB::table('users')
+    $userId = Auth::id();
+    $userDetails = DB::table('users')
                     ->select('role')
-                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->where('id', $userId)  
                     ->first();
 
-        $role = $userDetails->role;
+    $role = $userDetails->role;
     $users = \App\Models\User::all(); // fetch employees for dropdown
     return view('payments.create', compact('users','role'));
 }
 
-
-   public function generatePayment(Request $request)
+public function generatePayment(Request $request)
 {
     $request->validate([
         'user_id' => 'required|exists:users,id',
@@ -48,60 +47,221 @@ public function create()
         'to_date' => 'required|date|after_or_equal:from_date',
     ]);
 
-    $user = User::findOrFail($request->user_id);
+    $userid = $request->user_id;
+
+    // Check if payment already exists
+    $exists = Payment::where('user_id', $userid)
+            ->whereDate('from_date', $request->from_date)
+            ->whereDate('to_date', $request->to_date)
+            ->exists();
+
+    if ($exists) {
+        return back()->with('error', 'Payment is already generated for this period!');
+    }
+
+    $user = User::findOrFail($userid);
+    $user_details = DB::table('users')->where('id', $userid)->first();
+    $gross_salary = $user->salary ?? 0;
+
     $from = Carbon::parse($request->from_date);
     $to = Carbon::parse($request->to_date);
 
-    $gross_salary = $user->salary ?? 0;
-   
-    $per_day_rate = round($gross_salary / 31, 2);
+    $daysInMonth = $from->daysInMonth;
+    $per_day_rate = round($gross_salary / $daysInMonth, 2);
 
-    // Get present days
-    $present_days = Attendance::where('user_id', $user->id)
+    // Get attendance records
+    $attendances = Attendance::where('user_id', $user->id)
         ->whereBetween('clock_in', [$from, $to])
-        ->selectRaw('DATE(clock_in) as day')
-        ->distinct()
-        ->count();
-//  dd($present_days);
-    // Payment logic
+        ->get();
+
+    $present_days = 0;
+
+    foreach ($attendances as $attendance) {
+        if (!$attendance->clock_out || !$attendance->clock_in) continue;
+
+        $clockIn = Carbon::parse($attendance->clock_in);
+        $clockOut = Carbon::parse($attendance->clock_out);
+
+        $workedMinutes = $clockIn->diffInMinutes($clockOut);
+
+        if ($workedMinutes >= 270) { // 4.5 hours or more → full day
+            $present_days += 1;
+        } elseif ($workedMinutes > 0 && $workedMinutes < 270) { // less than 4.5h → half day
+            $present_days += 0.5;
+        }
+    }
+// dd($workedMinutes);
+    // Count weekly offs
+    $weekoffCount = 0;
+    for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
+        if ($date->isSunday()) $weekoffCount++;
+    }
+
+    // Count holidays
+    $holidayCount = DB::table('holidays')
+                    ->whereBetween('date', [$from, $to])
+                    ->count();
+
+    // Total days considered present
+    $present_days_act = $present_days + $weekoffCount + $holidayCount;
+
+    // Gross payable
+    $gross_payable = round($per_day_rate * $present_days_act, 2);
+
+    // Salary components
     $basic_60 = round($gross_salary * 0.6, 2);
-    $hra_5 = round($basic_60 * 0.05, 2);
-    $conveyance_20 = round($basic_60 * 0.2, 2);
-    $other_allowance = 2000; // example static
-    $ot_arrears = 0;         // can be set dynamically
+    $hra_5 = round($gross_salary * 0.05, 2);
+    $conveyance_20 = round($gross_salary * 0.2, 2);
+    $other_allowance = $gross_salary - $basic_60 - $hra_5 - $conveyance_20;
 
-    $gross_payable = round($per_day_rate * $present_days + $hra_5 + $conveyance_20 + $other_allowance + $ot_arrears, 2);
-    $pf = round($gross_payable * 0.12, 2);
-    $insurance = 500; // fixed
-    $pt = 200;        // fixed
-    $advance = 0;     // from advance table if needed
-
+    // Deductions
+    $pf = $user_details->pf ?? 0;
+    $insurance = $user_details->insurance ?? 0;
+    $pt = $user_details->pt ?? 0;
+    $advance = $user_details->advance ?? 0;
     $total_deduction = $pf + $insurance + $pt + $advance;
+
     $net_payable = $gross_payable - $total_deduction;
 
-    $payment = Payment::create([
+    // Save Payment
+    Payment::create([
         'user_id' => $user->id,
         'from_date' => $from,
         'to_date' => $to,
-        'present_days' => $present_days,
+        'present_days' => $present_days_act,
         'gross_salary' => $gross_salary,
         'per_day_rate' => $per_day_rate,
         'basic_60' => $basic_60,
         'hra_5' => $hra_5,
         'conveyance_20' => $conveyance_20,
         'other_allowance' => $other_allowance,
-        'ot_arrears' => $ot_arrears,
+        'ot_arrears' => 0,
         'gross_payable' => $gross_payable,
         'pf_12' => $pf,
         'insurance' => $insurance,
         'pt' => $pt,
+        'weekoffCount' => $weekoffCount,
         'advance' => $advance,
         'total_deduction' => $total_deduction,
         'net_payable' => $net_payable,
+        'holidayCount' => $holidayCount,
+        'present_days_in_month' => $present_days,
     ]);
 
     return back()->with('success', 'Payment generated successfully!');
 }
+
+
+// public function generatePayment(Request $request)
+// {
+//     $request->validate([
+//         'user_id' => 'required|exists:users,id',
+//         'from_date' => 'required|date',
+//         'to_date' => 'required|date|after_or_equal:from_date',
+//     ]);
+//     $weekoffCount = 0;
+//     $userid = $request->user_id;
+
+//     $exists = Payment::where('user_id', $userid)
+//             ->whereDate('from_date', $request->from_date)
+//             ->whereDate('to_date', $request->to_date)
+//             ->exists();
+
+//     if ($exists) {
+//         return back()->with('error', 'Payment is already generated for this period!');
+//     }
+//     $user = User::findOrFail($request->user_id);
+//     $ot_arrears = 0;
+//     $user_details =  DB::table('users')
+//                     ->where('id', $userid)  
+//                     ->first();
+//                     // dd($user_details);
+//     $from = Carbon::parse($request->from_date);
+//     $to = Carbon::parse($request->to_date);
+//     $gross_salary = $user->salary ?? 0;
+  
+//     $daysInMonth = $from->daysInMonth; 
+   
+//     $per_day_rate = round($gross_salary / $daysInMonth, 2);
+
+//     $present_days_in_month = Attendance::where('user_id', $user->id)
+//         ->whereBetween('clock_in', [$from, $to])
+//         ->selectRaw('DATE(clock_in) as day')
+//         ->distinct()
+//         ->count();
+
+//     for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
+//         if ($date->isSunday()) {   
+//             $weekoffCount++;
+//         }
+//     }  
+    
+//     $holidayCount = DB::table('holidays')
+//                     ->whereBetween('date', [$from, $to])
+//                     ->count();
+
+//     $present_days_act = $present_days_in_month + $weekoffCount + $holidayCount;
+//     $gross_payable = round($per_day_rate * $present_days_act);
+
+//     $basic_60 = round($gross_salary * 0.6, 2);
+//     $hra_5 = round($gross_salary * 0.05, 2);
+//     $conveyance_20 = round($gross_salary * 0.2, 2);
+//     $other_allowance = $gross_salary - $basic_60 - $hra_5 - $conveyance_20;
+
+//     $pf = $user_details->pf;
+//     $insurance = $user_details->insurance;
+//     $pt = $user_details->pt;
+//     $advance = $user_details->advance;
+//     $total_deduction = $pf + $insurance + $pt + $advance;
+
+//     $net_payable = $gross_payable - $pf - $insurance - $pt - $advance;
+
+
+//     $payment = Payment::create([
+//         'user_id' => $user->id,
+//         'from_date' => $from,
+//         'to_date' => $to,
+//         'present_days' => $present_days_act,
+//         'gross_salary' => $gross_salary,
+//         'per_day_rate' => $per_day_rate,
+//         'basic_60' => $basic_60,
+//         'hra_5' => $hra_5,
+//         'conveyance_20' => $conveyance_20,
+//         'other_allowance' => $other_allowance,
+//         'ot_arrears' => $ot_arrears,
+//         'gross_payable' => $gross_payable,
+//         'pf_12' => $pf,
+//         'insurance' => $insurance,
+//         'pt' => $pt,
+//         'weekoffCount' =>$weekoffCount,
+//         'advance' => $advance,
+//         'total_deduction' => $total_deduction,
+//         'net_payable' => $net_payable,
+//         'holidayCount' => $holidayCount,
+//         'present_days_in_month' => $present_days_in_month,
+//     ]);
+
+//     return back()->with('success', 'Payment generated successfully!');
+    
+   
+// }
+public function slip($id)
+{
+    $payment = Payment::with('user')->findOrFail($id);
+    // dd($payment);
+    $month = \Carbon\Carbon::parse($payment->from_date)->format('F'); // August
+    $year  = \Carbon\Carbon::parse($payment->from_date)->format('Y'); // 2025
+    $from = Carbon::parse($payment->from_date);
+   
+    $daysInMonth = $from->daysInMonth;
+    //  dd($daysInMonth); 
+    $user = $payment->user;
+    // dd($user);
+    // $leave = LeaveBalance::where('user_id', $user->id)->first(); // optional
+
+    return view('payments.slip', compact('payment','user','daysInMonth'));
+}
+
 
 public function export(): StreamedResponse
 {

@@ -80,6 +80,10 @@ class RegisterController extends Controller
             'hours_day'         => ['nullable', 'numeric', 'min:0'],
             'days_week'         => ['nullable', 'integer', 'min:0'],
             'role'              => ['required'],
+            'insurance'         => ['required'],
+            'pt'                => ['required'],
+            'advance'           => ['required'],
+            'pf'                => ['required']
         ]);
     }
 
@@ -102,6 +106,10 @@ class RegisterController extends Controller
             'salary'            => $data['salary'] ?? null,
             'days_week'         => $data['days_week'] ?? null,
             'role'              => $data['role'],
+            'insurance'         => $data['insurance'],
+            'pt'                => $data['pt'],
+            'advance'           => $data['advance'],
+            'pf'                => $data['pf'],
         ]);
     }
 
@@ -139,6 +147,10 @@ class RegisterController extends Controller
         'probation_months'    => $user->probation_months,
         'hours_day'           => $user->hours_day,
         'days_week'           => $user->days_week,
+        'insurance' => $user->insurance,
+        'advance' => $user->advance,
+        'pf' => $user->pf,
+        'pt' => $user->pt,
         'is_active'           => $user->is_active,
     ]);
 }
@@ -161,8 +173,13 @@ class RegisterController extends Controller
             'confirmation_date' => ['nullable', 'date'],
             'probation_months'  => ['nullable', 'integer'],
             'hours_day'         => ['nullable', 'numeric'],
+
             'days_week'         => ['nullable', 'integer'],
             'is_active'         => ['required', Rule::in([0,1,'0','1'])],
+            'insurance'         => ['nullable'],
+            'pt'                => ['nullable'],
+            'advance'           => ['nullable'],
+            'pf'                => ['nullable'],
             'password'          => ['nullable', 'confirmed', 'min:6'],
         ]);
 
@@ -180,6 +197,10 @@ class RegisterController extends Controller
         $user->probation_months  = $validated['probation_months'] ?? null;
         $user->hours_day         = $validated['hours_day'] ?? null;
         $user->days_week         = $validated['days_week'] ?? null;
+         $user->insurance = $validated['insurance'] ?? null;
+        $user->pt  = $validated['pt'] ?? null;
+        $user->advance         = $validated['advance'] ?? null;
+        $user->pf         = $validated['pf'] ?? null;
         $user->is_active         = (int)($validated['is_active'] ?? 1);
 
         // If you store role_id on users table

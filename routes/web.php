@@ -10,6 +10,7 @@ use App\Http\Controllers\PaymentController;
 use App\Exports\PaymentsExport;
 use App\Http\Controllers\HomeController;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\AttendanceCalendarController;
 
 Route::get('/', function () {
@@ -80,17 +81,29 @@ Route::post('/employees/{id}/status', [RegisterController::class, 'updateStatus'
 
     // Route::get('/letterhead', [LetterHeadController::class, 'index'])->name('letterhead.index');
     Route::post('/letterhead', [AdminController::class, 'storeletterhead'])->name('letterhead.store');
-Route::post('import-letterhead', [AdminController::class, 'importLetterhead'])->name('letterhead.import');
-   Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
-Route::post('/payments/generate', [PaymentController::class, 'generatePayment'])->name('payments.generate');
-Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('import-letterhead', [AdminController::class, 'importLetterhead'])->name('letterhead.import');
+    Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
+    Route::post('/payments/generate', [PaymentController::class, 'generatePayment'])->name('payments.generate');
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
 // routes/web.php
 // Route::get('/payments/create', [PaymentController::class, 'create'])->name('payments.create');
-Route::get('/payments/export', [PaymentController::class, 'export'])->name('payments.export');
+    Route::get('/payments/export', [PaymentController::class, 'export'])->name('payments.export');
+    Route::get('crm', [LeadController::class, 'crm'])->name('crm');   // Grid
+    Route::post('leads/store', [LeadController::class, 'store'])->name('leads.store'); 
+    Route::get('crm/lead-management', [LeadController::class, 'index'])->name('crm/lead-management');   // Grid
+    Route::get('leads/create', [LeadController::class, 'create'])->name('leads.create');   // Grid
+    Route::get('/leads/{lead}', [LeadController::class, 'show'])->name('leads.show');
+    Route::get('/leads/{lead}/edit', [LeadController::class, 'edit'])->name('leads.edit');
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])->name('leads.destroy');
+    // Route::patch('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
+    Route::match(['put', 'patch'], '/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
+  Route::get('payments/slip/{id}', [PaymentController::class, 'slip'])->name('payments.slip');
 
 });
 
 Route::get('/test-pass', function () {
-    $hash = '$2y$12$ppV0p0fTxwmTAhVidCMjpOVBptoQaXHnJZHD/xehTX.D31naG6gQ2';
-    return \Illuminate\Support\Facades\Hash::check('pratiksha@123', $hash) ? 'MATCH' : 'NO MATCH';
+    $newHash = Hash::make('secret123');
+    // dd($newHash);
+    $hash = '$2y$12$R6H5FFOgSxxv1uqm..3Q9OWMH/zbVRZjuyGtJWcpjVeVrwoZyW0mq';
+    return \Illuminate\Support\Facades\Hash::check('secret123', $hash) ? 'MATCH' : 'NO MATCH';
 });

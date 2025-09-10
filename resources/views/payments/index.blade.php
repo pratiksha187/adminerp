@@ -2,112 +2,66 @@
 
 @section('content')
 <style>
-  /* ===== Slate tokens ===== */
-  :root{
-    --bg:#f4f6f9;
-    --card:#ffffff;
-    --ink:#0f172a;
-    --muted:#64748b;
-    --brand:#475569;    /* slate */
-    --brand-2:#334155;
-    --head-bg:#f1f5f9;
-    --row-alt:#f8fafc;
-    --hover:#eef2f7;
-    --border:#e5e7eb;
-    --success:#16a34a;
-  }
-
-  .card{ border:1px solid var(--border); border-radius:14px; background:var(--card); }
-  .card.shadow-sm{ box-shadow:0 10px 30px rgba(2,6,23,.05)!important; }
-
-  /* Top bar inside card */
+  /* same style as earlier */
+  .card{ border:1px solid #e5e7eb; border-radius:14px; background:#fff; }
   .section-header{
     background: linear-gradient(135deg, rgba(71,85,105,.95), rgba(71,85,105,.75));
     color:#fff; border-radius:12px; padding:16px 18px;
-    display:flex; align-items:center; justify-content:space-between; gap:1rem;
-    margin-bottom:1rem;
+    display:flex; justify-content:space-between; align-items:center;
   }
-  .section-header h2{
-    margin:0; font-weight:800; letter-spacing:.2px; display:flex; align-items:center; gap:.6rem;
-  }
-  .btn-export{
-    background:#22c55e; border-color:#16a34a; color:#fff; border-radius:10px;
-  }
-  .btn-export:hover{ background:#16a34a; color:#fff; }
-
-  /* Table polish */
-  .table-salary{ border-color:var(--border)!important; }
-  .table-salary thead th{
-    background:var(--head-bg)!important; color:var(--ink);
-    border-bottom:1px solid var(--border)!important;
-    position:sticky; top:0; z-index:1;
-  }
-  .table-salary tbody tr:nth-child(odd){ background:var(--row-alt); }
-  .table-salary tbody tr:hover{ background:var(--hover); }
-  .table-salary td, .table-salary th{ vertical-align:middle; }
-  .num{ text-align:right; font-variant-numeric: tabular-nums; }
+  .btn-export{ background:#22c55e; color:#fff; border-radius:10px; }
+  .btn-export:hover{ background:#16a34a; }
+  .num{ text-align:right; font-variant-numeric:tabular-nums; }
+  .chip{ display:inline-block; padding:.2rem .5rem; border-radius:999px; background:#eef2f7; border:1px solid #e5e7eb; }
   .amount{ font-weight:600; }
-
-  /* Subtle chip for dates */
-  .chip{
-    display:inline-block; padding:.15rem .5rem; border-radius:999px;
-    background:#eef2f7; border:1px solid var(--border); color:var(--brand-2); font-size:.85rem;
-  }
-
-  /* Empty state row */
-  .empty-row td{
-    padding:2.25rem 1rem; text-align:center; color:var(--muted);
-    background:linear-gradient(180deg, #ffffff, #fafcff);
-  }
 </style>
 
 <div class="card p-3 p-md-4 shadow-sm">
   <div class="container">
 
     <!-- Header -->
-    <div class="section-header">
-      <h2 class="mb-0">
-        <i class="bi bi-cash-stack"></i> Salary Payments
-      </h2>
-      <a href="{{ route('payments.export') }}" class="btn btn-export">
-        ⬇️ Download CSV
-      </a>
+    <div class="section-header mb-3">
+      <h2><i class="bi bi-cash-stack"></i> Salary Payments</h2>
+      <a href="{{ route('payments.export') }}" class="btn btn-export">⬇️ Download CSV</a>
     </div>
 
     <div class="table-responsive">
-      <table class="table table-bordered table-hover table-salary">
-        <thead>
+      <table class="table table-bordered table-hover">
+        <thead class="table-light">
           <tr>
             <th>Employee</th>
             <th>From</th>
             <th>To</th>
-            <th class="num">Present Days</th>
-            <th class="num">Gross Salary</th>
-            <th class="num">Gross Payable</th>
-            <th class="num">Deductions</th>
-            <th class="num">Net Payable</th>
-            <th>Generated On</th>
+            <th class="num">Present</th>
+            <th class="num">Gross</th>
+            <th class="num">Net</th>
+            <th>Slip</th>
           </tr>
         </thead>
         <tbody>
           @forelse($payments as $payment)
-            <tr>
-              <td>{{ $payment->user->name }}</td>
-              <td><span class="chip">{{ $payment->from_date }}</span></td>
-              <td><span class="chip">{{ $payment->to_date }}</span></td>
-              <td class="num">{{ $payment->present_days }}</td>
-              <td class="num">{{ $payment->gross_salary }}</td>
-              <td class="num">{{ $payment->gross_payable }}</td>
-              <td class="num">{{ $payment->total_deduction }}</td>
-              <td class="num amount">{{ $payment->net_payable }}</td>
-              <td><span class="chip">{{ $payment->created_at->format('d M Y') }}</span></td>
-            </tr>
+          <tr>
+            <td>{{ $payment->user->name }}</td>
+            <td><span class="chip">{{ $payment->from_date }}</span></td>
+            <td><span class="chip">{{ $payment->to_date }}</span></td>
+            <td class="num">{{ $payment->present_days }}</td>
+            <td class="num">{{ $payment->gross_salary }}</td>
+            <td class="num amount">{{ $payment->net_payable }}</td>
+            <td>
+              <button type="button" 
+                      class="btn btn-sm btn-primary btn-slip"
+                      data-id="{{ $payment->id }}">
+                <i class="bi bi-file-earmark-text"></i> Slip
+              </button>
+            </td>
+
+          </tr>
           @empty
-            <tr class="empty-row">
-              <td colspan="9">
-                <i class="bi bi-inbox"></i> No payments found.
-              </td>
-            </tr>
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">
+              <i class="bi bi-inbox"></i> No payments found.
+            </td>
+          </tr>
           @endforelse
         </tbody>
       </table>
@@ -115,4 +69,55 @@
 
   </div>
 </div>
+
+<!-- Payslip Modal -->
+<div class="modal fade" id="slipModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" id="slipContent">
+      <div class="modal-header">
+        <h5 class="modal-title">Salary Slip</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="slipBody">
+        <!-- Payslip details will load here via AJAX -->
+        <div class="text-center text-muted py-4">Loading...</div>
+      </div>
+      <div class="modal-footer">
+        <button id="downloadPdf" class="btn btn-success">
+          <i class="bi bi-download"></i> Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+$(function(){
+  // open slip
+  $('.btn-slip').on('click', function(){
+    let id = $(this).data('id');
+    $('#slipBody').html('<div class="text-center text-muted py-4">Loading...</div>');
+    $('#slipModal').modal('show');
+
+    // fetch slip details
+    $.get("{{ url('payments/slip') }}/" + id, function(res){
+      $('#slipBody').html(res);
+    });
+  });
+
+  // download as PDF
+  $('#downloadPdf').on('click', function(){
+    var element = document.getElementById('slipBody');
+    html2pdf().from(element).set({
+      margin: 10,
+      filename: 'salary-slip.pdf',
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).save();
+  });
+});
+</script>
+
 @endsection

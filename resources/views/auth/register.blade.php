@@ -194,7 +194,28 @@
                         <input id="salary" type="number" name="salary" class="form-control @error('salary') is-invalid @enderror" value="{{ old('salary') }}">
                         @error('salary') <div class="text-danger">{{ $message }}</div> @enderror
                     </div>
+                    <div class="col-md-4">
+                        <label for="insurance">Insurance</label>
+                        <input id="insurance" type="number" name="insurance" class="form-control @error('insurance') is-invalid @enderror" value="{{ old('insurance') }}">
+                        @error('insurance') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="pt">PT</label>
+                        <input id="pt" type="number" name="pt" class="form-control @error('pt') is-invalid @enderror" value="{{ old('pt') }}">
+                        @error('pt') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
 
+                     <div class="col-md-4">
+                        <label for="advance">Advance</label>
+                        <input id="advance" type="number" name="advance" class="form-control @error('advance') is-invalid @enderror" value="{{ old('advance') }}">
+                        @error('advance') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="col-md-4">
+                        <label for="pf">PF</label>
+                        <input id="pf" type="number" name="pf" class="form-control @error('pf') is-invalid @enderror" value="{{ old('pf') }}">
+                        @error('pf') <div class="text-danger">{{ $message }}</div> @enderror
+                    </div>
                     <div class="col-md-4">
                         <label for="role">Designation</label>
                         <select id="role" name="role" class="form-control @error('role') is-invalid @enderror" required>
@@ -335,6 +356,26 @@
             </div>
 
             <div class="col-md-4">
+              <label class="form-label">Insurance</label>
+              <input type="number" id="edit_insurance" name="insurance" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">PT</label>
+              <input type="number" id="edit_pt" name="pt" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Advance</label>
+              <input type="number" id="edit_advance" name="advance" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">PF</label>
+              <input type="number" id="edit_pf" name="pf" class="form-control">
+            </div>
+
+            <div class="col-md-4">
               <label class="form-label">Status</label>
               <select id="edit_is_active" name="is_active" class="form-select">
                 <option value="1">Active</option>
@@ -447,6 +488,10 @@ $(document).ready(function() {
         
             <tr><th>Hours / Day</th><td>${data.hours_day}</td></tr>
             <tr><th>Days / Week</th><td>${data.days_week}</td></tr>
+            <tr><th>Insurance</th><td>${data.insurance}</td></tr>
+            <tr><th>PT</th><td>${data.pt}</td></tr>
+            <tr><th>Advance</th><td>${data.advance}</td></tr>
+            <tr><th>PF</th><td>${data.pf}</td></tr>
         
         `;
 
@@ -507,6 +552,13 @@ $(function () {
       $('#edit_probation_months').val(res.probation_months || '');
       $('#edit_hours_day').val(res.hours_day || '');
       $('#edit_days_week').val(res.days_week || '');
+
+      $('#edit_insurance').val(res.insurance || '');
+      $('#edit_advance').val(res.advance || '');
+
+      $('#edit_pt').val(res.pt || '');
+      $('#edit_pf').val(res.pf || '');
+
       $('#edit_is_active').val(String(res.is_active ?? 1));
 
       // reset password fields
@@ -543,6 +595,12 @@ $(function () {
       probation_months: $('#edit_probation_months').val(),
       hours_day: $('#edit_hours_day').val(),
       days_week: $('#edit_days_week').val(),
+      insurance: $('#edit_insurance').val(),
+      advance: $('#edit_advance').val(),
+      pt: $('#edit_pt').val(),
+      pf: $('#edit_pf').val(),
+
+
       is_active: $('#edit_is_active').val(),
       password: $('#edit_password').val(),
       password_confirmation: $('#edit_password_confirmation').val(),

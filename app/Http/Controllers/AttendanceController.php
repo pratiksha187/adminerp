@@ -129,7 +129,7 @@ class AttendanceController extends Controller
     {
         $start = $request->start_date ?? now()->startOfMonth()->toDateString();
         $end = $request->end_date ?? now()->endOfMonth()->toDateString();
-
+// dd($end ); 
         return Excel::download(new AttendanceExport($start, $end), 'AttendanceReport.xlsx');
     }
 

@@ -25,7 +25,7 @@
   .card.shadow-sm{ box-shadow:0 10px 30px rgba(2,6,23,.06)!important; }
 
   .card-header{
-    background: linear-gradient(135deg, rgba(71,85,105,.98), rgba(71,85,105,.78))!important; /* slate gradient */
+    background: linear-gradient(135deg, rgba(71,85,105,.98), rgba(71,85,105,.78))!important;
     border-bottom:1px solid rgba(255,255,255,.15);
     padding:14px 16px;
   }
@@ -71,8 +71,20 @@
     </div>
 
     <div class="card-body">
+      {{-- Success Message --}}
       @if(session('success'))
-        <div class="alert alert-success mb-4">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+          {{ session('success') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      @endif
+
+      {{-- Error Message --}}
+      @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+          {{ session('error') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
       @endif
 
       <form method="POST" action="{{ route('payments.generate') }}" class="row g-4" id="generatePaymentForm">
@@ -124,7 +136,7 @@
   </div>
 </div>
 
-<!-- Tiny UX: prevent double-submit, show spinner (no backend change) -->
+<!-- Tiny UX: prevent double-submit, show spinner, auto-hide alerts -->
 <script>
   document.addEventListener('DOMContentLoaded', function(){
     const form = document.getElementById('generatePaymentForm');
@@ -135,6 +147,17 @@
       btn.setAttribute('disabled', 'disabled');
       spin.classList.remove('d-none');
     });
+
+    // Auto-hide alerts after 4 seconds
+    const alerts = document.querySelectorAll('.alert');
+    if(alerts.length){
+      setTimeout(() => {
+        alerts.forEach(a => {
+          a.classList.remove('show');
+          a.classList.add('fade');
+        });
+      }, 4000);
+    }
   });
 </script>
 @endsection

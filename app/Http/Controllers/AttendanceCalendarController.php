@@ -29,20 +29,17 @@ public function events(Request $request)
 {
     $userId  = Auth::id();
     $start   = $request->query('start');
+    // dd($start);
     $end     = $request->query('end');
 
     $startAt = $start ? Carbon::parse($start)->startOfDay() : now()->startOfMonth();
     $endAt   = $end   ? Carbon::parse($end)->endOfDay()     : now()->endOfMonth();
 
-    /* ===================================================
-     * SHIFT POLICY (adjust to your office rules)
-     * =================================================== */
-    $SHIFT_START   = '09:00';     // fixed office start time (e.g., '09:00' or '09:30')
-    $REQUIRED_MINS = 9 * 60;      // 9 hours required in a day
-    $GRACE_IN      = 10;          // minutes allowed after shift start before "Late In"
-    $GRACE_END     = 5;           // tolerance around expected end for Early/OT checks
+    $SHIFT_START   = '09:00';     
+    $REQUIRED_MINS = 9 * 60;      
+    $GRACE_IN      = 10;         
+    $GRACE_END     = 5;       
 
-    // helper: 474 -> "7h 54m"
     $fmtHM = function (?int $mins): ?string {
         if (!$mins || $mins <= 0) return null;
         $h = intdiv($mins, 60);
@@ -50,13 +47,11 @@ public function events(Request $request)
         return $h . 'h' . ($m ? ' ' . str_pad((string)$m, 2, '0', STR_PAD_LEFT) . 'm' : '');
     };
 
-    /* ---------------------------
-     * 1) ATTENDANCE EVENTS
-     * --------------------------- */
+    
     $rows = Attendance::where('user_id', $userId)
-        ->whereBetween('clock_in', [$startAt, $endAt])
-        ->orderBy('clock_in')
-        ->get();
+            ->whereBetween('clock_in', [$startAt, $endAt])
+            ->orderBy('clock_in')
+            ->get();
 
     $presentDays = [];
     $attendanceEvents = $rows->map(function ($row) use (&$presentDays, $SHIFT_START, $REQUIRED_MINS, $GRACE_IN, $GRACE_END, $fmtHM) {
@@ -64,16 +59,13 @@ public function events(Request $request)
         $out = $row->clock_out ? Carbon::parse($row->clock_out) : null;
         if (!$in) return null;
 
-        // Fix data: if OUT < IN, clamp to 23:59 same day
         if ($out && $out->lt($in)) {
             $out = (clone $in)->setTime(23, 59, 0);
         }
 
-        // Build shift bounds for THIS day
         $shiftIn     = (clone $in)->setTimeFromTimeString($SHIFT_START);
         $expectedEnd = (clone $shiftIn)->addMinutes($REQUIRED_MINS);
 
-        // Duration
         $status  = $out ? 'complete' : 'open';
         $durMins = null;
         $durText = null;
@@ -83,7 +75,6 @@ public function events(Request $request)
             $presentDays[] = $in->toDateString();
         }
 
-        // Late In
         $lateMins = 0;
         $lateThreshold = (clone $shiftIn)->addMinutes($GRACE_IN);
         if ($in->gt($lateThreshold)) {
@@ -139,9 +130,6 @@ public function events(Request $request)
         ];
     })->filter()->values();
 
-    /* ---------------------------
-     * 2) HOLIDAYS (optional, if table exists)
-     * --------------------------- */
     $holidayBg = collect();
     $holidayLabels = collect();
     if (class_exists(Holiday::class)) {
@@ -150,10 +138,10 @@ public function events(Request $request)
         $holidayBg = $holidays->map(function ($h) {
             return [
                 'start'   => $h->date->toDateString(),
-                'end'     => $h->date->copy()->addDay()->toDateString(), // exclusive
+                'end'     => $h->date->copy()->addDay()->toDateString(), 
                 'display' => 'background',
                 'allDay'  => true,
-                'color'   => $h->color ?: '#FEE2E2', // soft red
+                'color'   => $h->color ?: '#FEE2E2', 
                 'groupId' => 'holiday-bg',
                 'extendedProps' => ['kind' => 'holiday-bg'],
             ];
@@ -172,10 +160,8 @@ public function events(Request $request)
         });
     }
 
-    /* ---------------------------
-     * 3) WEEKLY OFFS (e.g., Sundays)
-     * --------------------------- */
-    $weeklyOffDOW = [0]; // 0=Sun. Add 6 for Sat: [0,6]
+  
+    $weeklyOffDOW = [0]; 
     $weeklyOffDates = collect();
     foreach (CarbonPeriod::create($startAt, '1 day', $endAt) as $d) {
         if (in_array($d->dayOfWeek, $weeklyOffDOW)) {
@@ -187,7 +173,7 @@ public function events(Request $request)
         'end'     => Carbon::parse($day)->addDay()->toDateString(),
         'display' => 'background',
         'allDay'  => true,
-        'color'   => '#FFEFE3', // soft orange
+        'color'   => '#FFEFE3', 
         'groupId' => 'weeklyoff-bg',
         'extendedProps' => ['kind' => 'weeklyoff-bg'],
     ]);
@@ -216,14 +202,67 @@ public function events(Request $request)
         ];
     });
 
+    /* ---------------------------
+ * 5) ABSENT (only past working days with no punch)
+ * --------------------------- */
+$today = now()->toDateString();
+
+// Get all holiday dates as strings
+$holidayDates = isset($holidays) ? $holidays->pluck('date')->map(fn($d) => $d->toDateString())->toArray() : [];
+
+$absentBg = collect();
+$absentLabels = collect();
+
+foreach (CarbonPeriod::create($startAt, '1 day', $endAt) as $d) {
+    $day = $d->toDateString();
+
+    // Skip today and future dates
+    if ($day >= $today) continue;
+
+    // Skip if present
+    if (in_array($day, $presentDays)) continue;
+
+    // Skip if holiday
+    if (in_array($day, $holidayDates)) continue;
+
+    // Skip if weekly off
+    if (in_array($day, $weeklyOffDates->toArray())) continue;
+
+    // Mark as absent
+    $absentBg->push([
+        'start'   => $day,
+        'end'     => Carbon::parse($day)->addDay()->toDateString(),
+        'display' => 'background',
+        'allDay'  => true,
+        'color'   => '#FDE2E4', // light red
+        'groupId' => 'absent-bg',
+        'extendedProps' => ['kind' => 'absent-bg'],
+    ]);
+
+    $absentLabels->push([
+        'title' => 'Absent',
+        'start' => $day,
+        'allDay'=> true,
+        'display' => 'block',
+        'color' => '#dc2626', // strong red
+        'textColor' => '#ffffff',
+        'extendedProps' => ['kind' => 'absent-label', 'title' => 'Absent'],
+    ]);
+}
+
+
     // Order matters: backgrounds → labels → attendance
-    return response()->json(
-        $presentBg
-            ->concat($holidayBg)->concat($weeklyOffBg)
-            ->concat($holidayLabels)->concat($weeklyOffLabels)
-            ->concat($attendanceEvents)
-            ->values()
-    );
+   return response()->json(
+    $presentBg
+        ->concat($holidayBg)->concat($weeklyOffBg)->concat($absentBg)
+        ->concat($holidayLabels)->concat($weeklyOffLabels)->concat($absentLabels)
+        ->concat($attendanceEvents)
+        ->values()
+);
+
+
+
+
 }
 
 

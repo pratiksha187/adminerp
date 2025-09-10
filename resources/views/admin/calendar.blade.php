@@ -4,7 +4,6 @@
 
 @section('content')
 <style>
-  /* badges for late/early/OT */
   .att-flags { margin-top: 2px; display: flex; gap: 6px; flex-wrap: wrap; }
   .flag { display:inline-block; padding:1px 6px; border-radius: 999px; font-size: 11px; font-weight:700; }
   .flag-late  { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
@@ -37,7 +36,6 @@
     </div>
   </div>
 
-  {{-- Legend + Mini Stats --}}
   <div class="row g-3 mb-4">
     <div class="col-12 col-xl-8">
       <div class="card border-0 shadow-sm">
@@ -155,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function () {
     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
     firstDay: 1,
     nowIndicator: true,
-    navLinks: true,
+    navLinks: true, 
     dayMaxEvents: true,
 
     displayEventTime: false,          // we render our own text

@@ -16,7 +16,7 @@ class EngineeringController extends Controller
         $userId = Auth::id();
         $userDetails = DB::table('users')
                     ->select('role')
-                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->where('id', $userId)   
                     ->first();
 
         $role = $userDetails->role;
@@ -69,17 +69,7 @@ class EngineeringController extends Controller
             ], 500);
         }
 
-        // return response()->json([
-        //     'success' => true,
-        //     'entry' => [
-        //         'sr_no' => 0, // DataTables will handle this
-        //         'date' => $entry->date->format('Y-m-d'),
-        //         'chapter' =>  $entry->chapter->name,
-        //         'description' => $entry->description,
-        //         'total_quantity' => $entry->total_quantity,
-        //         'labour_count' => array_sum($validated['labour'] ?? []),
-        //     ],
-        // ]);
+       
         return response()->json([
                 'success' => true,
                 'entry' => [
@@ -94,36 +84,36 @@ class EngineeringController extends Controller
 
     }
 
-   public function data(Request $request)
-{
-    $query = DB::table('work_entries')
-        ->leftJoin('chapter', 'chapter.id', '=', 'work_entries.chapter_id')
-        ->select([
-            'work_entries.id',
-            'work_entries.date',
-            'chapter.chapter_name as chapter_name',
-            'work_entries.description',
-            'work_entries.total_quantity',
-            'work_entries.labour'
-        ]);
+    public function data(Request $request)
+    {
+        $query = DB::table('work_entries')
+            ->leftJoin('chapter', 'chapter.id', '=', 'work_entries.chapter_id')
+            ->select([
+                'work_entries.id',
+                'work_entries.date',
+                'chapter.chapter_name as chapter_name',
+                'work_entries.description',
+                'work_entries.total_quantity',
+                'work_entries.labour'
+            ]);
 
-    return DataTables::of($query)
-        ->addColumn('labour_count', function ($row) {
-            $labour = json_decode($row->labour, true);
-            return is_array($labour) ? array_sum($labour) : 0;
-        })
-        ->make(true);
-}
+        return DataTables::of($query)
+            ->addColumn('labour_count', function ($row) {
+                $labour = json_decode($row->labour, true);
+                return is_array($labour) ? array_sum($labour) : 0;
+            })
+            ->make(true);
+    }
 
     
-   public function getDescriptions($chapter_id)
-{
-    $descriptions = DB::table('description_chapter')
-                      ->where('chapter_id', $chapter_id)
-                      ->select('id', 'description')
-                      ->get();
+    public function getDescriptions($chapter_id)
+    {
+        $descriptions = DB::table('description_chapter')
+                        ->where('chapter_id', $chapter_id)
+                        ->select('id', 'description')
+                        ->get();
 
-    return response()->json($descriptions);
-}
+        return response()->json($descriptions);
+    }
 
 }

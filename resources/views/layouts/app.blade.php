@@ -74,31 +74,31 @@
     </a>
 
     @php
-        // Normalize role to an int ONCE (works if $role is int/stdClass/string/null). Falls back to Auth user.
+        // Normalize roleId safely
         $roleId = (int) (
             $roleId
             ?? (is_object($role) ? ($role->role ?? 0) : ($role ?? (auth()->user()->role ?? 0)))
         );
     @endphp
 
-    {{-- ===== User (roles 1,2) ===== --}}
+    {{-- ===== User (roles 1,2,17) ===== --}}
     @php $userActive = request()->routeIs('register*'); @endphp
-    @if(in_array($roleId, [1, 2,17], true))
+    @if(in_array($roleId, [1, 2, 17], true))
         <a class="d-flex justify-content-between align-items-center {{ $userActive ? 'active-parent' : '' }}"
-           data-bs-toggle="collapse" href="#registerMenu" aria-expanded="{{ $userActive ? 'true' : 'false' }}">
+           data-bs-toggle="collapse" href="#userMenu" aria-expanded="{{ $userActive ? 'true' : 'false' }}">
             <span><i class="bi bi-person me-2"></i> User</span>
             <i class="bi bi-chevron-down small"></i>
         </a>
-        <div class="collapse {{ $userActive ? 'show' : '' }}" id="registerMenu">
+        <div class="collapse {{ $userActive ? 'show' : '' }}" id="userMenu">
             <a href="{{ route('register') }}" class="{{ request()->routeIs('register') ? 'active' : '' }}">
                 <i class="bi bi-person-plus me-2"></i> Add User
             </a>
         </div>
     @endif
 
-    {{-- ===== Accounts (roles 1,2,10) - challan* ===== --}}
+    {{-- ===== Accounts (roles 1,2,10,17) ===== --}}
     @php $accountsActive = request()->routeIs('challan*'); @endphp
-    @if(in_array($roleId, [1, 2, 10,17], true))
+    @if(in_array($roleId, [1, 2, 10, 17], true))
         <a class="d-flex justify-content-between align-items-center {{ $accountsActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#accountsMenu" aria-expanded="{{ $accountsActive ? 'true' : 'false' }}">
             <span><i class="bi bi-gear me-2"></i> Accounts</span>
@@ -111,9 +111,24 @@
         </div>
     @endif
 
-    {{-- ===== DPR (roles 1,2,4,17) - work-entry.* ===== --}}
+    {{-- ===== Lead (roles 1,2,10,17) ===== --}}
+    @php $leadActive = request()->routeIs('crm*'); @endphp
+    @if(in_array($roleId, [1, 2, 10], true))
+        <a class="d-flex justify-content-between align-items-center {{ $leadActive ? 'active-parent' : '' }}"
+           data-bs-toggle="collapse" href="#leadMenu" aria-expanded="{{ $leadActive ? 'true' : 'false' }}">
+            <span><i class="bi bi-gear me-2"></i> CRM</span>
+            <i class="bi bi-chevron-down small"></i>
+        </a>
+        <div class="collapse {{ $leadActive ? 'show' : '' }}" id="leadMenu">
+            <a href="{{ route('crm/lead-management') }}" class="{{ request()->routeIs('crm/lead-management*') ? 'active' : '' }}">
+                <i class="bi bi-receipt me-2"></i> Lead
+            </a>
+        </div>
+    @endif
+
+    {{-- ===== DPR (roles 1,2,4,17) ===== --}}
     @php $enggActive = request()->routeIs('work-entry.*'); @endphp
-    @if(in_array($roleId, [1, 2, 4,17], true))
+    @if(in_array($roleId, [1, 2, 4, 17], true))
         <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
             <span><i class="bi bi-book me-2"></i> DPR</span>
@@ -126,51 +141,42 @@
         </div>
     @endif
 
-    {{-- ===== Attendance (mixed role gates) ===== --}}
+    {{-- ===== Attendance ===== --}}
     @php
         $allowAll     = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
         $allowManager = [1,2,17];
-
         $canSee = [
             'attendance.calendar.view'    => in_array($roleId, $allowAll, true),
             'attendance.report'           => in_array($roleId, $allowManager, true),
             'attendance.manualattendence' => in_array($roleId, $allowAll, true),
             'attendance.acceptattendence' => in_array($roleId, $allowManager, true),
         ];
-
         $attendanceRoutes = array_keys(array_filter($canSee));
-        $attendanceActive = false;
-        foreach ($attendanceRoutes as $r) {
-            if (request()->routeIs($r)) { $attendanceActive = true; break; }
-        }
+        $attendanceActive = collect($attendanceRoutes)->contains(fn($r) => request()->routeIs($r));
     @endphp
 
     @if(in_array(true, $canSee, true))
         <a class="d-flex justify-content-between align-items-center {{ $attendanceActive ? 'active-parent' : '' }}"
-           data-bs-toggle="collapse" href="#userauthMenu" aria-expanded="{{ $attendanceActive ? 'true' : 'false' }}">
+           data-bs-toggle="collapse" href="#attendanceMenu" aria-expanded="{{ $attendanceActive ? 'true' : 'false' }}">
             <span><i class="bi bi-clock me-2"></i> Attendance</span>
             <i class="bi bi-chevron-down small"></i>
         </a>
-
-        <div class="collapse {{ $attendanceActive ? 'show' : '' }}" id="userauthMenu">
+        <div class="collapse {{ $attendanceActive ? 'show' : '' }}" id="attendanceMenu">
             @if($canSee['attendance.calendar.view'])
                 <a href="{{ route('attendance.calendar.view') }}" class="{{ request()->routeIs('attendance.calendar.view') ? 'active' : '' }}">
                     <i class="bi bi-list-check me-2"></i> Attendance Calendar
                 </a>
             @endif
-
             @if($canSee['attendance.report'])
                 <a href="{{ route('attendance.report') }}" class="{{ request()->routeIs('attendance.report') ? 'active' : '' }}">
                     <i class="bi bi-list-check me-2"></i> Daily Login/Logout
                 </a>
             @endif
-
             @if($canSee['attendance.manualattendence'])
                 <a href="{{ route('attendance.manualattendence') }}" class="{{ request()->routeIs('attendance.manualattendence') ? 'active' : '' }}">
                     <i class="bi bi-pencil-square me-2"></i> Manual Attendance
                 </a>
             @endif
-
             @if($canSee['attendance.acceptattendence'])
                 <a href="{{ route('attendance.acceptattendence') }}" class="{{ request()->routeIs('attendance.acceptattendence') ? 'active' : '' }}">
                     <i class="bi bi-check2-circle me-2"></i> Accept Attendance
@@ -179,9 +185,9 @@
         </div>
     @endif
 
-    {{-- ===== Payments (roles 1,2,9) - payments.* ===== --}}
+    {{-- ===== Payments (roles 1,2,9,17) ===== --}}
     @php $paymentActive = request()->routeIs('payments.*'); @endphp
-    @if(in_array($roleId, [1, 2, 9,17], true))
+    @if(in_array($roleId, [1, 2, 9, 17], true))
         <a class="d-flex justify-content-between align-items-center {{ $paymentActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#paymentMenu" aria-expanded="{{ $paymentActive ? 'true' : 'false' }}">
             <span><i class="bi bi-currency-rupee me-2"></i> Payments</span>
@@ -197,9 +203,9 @@
         </div>
     @endif
 
-    {{-- ===== Letterhead (roles 1,2) - letterhead / letterhead.* ===== --}}
+    {{-- ===== Letterhead (roles 1,2,17) ===== --}}
     @php $letterheadActive = request()->routeIs('letterhead*'); @endphp
-    @if(in_array($roleId, [1, 2,17], true))
+    @if(in_array($roleId, [1, 2, 17], true))
         <a class="d-flex justify-content-between align-items-center {{ $letterheadActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#letterheadMenu" aria-expanded="{{ $letterheadActive ? 'true' : 'false' }}">
             <span><i class="bi bi-file-earmark-text me-2"></i> Letter Head</span>

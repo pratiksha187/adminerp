@@ -19,7 +19,7 @@ class ChallanController extends Controller
         $userId = Auth::id();
         $userDetails = DB::table('users')
                     ->select('role')
-                    ->where('id', $userId)   // ✅ match by id, not role
+                    ->where('id', $userId)   
                     ->first();
 
         $role = $userDetails->role;
@@ -98,9 +98,6 @@ class ChallanController extends Controller
             return response()->json(['message' => 'Failed to save challan.'], 500);
         }
     }
-
-
-
 
     public function fetch(Request $request)
     {
