@@ -71,9 +71,9 @@ public function generatePayment(Request $request)
 
     // Get attendance records
     $attendances = Attendance::where('user_id', $user->id)
-        ->whereBetween('clock_in', [$from, $to])
-        ->get();
-dd($attendances);
+                ->whereBetween('clock_in', [$from, $to])
+                ->get();
+    // dd($attendances);
     $present_days = 0;
 
     foreach ($attendances as $attendance) {
