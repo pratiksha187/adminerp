@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeController;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\AttendanceCalendarController;
+use App\Http\Controllers\LeaveController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -44,7 +45,7 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
     // Route::get('Alluser', [RegisterController::class, 'Alluser'])->name('Alluser');
     Route::delete('/employees/{id}', [RegisterController::class, 'destroy'])->name('employees.destroy');
 
-Route::post('/employees/{id}/status', [RegisterController::class, 'updateStatus']);
+    Route::post('/employees/{id}/status', [RegisterController::class, 'updateStatus']);
 
     // Challan
     Route::get('/challans', [ChallanController::class, 'fetch'])->name('challan.list');
@@ -97,7 +98,14 @@ Route::post('/employees/{id}/status', [RegisterController::class, 'updateStatus'
     Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])->name('leads.destroy');
     // Route::patch('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
     Route::match(['put', 'patch'], '/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
-  Route::get('payments/slip/{id}', [PaymentController::class, 'slip'])->name('payments.slip');
+    Route::get('payments/slip/{id}', [PaymentController::class, 'slip'])->name('payments.slip');
+    Route::get('/leave', [App\Http\Controllers\LeaveController::class, 'index'])->name('leave.index');
+    Route::get('/create', [App\Http\Controllers\LeaveController::class, 'create'])->name('leave.create');
+    Route::post('/store', [App\Http\Controllers\LeaveController::class, 'store'])->name('leaves.store');
+
+    // HR portal
+    Route::get('hr/leaves', [LeaveController::class, 'hrIndex'])->name('hr.leaves.index');
+    Route::post('hr/leaves/{id}/update', [LeaveController::class, 'updateStatus'])->name('hr.leaves.update');
 
 });
 

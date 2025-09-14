@@ -39,117 +39,6 @@ public function create()
     return view('payments.create', compact('users','role'));
 }
 
-public function generatePayment(Request $request)
-{
-    $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'from_date' => 'required|date',
-        'to_date' => 'required|date|after_or_equal:from_date',
-    ]);
-
-    $userid = $request->user_id;
-
-    // Check if payment already exists
-    $exists = Payment::where('user_id', $userid)
-            ->whereDate('from_date', $request->from_date)
-            ->whereDate('to_date', $request->to_date)
-            ->exists();
-
-    if ($exists) {
-        return back()->with('error', 'Payment is already generated for this period!');
-    }
-
-    $user = User::findOrFail($userid);
-    $user_details = DB::table('users')->where('id', $userid)->first();
-    $gross_salary = $user->salary ?? 0;
-
-    $from = Carbon::parse($request->from_date);
-    $to = Carbon::parse($request->to_date);
-
-    $daysInMonth = $from->daysInMonth;
-    $per_day_rate = round($gross_salary / $daysInMonth, 2);
-
-    // Get attendance records
-    $attendances = Attendance::where('user_id', $user->id)
-                ->whereBetween('clock_in', [$from, $to])
-                ->get();
-    // dd($attendances);
-    $present_days = 0;
-
-    foreach ($attendances as $attendance) {
-        if (!$attendance->clock_out || !$attendance->clock_in) continue;
-
-        $clockIn = Carbon::parse($attendance->clock_in);
-        $clockOut = Carbon::parse($attendance->clock_out);
-
-        $workedMinutes = $clockIn->diffInMinutes($clockOut);
-
-        if ($workedMinutes >= 270) { // 4.5 hours or more → full day
-            $present_days += 1;
-        } elseif ($workedMinutes > 0 && $workedMinutes < 270) { // less than 4.5h → half day
-            $present_days += 0.5;
-        }
-    }
-// dd($workedMinutes);
-    // Count weekly offs
-    $weekoffCount = 0;
-    for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
-        if ($date->isSunday()) $weekoffCount++;
-    }
-
-    // Count holidays
-    $holidayCount = DB::table('holidays')
-                    ->whereBetween('date', [$from, $to])
-                    ->count();
-
-    // Total days considered present
-    $present_days_act = $present_days + $weekoffCount + $holidayCount;
-
-    // Gross payable
-    $gross_payable = round($per_day_rate * $present_days_act, 2);
-
-    // Salary components
-    $basic_60 = round($gross_salary * 0.6, 2);
-    $hra_5 = round($gross_salary * 0.05, 2);
-    $conveyance_20 = round($gross_salary * 0.2, 2);
-    $other_allowance = $gross_salary - $basic_60 - $hra_5 - $conveyance_20;
-
-    // Deductions
-    $pf = $user_details->pf ?? 0;
-    $insurance = $user_details->insurance ?? 0;
-    $pt = $user_details->pt ?? 0;
-    $advance = $user_details->advance ?? 0;
-    $total_deduction = $pf + $insurance + $pt + $advance;
-
-    $net_payable = $gross_payable - $total_deduction;
-
-    // Save Payment
-    Payment::create([
-        'user_id' => $user->id,
-        'from_date' => $from,
-        'to_date' => $to,
-        'present_days' => $present_days_act,
-        'gross_salary' => $gross_salary,
-        'per_day_rate' => $per_day_rate,
-        'basic_60' => $basic_60,
-        'hra_5' => $hra_5,
-        'conveyance_20' => $conveyance_20,
-        'other_allowance' => $other_allowance,
-        'ot_arrears' => 0,
-        'gross_payable' => $gross_payable,
-        'pf_12' => $pf,
-        'insurance' => $insurance,
-        'pt' => $pt,
-        'weekoffCount' => $weekoffCount,
-        'advance' => $advance,
-        'total_deduction' => $total_deduction,
-        'net_payable' => $net_payable,
-        'holidayCount' => $holidayCount,
-        'present_days_in_month' => $present_days,
-    ]);
-
-    return back()->with('success', 'Payment generated successfully!');
-}
 
 
 // public function generatePayment(Request $request)
@@ -159,9 +48,10 @@ public function generatePayment(Request $request)
 //         'from_date' => 'required|date',
 //         'to_date' => 'required|date|after_or_equal:from_date',
 //     ]);
-//     $weekoffCount = 0;
+
 //     $userid = $request->user_id;
 
+//     // Check if payment already exists
 //     $exists = Payment::where('user_id', $userid)
 //             ->whereDate('from_date', $request->from_date)
 //             ->whereDate('to_date', $request->to_date)
@@ -170,54 +60,77 @@ public function generatePayment(Request $request)
 //     if ($exists) {
 //         return back()->with('error', 'Payment is already generated for this period!');
 //     }
-//     $user = User::findOrFail($request->user_id);
-//     $ot_arrears = 0;
-//     $user_details =  DB::table('users')
-//                     ->where('id', $userid)  
-//                     ->first();
-//                     // dd($user_details);
+
+//     $user = User::findOrFail($userid);
+//     $user_details = DB::table('users')->where('id', $userid)->first();
+//     $gross_salary = $user->salary ?? 0;
+
 //     $from = Carbon::parse($request->from_date);
 //     $to = Carbon::parse($request->to_date);
-//     $gross_salary = $user->salary ?? 0;
-  
-//     $daysInMonth = $from->daysInMonth; 
-   
+
+//     $daysInMonth = $from->daysInMonth;
 //     $per_day_rate = round($gross_salary / $daysInMonth);
 
-//     $present_days_in_month = Attendance::where('user_id', $user->id)
-//         ->whereBetween('clock_in', [$from, $to])
-//         ->selectRaw('DATE(clock_in) as day')
-//         ->distinct()
-//         ->count();
-// dd($present_days_in_month);
-//     for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
-//         if ($date->isSunday()) {   
-//             $weekoffCount++;
+//     // Get attendance records
+//     $attendances = Attendance::where('user_id', $user->id)
+//                 ->whereBetween('clock_in', [$from, $to])
+//                 ->get();
+   
+//     $present_days = 0;
+
+//     foreach ($attendances as $attendance) {
+//         //  dd($attendances);
+//         if (!$attendance->clock_out || !$attendance->clock_in) continue;
+
+//         $clockIn = Carbon::parse($attendance->clock_in);
+//         $clockOut = Carbon::parse($attendance->clock_out);
+
+//         $workedMinutes = $clockIn->diffInMinutes($clockOut);
+
+//         if ($workedMinutes >= 270) { // 4.5 hours or more → full day
+//             $present_days += 1;
+//         } elseif ($workedMinutes > 0 && $workedMinutes < 270) { // less than 4.5h → half day
+//             $present_days += 0.5;
 //         }
-//     }  
-    
+//     }
+
+//     $weekoffCount = 0;
+//     for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
+//         if ($date->isSunday()) $weekoffCount++;
+//     }
+
+//     // Count holidays
 //     $holidayCount = DB::table('holidays')
 //                     ->whereBetween('date', [$from, $to])
 //                     ->count();
 
-//     $present_days_act = $present_days_in_month + $weekoffCount + $holidayCount;
+//     // Total days considered present
+//     $present_days_act = $present_days + $weekoffCount + $holidayCount;
+ 
+//     // Gross payable
 //     $gross_payable = round($per_day_rate * $present_days_act);
+// // dd($gross_payable);
+//     // Salary components
+//     $basic_60 = round($gross_payable * 0.6);
+   
+     
+//     $hra_5 = round($gross_payable * 0.05);
 
-//     $basic_60 = round($gross_salary * 0.6, 2);
-//     $hra_5 = round($gross_salary * 0.05, 2);
-//     $conveyance_20 = round($gross_salary * 0.2, 2);
-//     $other_allowance = $gross_salary - $basic_60 - $hra_5 - $conveyance_20;
+//     $conveyance_20 = round($gross_payable * 0.2);
+   
+//     $other_allowance = $gross_payable - $basic_60 - $hra_5 - $conveyance_20;
 
-//     $pf = $user_details->pf;
-//     $insurance = $user_details->insurance;
-//     $pt = $user_details->pt;
-//     $advance = $user_details->advance;
+//     // Deductions
+//     $pf = $user_details->pf ?? 0;
+//     $insurance = $user_details->insurance ?? 0;
+//     $pt = $user_details->pt ?? 0;
+//     $advance = $user_details->advance ?? 0;
 //     $total_deduction = $pf + $insurance + $pt + $advance;
 
-//     $net_payable = $gross_payable - $pf - $insurance - $pt - $advance;
-
-
-//     $payment = Payment::create([
+//     $net_payable = $gross_payable - $total_deduction;
+// //  dd($net_payable);
+//     // Save Payment
+//     Payment::create([
 //         'user_id' => $user->id,
 //         'from_date' => $from,
 //         'to_date' => $to,
@@ -228,23 +141,170 @@ public function generatePayment(Request $request)
 //         'hra_5' => $hra_5,
 //         'conveyance_20' => $conveyance_20,
 //         'other_allowance' => $other_allowance,
-//         'ot_arrears' => $ot_arrears,
+//         'ot_arrears' => 0,
 //         'gross_payable' => $gross_payable,
 //         'pf_12' => $pf,
 //         'insurance' => $insurance,
 //         'pt' => $pt,
-//         'weekoffCount' =>$weekoffCount,
+//         'weekoffCount' => $weekoffCount,
 //         'advance' => $advance,
 //         'total_deduction' => $total_deduction,
 //         'net_payable' => $net_payable,
 //         'holidayCount' => $holidayCount,
-//         'present_days_in_month' => $present_days_in_month,
+//         'present_days_in_month' => $present_days,
 //     ]);
 
 //     return back()->with('success', 'Payment generated successfully!');
-    
-   
 // }
+
+public function generatePayment(Request $request)
+{
+    $request->validate([
+        'user_id'   => 'required|exists:users,id',
+        'from_date' => 'required|date',
+        'to_date'   => 'required|date|after_or_equal:from_date',
+    ]);
+
+    $userid = $request->user_id;
+
+    // ✅ Prevent duplicate payment
+    $exists = Payment::where('user_id', $userid)
+        ->whereDate('from_date', $request->from_date)
+        ->whereDate('to_date', $request->to_date)
+        ->exists();
+
+    if ($exists) {
+        return back()->with('error', 'Payment is already generated for this period!');
+    }
+
+    $user = User::findOrFail($userid);
+    $gross_salary = $user->salary ?? 0;
+
+    $from = Carbon::parse($request->from_date);
+    $to   = Carbon::parse($request->to_date);
+
+    $daysInMonth  = $from->daysInMonth;
+    $per_day_rate = round($gross_salary / $daysInMonth);
+
+    // ✅ Attendance count
+    $attendances = Attendance::where('user_id', $user->id)
+        ->whereBetween('clock_in', [$from, $to])
+        ->get();
+
+    $present_days = 0;
+    foreach ($attendances as $attendance) {
+        if (!$attendance->clock_in || !$attendance->clock_out) continue;
+
+        $clockIn  = Carbon::parse($attendance->clock_in);
+        $clockOut = Carbon::parse($attendance->clock_out);
+
+        $workedMinutes = $clockIn->diffInMinutes($clockOut);
+
+        if ($workedMinutes >= 270) {
+            $present_days += 1;      // Full day
+        } elseif ($workedMinutes > 0) {
+            $present_days += 0.5;    // Half day
+        }
+    }
+
+    // ✅ Weekly offs (Sundays)
+    $weekoffCount = 0;
+    for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
+        if ($date->isSunday()) $weekoffCount++;
+    }
+
+    // ✅ Holidays
+    $holidayCount = DB::table('holidays')
+        ->whereBetween('date', [$from, $to])
+        ->count();
+
+    // ✅ Approved Leaves (EL/CL/SL)
+    $leaveDays = 0;
+    $leaves = Leave::where('user_id', $user->id)
+        ->where('status', 'Approved')
+        ->where(function ($q) use ($from, $to) {
+            $q->whereBetween('from_date', [$from, $to])
+              ->orWhereBetween('to_date', [$from, $to])
+              ->orWhere(function ($q2) use ($from, $to) {
+                  $q2->where('from_date', '<=', $from)
+                     ->where('to_date', '>=', $to);
+              });
+        })
+        ->get();
+
+    foreach ($leaves as $lv) {
+        $period = CarbonPeriod::create($lv->from_date, $lv->to_date);
+        foreach ($period as $d) {
+            if ($d->between($from, $to)) {
+                $leaveDays++;
+            }
+        }
+
+        // Deduct from user leave balance
+        $col = match ($lv->type) {
+            'Sick'   => 'sl',
+            'Casual' => 'cl',
+            'Paid'   => 'el',
+            default  => null,
+        };
+
+        if ($col && $user->$col > 0) {
+            $used = Carbon::parse($lv->from_date)->diffInDays(Carbon::parse($lv->to_date)) + 1;
+            $deduct = min($used, $user->$col); // avoid negative
+            $user->$col -= $deduct;
+        }
+    }
+    $user->save();
+
+    // ✅ Final Present Days
+    $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
+
+    // ✅ Gross Payable
+    $gross_payable = round($per_day_rate * $present_days_act);
+
+    // Salary Components
+    $basic_60       = round($gross_payable * 0.6);
+    $hra_5          = round($gross_payable * 0.05);
+    $conveyance_20  = round($gross_payable * 0.2);
+    $other_allowance = $gross_payable - $basic_60 - $hra_5 - $conveyance_20;
+
+    // Deductions
+    $pf       = $user->pf ?? 0;
+    $insurance= $user->insurance ?? 0;
+    $pt       = $user->pt ?? 0;
+    $advance  = $user->advance ?? 0;
+    $total_deduction = $pf + $insurance + $pt + $advance;
+
+    $net_payable = $gross_payable - $total_deduction;
+
+    // ✅ Save Payment
+    Payment::create([
+        'user_id'             => $user->id,
+        'from_date'           => $from,
+        'to_date'             => $to,
+        'present_days'        => $present_days_act,
+        'gross_salary'        => $gross_salary,
+        'per_day_rate'        => $per_day_rate,
+        'basic_60'            => $basic_60,
+        'hra_5'               => $hra_5,
+        'conveyance_20'       => $conveyance_20,
+        'other_allowance'     => $other_allowance,
+        'ot_arrears'          => 0,
+        'gross_payable'       => $gross_payable,
+        'pf_12'               => $pf,
+        'insurance'           => $insurance,
+        'pt'                  => $pt,
+        'weekoffCount'        => $weekoffCount,
+        'advance'             => $advance,
+        'total_deduction'     => $total_deduction,
+        'net_payable'         => $net_payable,
+        'holidayCount'        => $holidayCount,
+        'present_days_in_month'=> $present_days,
+    ]);
+
+    return back()->with('success', 'Payment generated successfully with leave adjustment!');
+}
+
 public function slip($id)
 {
     $payment = Payment::with('user')->findOrFail($id);
@@ -261,8 +321,6 @@ public function slip($id)
 
     return view('payments.slip', compact('payment','user','daysInMonth'));
 }
-
-
 public function export(): StreamedResponse
 {
     $fileName = 'salary_payments_with_attendance.csv';
@@ -280,7 +338,7 @@ public function export(): StreamedResponse
         $current->addDay();
     }
 
-    // Define header row (dates before totals)
+    // Define header row
     $columns = array_merge([
         'Employee', 'From Date', 'To Date',
     ], $dateRange, [
@@ -307,12 +365,40 @@ public function export(): StreamedResponse
                     return \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d');
                 });
 
+            // Fetch leave records for the same period
+            $leaves = \App\Models\Leave::where('user_id', $p->user_id)
+                ->where('status', 'Approved')
+                ->where(function ($q) use ($fromDate, $toDate) {
+                    $q->whereBetween('from_date', [$fromDate, $toDate])
+                      ->orWhereBetween('to_date', [$fromDate, $toDate]);
+                })
+                ->get();
+
+            // Map leave days
+            $leaveDays = [];
+            foreach ($leaves as $leave) {
+                $leaveFrom = \Carbon\Carbon::parse($leave->from_date);
+                $leaveTo = \Carbon\Carbon::parse($leave->to_date);
+
+                for ($d = $leaveFrom->copy(); $d->lte($leaveTo); $d->addDay()) {
+                    $leaveDays[$d->format('Y-m-d')] = strtoupper(substr($leave->type, 0, 1)); // e.g. P/L/S
+                }
+            }
+
             // Build daily status array
             $dailyStatus = [];
             $current = $fromDate->copy();
             while ($current->lte($toDate)) {
                 $key = $current->format('Y-m-d');
-                $dailyStatus[] = isset($attendance[$key]) ? 'P' : 'A';
+
+                if (isset($attendance[$key])) {
+                    $dailyStatus[] = 'P'; // Present
+                } elseif (isset($leaveDays[$key])) {
+                    $dailyStatus[] = $leaveDays[$key]; // PL, SL, EL
+                } else {
+                    $dailyStatus[] = 'A'; // Absent
+                }
+
                 $current->addDay();
             }
 
@@ -334,5 +420,78 @@ public function export(): StreamedResponse
 
     return response()->stream($callback, 200, $headers);
 }
+
+
+// public function export(): StreamedResponse
+// {
+//     $fileName = 'salary_payments_with_attendance.csv';
+//     $payments = \App\Models\Payment::with('user')->get();
+
+//     // Set date range from first record (or fallback to current month)
+//     $fromDate = \Carbon\Carbon::parse($payments->first()?->from_date ?? now()->startOfMonth());
+//     $toDate = \Carbon\Carbon::parse($payments->first()?->to_date ?? now()->endOfMonth());
+
+//     // Generate date headers: 1/7, 2/7, ...
+//     $dateRange = [];
+//     $current = $fromDate->copy();
+//     while ($current->lte($toDate)) {
+//         $dateRange[] = $current->format('j/n');
+//         $current->addDay();
+//     }
+
+//     // Define header row (dates before totals)
+//     $columns = array_merge([
+//         'Employee', 'From Date', 'To Date',
+//     ], $dateRange, [
+//         'Present Days', 'Gross Salary', 'Gross Payable', 'Total Deductions', 'Net Payable'
+//     ]);
+
+//     $headers = [
+//         'Content-Type' => 'text/csv',
+//         'Content-Disposition' => "attachment; filename={$fileName}",
+//         'Pragma' => 'no-cache',
+//         'Cache-Control' => 'must-revalidate',
+//         'Expires' => '0',
+//     ];
+
+//     $callback = function () use ($payments, $columns, $fromDate, $toDate) {
+//         $file = fopen('php://output', 'w');
+//         fputcsv($file, $columns);
+
+//         foreach ($payments as $p) {
+//             $attendance = \App\Models\Attendance::where('user_id', $p->user_id)
+//                 ->whereBetween('clock_in', [$fromDate, $toDate])
+//                 ->get()
+//                 ->groupBy(function ($att) {
+//                     return \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d');
+//                 });
+
+//             // Build daily status array
+//             $dailyStatus = [];
+//             $current = $fromDate->copy();
+//             while ($current->lte($toDate)) {
+//                 $key = $current->format('Y-m-d');
+//                 $dailyStatus[] = isset($attendance[$key]) ? 'P' : 'A';
+//                 $current->addDay();
+//             }
+
+//             fputcsv($file, array_merge([
+//                 $p->user->name,
+//                 $p->from_date,
+//                 $p->to_date,
+//             ], $dailyStatus, [
+//                 $p->present_days,
+//                 $p->gross_salary,
+//                 $p->gross_payable,
+//                 $p->total_deduction,
+//                 $p->net_payable
+//             ]));
+//         }
+
+//         fclose($file);
+//     };
+
+//     return response()->stream($callback, 200, $headers);
+// }
 
 }

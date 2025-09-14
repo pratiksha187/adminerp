@@ -143,7 +143,7 @@
 
     {{-- ===== Attendance ===== --}}
     @php
-        $allowAll     = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+        $allowAll     = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
         $allowManager = [1,2,17];
         $canSee = [
             'attendance.calendar.view'    => in_array($roleId, $allowAll, true),
@@ -184,6 +184,39 @@
             @endif
         </div>
     @endif
+
+   @php
+    // check active route for leave menu
+    $leaveActive = request()->routeIs('leave.*') || request()->routeIs('hr.leaves.*');
+
+    // roles/IDs allowed
+    $canLeave           = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+    $allowManagerLeave  = [1,2,17];
+@endphp
+
+@if(in_array(auth()->user()->role_id ?? auth()->id(), $canLeave))
+    <a class="d-flex justify-content-between align-items-center {{ $leaveActive ? 'active-parent' : '' }}"
+       data-bs-toggle="collapse" href="#leaveMenu" aria-expanded="{{ $leaveActive ? 'true' : 'false' }}">
+        <span><i class="bi bi-calendar-x me-2"></i> Leave</span>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse {{ $leaveActive ? 'show' : '' }}" id="leaveMenu">
+        
+        {{-- Everyone who has leave permission --}}
+        <a href="{{ route('leave.index') }}" class="{{ request()->routeIs('leave.index') ? 'active' : '' }}">
+            <i class="bi bi-list-ul me-2"></i> My Leaves
+        </a>
+
+        {{-- Only Manager/HR roles can respond on leave --}}
+        @if(in_array(auth()->user()->role_id ?? auth()->id(), $allowManagerLeave))
+            <a href="{{ route('hr.leaves.index') }}" class="{{ request()->routeIs('hr.leaves.index') ? 'active' : '' }}">
+                <i class="bi bi-check2-circle me-2"></i> Respond on Leaves
+            </a>
+        @endif
+    </div>
+@endif
+
+
 
     {{-- ===== Payments (roles 1,2,9,17) ===== --}}
     @php $paymentActive = request()->routeIs('payments.*'); @endphp

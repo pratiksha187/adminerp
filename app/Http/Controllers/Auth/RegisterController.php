@@ -58,8 +58,8 @@ class RegisterController extends Controller
     {
         $this->validator($request->all())->validate();
         $user = $this->create($request->all());
-        auth()->login($user);
-        return redirect()->route('home')->with('success', 'Employee registered successfully!');
+        // auth()->login($user);
+        return redirect()->route('register')->with('success', 'Employee registered successfully!');
     }
 
     protected function validator(array $data)
@@ -110,6 +110,9 @@ class RegisterController extends Controller
             'pt'                => $data['pt'],
             'advance'           => $data['advance'],
             'pf'                => $data['pf'],
+            'cl'                => 4,
+            'sl'                => 4,
+            'el'                => 4 
         ]);
     }
 
@@ -151,6 +154,7 @@ class RegisterController extends Controller
         'advance' => $user->advance,
         'pf' => $user->pf,
         'pt' => $user->pt,
+
         'is_active'           => $user->is_active,
     ]);
 }
@@ -197,7 +201,7 @@ class RegisterController extends Controller
         $user->probation_months  = $validated['probation_months'] ?? null;
         $user->hours_day         = $validated['hours_day'] ?? null;
         $user->days_week         = $validated['days_week'] ?? null;
-         $user->insurance = $validated['insurance'] ?? null;
+        $user->insurance = $validated['insurance'] ?? null;
         $user->pt  = $validated['pt'] ?? null;
         $user->advance         = $validated['advance'] ?? null;
         $user->pf         = $validated['pf'] ?? null;
