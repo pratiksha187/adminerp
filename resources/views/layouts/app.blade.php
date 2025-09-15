@@ -80,7 +80,7 @@
             ?? (is_object($role) ? ($role->role ?? 0) : ($role ?? (auth()->user()->role ?? 0)))
         );
     @endphp
-<h1>{{ $roleId}}</h1>
+<!-- <h1>{{ $roleId}}</h1> -->
     {{-- ===== User (roles 1,2,17) ===== --}}
     @php $userActive = request()->routeIs('register*'); @endphp
     @if(in_array($roleId, [1, 2, 17], true))
