@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('content')
@@ -30,7 +31,6 @@
 
     @php
         use App\Models\Attendance;
-        use Carbon\Carbon;
         $attendance = Attendance::where('user_id', auth()->id())
             ->whereDate('clock_in', now()->toDateString())
             ->first();
@@ -54,7 +54,6 @@
                 <div class="col-md-6">
                     <div class="p-3 bg-light rounded border d-flex justify-content-between">
                         <span><strong>Clock In</strong></span>
-                       
                         <span>
                             {{ $attendance?->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('d M Y, h:i:s A') : 'Not yet' }}
                         </span>
@@ -63,29 +62,29 @@
                 <div class="col-md-6">
                     <div class="p-3 bg-light rounded border d-flex justify-content-between">
                         <span><strong>Clock Out</strong></span>
-                       
                         <span>
                             {{ $attendance?->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('d M Y, h:i:s A') : 'Not yet' }}
                         </span>
-
                     </div>
                 </div>
             </div>
 
+            {{-- ⏰ Clock In / Clock Out --}}
             @if(!$attendance)
                 <form action="{{ route('attendance.clockin') }}" method="POST" id="clockInForm">
                     @csrf
 
-                     <h1>Get My Location</h1>
-                    <button onclick="getLocation()">Get Location</button>
-                    <p id="status"></p>
-                    <p id="coords"></p>
+                    <div class="mb-3">
+                        <h5>📍 Your Current Location</h5>
+                        <p id="status" class="text-muted">Fetching location...</p>
+                        <p id="coords" class="fw-medium text-dark"></p>
+                    </div>
 
-
-                    <input type="text" name="latitude" id="latitude">
-                    <input type="text" name="longitude" id="longitude">
-
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                    <input type="hidden" name="address" id="address">
                     <input type="hidden" name="device_time" id="clockInTime">
+
                     <button type="submit" class="btn btn-success w-100">
                         <i class="bi bi-box-arrow-in-right me-1"></i> Clock In
                     </button>
@@ -107,7 +106,7 @@
     </div>
 </div>
 
-<!-- ✅ Script for Local Device Time -->
+<!-- ✅ Device Time Script -->
 <script>
     function getFormattedDeviceTime() {
         const now = new Date();
@@ -136,66 +135,68 @@
     });
 </script>
 
+<!-- 📍 Location + Reverse Geocoding -->
 <script>
     let userLat = null;
     let userLng = null;
 
     function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    userLat = position.coords.latitude;
-                    userLng = position.coords.longitude;
-                    document.getElementById('latitude').value = userLat;
-                    document.getElementById('longitude').value = userLng;
-                },
-                error => {
-                    alert("Location access denied. Cannot Clock In.");
-                }
-            );
-        } else {
-            alert("Geolocation is not supported by this browser.");
+        const status = document.getElementById("status");
+        const coords = document.getElementById("coords");
+
+        if (!navigator.geolocation) {
+            status.innerText = "❌ Geolocation is not supported by your browser";
+            return;
         }
+
+        status.innerText = "📡 Locating…";
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                userLat = position.coords.latitude;
+                userLng = position.coords.longitude;
+
+                document.getElementById('latitude').value = userLat;
+                document.getElementById('longitude').value = userLng;
+
+                status.innerText = "✅ Location found!";
+                coords.innerHTML = `Latitude: ${userLat}<br>
+                                    Longitude: ${userLng}<br>
+                                    Accuracy: ±${position.coords.accuracy} meters`;
+
+                // 🔁 Reverse Geocoding (OpenStreetMap API)
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLat}&lon=${userLng}`);
+                    const data = await response.json();
+
+                    if (data && data.display_name) {
+                        coords.innerHTML += `<br><strong>Address:</strong> ${data.display_name}`;
+                        document.getElementById('address').value = data.display_name;
+                    }
+                } catch (err) {
+                    coords.innerHTML += "<br><strong>Address lookup failed</strong>";
+                }
+            },
+            (error) => {
+                status.innerText = "❌ Unable to retrieve location: " + error.message;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
     }
 
-    // Get location as soon as page loads
+    // Auto fetch location on page load
     window.onload = getLocation;
 
+    // Prevent submit if location not available
     document.getElementById('clockInForm')?.addEventListener('submit', function (e) {
         if (!userLat || !userLng) {
             e.preventDefault();
-            alert("Unable to get your location. Please allow location access.");
+            alert("⚠️ Unable to get your location. Please allow location access.");
         }
     });
 </script>
- <script>
-        function getLocation() {
-            const status = document.getElementById("status");
-            const coords = document.getElementById("coords");
-
-            if (!navigator.geolocation) {
-                status.innerText = "Geolocation is not supported by your browser";
-                return;
-            }
-
-            status.innerText = "Locating…";
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    status.innerText = "Location found!";
-                    coords.innerHTML = `Latitude: ${position.coords.latitude}<br>
-                                         Longitude: ${position.coords.longitude}<br>
-                                         Accuracy: ±${position.coords.accuracy} meters`;
-                },
-                (error) => {
-                    status.innerText = "Unable to retrieve location: " + error.message;
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
-        }
-    </script>
 @endsection
