@@ -80,7 +80,7 @@
             ?? (is_object($role) ? ($role->role ?? 0) : ($role ?? (auth()->user()->role ?? 0)))
         );
     @endphp
-
+<h1>{{ $roleId}}</h1>
     {{-- ===== User (roles 1,2,17) ===== --}}
     @php $userActive = request()->routeIs('register*'); @endphp
     @if(in_array($roleId, [1, 2, 17], true))
@@ -185,7 +185,7 @@
         </div>
     @endif
 
-   <!-- @php
+   @php
     // check active route for leave menu
     $leaveActive = request()->routeIs('leave.*') || request()->routeIs('hr.leaves.*');
 
@@ -193,8 +193,7 @@
     $canLeave           = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
     $allowManagerLeave  = [1,2,17];
     @endphp
-
-    @if(in_array(auth()->user()->role_id ?? auth()->id(), $canLeave))
+    @if(in_array( $roleId ?? auth()->id(), $canLeave))
         <a class="d-flex justify-content-between align-items-center {{ $leaveActive ? 'active-parent' : '' }}"
         data-bs-toggle="collapse" href="#leaveMenu" aria-expanded="{{ $leaveActive ? 'true' : 'false' }}">
             <span><i class="bi bi-calendar-x me-2"></i> Leave</span>
@@ -208,51 +207,14 @@
             </a>
 
             {{-- Only Manager/HR roles can respond on leave --}}
-            @if(in_array(auth()->user()->role_id ?? auth()->id(), $allowManagerLeave))
+            @if(in_array($roleId  ?? auth()->id(), $allowManagerLeave))
                 <a href="{{ route('hr.leaves.index') }}" class="{{ request()->routeIs('hr.leaves.index') ? 'active' : '' }}">
                     <i class="bi bi-check2-circle me-2"></i> Respond on Leaves
                 </a>
             @endif
-        </div>
-    @endif -->
-
-    @php
-        $allowAllLeave     = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
-        $allowManagerLeave = [1,2,17];
-
-        $roleId = auth()->user()->role_id ?? auth()->id();
-
-        $canSeeLeave = [
-            'leave.index'      => in_array($roleId, $allowAllLeave, true),
-            'hr.leaves.index'  => in_array($roleId, $allowManagerLeave, true),
-        ];
-
-        $leaveRoutes = array_keys(array_filter($canSeeLeave));
-        $leaveActive = collect($leaveRoutes)->contains(fn($r) => request()->routeIs($r));
-    @endphp
-
-    @if(in_array(true, $canSeeLeave, true))
-        <a class="d-flex justify-content-between align-items-center {{ $leaveActive ? 'active-parent' : '' }}"
-        data-bs-toggle="collapse" href="#leaveMenu" aria-expanded="{{ $leaveActive ? 'true' : 'false' }}">
-            <span><i class="bi bi-calendar-x me-2"></i> Leave</span>
-            <i class="bi bi-chevron-down small"></i>
-        </a>
-        <div class="collapse {{ $leaveActive ? 'show' : '' }}" id="leaveMenu">
-
-            @if($canSeeLeave['leave.index'])
-                <a href="{{ route('leave.index') }}" class="{{ request()->routeIs('leave.index') ? 'active' : '' }}">
-                    <i class="bi bi-list-ul me-2"></i> My Leaves
-                </a>
-            @endif
-
-            @if($canSeeLeave['hr.leaves.index'])
-                <a href="{{ route('hr.leaves.index') }}" class="{{ request()->routeIs('hr.leaves.index') ? 'active' : '' }}">
-                    <i class="bi bi-check2-circle me-2"></i> Respond on Leaves
-                </a>
-            @endif
-
         </div>
     @endif
+
 
 
     {{-- ===== Payments (roles 1,2,9,17) ===== --}}
