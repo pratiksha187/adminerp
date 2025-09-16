@@ -126,20 +126,68 @@
         </div>
     @endif
 
-    {{-- ===== DPR (roles 1,2,4,17) ===== --}}
-    @php $enggActive = request()->routeIs('work-entry.*'); @endphp
-    @if(in_array($roleId, [1, 2, 4, 17], true))
-        <a class="d-flex justify-content-between align-items-center {{ $enggActive ? 'active-parent' : '' }}"
-           data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $enggActive ? 'true' : 'false' }}">
-            <span><i class="bi bi-book me-2"></i> DPR</span>
-            <i class="bi bi-chevron-down small"></i>
-        </a>
-        <div class="collapse {{ $enggActive ? 'show' : '' }}" id="enggMenu">
-            <a href="{{ route('work-entry.index') }}" class="{{ request()->routeIs('work-entry.index') ? 'active' : '' }}">
-                <i class="bi bi-receipt me-2"></i> Daily Work Report
+{{-- ===== DPR (roles 1,2,4,17) ===== --}}
+@php
+    $canSee = [
+        'work-entry.index'                => in_array($roleId, [1,2,4], true), // Engg Work Report
+        'store-requirement.list'          => in_array($roleId, [1,2,17], true),   // Material Requirement
+        'store-requirement.accepted.list' => in_array($roleId, [1,2,17], true),   // Accept Material List
+        'store-dpr.list'                  => in_array($roleId, [1,4,17], true),   // Store Manager Report
+    ];
+
+    // check active route
+    $dprRoutes   = array_keys(array_filter($canSee));
+    $dprActive   = collect($dprRoutes)->contains(fn($r) => request()->routeIs($r));
+    $storeActive = collect(['store-requirement.*','store-dpr.*'])
+                    ->contains(fn($r) => request()->routeIs($r));
+@endphp
+
+@if(in_array(true, $canSee, true))
+    <a class="d-flex justify-content-between align-items-center {{ $dprActive ? 'active-parent' : '' }}"
+       data-bs-toggle="collapse" href="#enggMenu" aria-expanded="{{ $dprActive ? 'true' : 'false' }}">
+        <span><i class="bi bi-book me-2"></i> DPR</span>
+        <i class="bi bi-chevron-down small"></i>
+    </a>
+    <div class="collapse {{ $dprActive ? 'show' : '' }}" id="enggMenu">
+
+        {{-- Engg Work Report --}}
+        @if($canSee['work-entry.index'])
+            <a href="{{ route('work-entry.index') }}" 
+               class="{{ request()->routeIs('work-entry.index') ? 'active' : '' }}">
+                <i class="bi bi-receipt me-2"></i> Engg Daily Work Report
             </a>
-        </div>
-    @endif
+        @endif
+
+        {{-- Store Manager Main --}}
+        @if($canSee['store-requirement.list'] || $canSee['store-requirement.accepted.list'] || $canSee['store-dpr.list'])
+            <a class="d-flex justify-content-between align-items-center {{ $storeActive ? 'active-parent' : '' }}"
+               data-bs-toggle="collapse" href="#storeMenu" aria-expanded="{{ $storeActive ? 'true' : 'false' }}">
+                <span><i class="bi bi-box me-2"></i> Store Manager</span>
+                <i class="bi bi-chevron-down small"></i>
+            </a>
+            <div class="collapse {{ $storeActive ? 'show' : '' }}" id="storeMenu">
+                @if($canSee['store-requirement.list'])
+                    <a href="{{ route('store-requirement.list') }}" 
+                       class="{{ request()->routeIs('store-requirement.*') ? 'active' : '' }}">
+                        <i class="bi bi-cart-check me-2"></i> Material Requirement
+                    </a>
+                @endif
+                @if($canSee['store-requirement.accepted.list'])
+                    <a href="{{ route('store-requirement.accepted.list') }}" 
+                       class="{{ request()->routeIs('store-requirement.accepted.list') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam me-2"></i> Accept Material List
+                    </a>
+                @endif
+                @if($canSee['store-dpr.list'])
+                    <a href="{{ route('store-dpr.list') }}" 
+                       class="{{ request()->routeIs('store-dpr.*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam me-2"></i> Store Manager Report
+                    </a>
+                @endif
+            </div>
+        @endif
+    </div>
+@endif
 
     {{-- ===== Attendance ===== --}}
     @php

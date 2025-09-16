@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\AttendanceCalendarController;
 use App\Http\Controllers\LeaveController;
-
+use App\Http\Controllers\StoreDprController;
 Route::get('/', function () {
     return view('auth.login');
 });
@@ -106,6 +106,28 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
     // HR portal
     Route::get('hr/leaves', [LeaveController::class, 'hrIndex'])->name('hr.leaves.index');
     Route::post('hr/leaves/{id}/update', [LeaveController::class, 'updateStatus'])->name('hr.leaves.update');
+    // Route::get('store-entry', [StoreEntryController ::class, 'storeentry'])->name('store-entry.index');
+// Store DPR Routes
+// use App\Http\Controllers\StoreDprController;
+
+// Route::get('/store-dpr/create', function() {
+//     return view('store-dpr.create'); // Your Blade file
+// })->name('store-dpr.create');
+    Route::get('/store-dpr/create', [StoreDprController::class, 'storedpr'])->name('store-dpr.create');
+
+    Route::post('/store-dpr/store', [StoreDprController::class, 'store'])->name('store-dpr.store');
+    Route::get('/store-dpr/list', [StoreDprController::class, 'index'])->name('store-dpr.list');
+
+    Route::get('/store-requirement', [StoreDprController::class, 'storerequirement'])->name('store-requirement.create');
+    Route::post('/store-requirement/save', [StoreDprController::class, 'storeRequirementSave'])
+        ->name('store-requirement.save');
+    Route::get('/store-requirements-list', [StoreDprController::class, 'storerequirementlist'])
+        ->name('store-requirement.list');
+    Route::get('/store-requirements-Accepted-list', [StoreDprController::class, 'storerequirementaceptedlist'])
+        ->name('store-requirement.accepted.list');
+      
+    Route::post('/store-requirements/status/{id}', [StoreDprController::class, 'updateRequirementStatus'])->name('store-requirement.status');
+    Route::get('/store-requirements/{id}', [StoreDprController::class, 'show'])->name('store-requirement.view');
 
 });
 
