@@ -232,7 +232,7 @@ public function generatePayment(Request $request)
     $holidays = DB::table('holidays')
         ->whereBetween('date', [$from, $to])
         ->get();
-
+dd($holidays);
     // Categorize holidays
     $companyHolidayDates = $holidays->where('type', 'company')
         ->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
