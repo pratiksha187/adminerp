@@ -232,19 +232,13 @@ public function generatePayment(Request $request)
     $holidays = DB::table('holidays')
         ->whereBetween('date', [$from, $to])
         ->get();
-dd($holidays);
-    // Categorize holidays
-    $companyHolidayDates = $holidays->where('type', 'company')
-        ->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
 
-    $publicHolidayDates = $holidays->where('type', 'public')
-        ->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
 
     // If no type column — treat all as company holidays
     if (empty($companyHolidayDates) && empty($publicHolidayDates)) {
         $companyHolidayDates = $holidays->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
     }
-
+dd($companyHolidayDates);
     // ✅ Weekly Offs (Sundays)
     $weeklyOffDates = [];
     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
