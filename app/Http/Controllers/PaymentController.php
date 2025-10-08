@@ -218,21 +218,34 @@ public function generatePayment(Request $request)
     $daysInMonth  = $from->daysInMonth;
     $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
 
-    /* ---------------------------
-       FETCH ALL REQUIRED DATASETS
-    ---------------------------- */
+    /* ----------------------------------
+       FETCH ATTENDANCE + LEAVES + HOLIDAYS
+    ----------------------------------- */
+
+    // ✅ Attendance
     $attendances = Attendance::where('user_id', $user->id)
         ->whereBetween('clock_in', [$from, $to])
         ->get()
         ->groupBy(fn($a) => Carbon::parse($a->clock_in)->toDateString());
 
+    // ✅ Holidays (Company + Public)
     $holidays = DB::table('holidays')
         ->whereBetween('date', [$from, $to])
         ->get();
 
-    $holidayDates = $holidays->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
+    // Categorize holidays
+    $companyHolidayDates = $holidays->where('type', 'company')
+        ->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
 
-    // Weekly Offs (Sunday)
+    $publicHolidayDates = $holidays->where('type', 'public')
+        ->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
+
+    // If no type column — treat all as company holidays
+    if (empty($companyHolidayDates) && empty($publicHolidayDates)) {
+        $companyHolidayDates = $holidays->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
+    }
+
+    // ✅ Weekly Offs (Sundays)
     $weeklyOffDates = [];
     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
         if ($d->isSunday()) {
@@ -240,7 +253,7 @@ public function generatePayment(Request $request)
         }
     }
 
-    // Leaves
+    // ✅ Approved Leaves
     $leaves = Leave::where('user_id', $user->id)
         ->where('status', 'Approved')
         ->where(function ($q) use ($from, $to) {
@@ -253,7 +266,7 @@ public function generatePayment(Request $request)
         })
         ->get();
 
-    // Map leave days by type
+    // Map leave days by type (CL/SL/EL)
     $leaveMap = [];
     foreach ($leaves as $lv) {
         $period = CarbonPeriod::create($lv->from_date, $lv->to_date);
@@ -262,12 +275,14 @@ public function generatePayment(Request $request)
         }
     }
 
-    /* ---------------------------
-       DAILY LOOP TO EVALUATE STATUS
-    ---------------------------- */
+    /* ----------------------------------
+       DAILY STATUS EVALUATION
+    ----------------------------------- */
+
     $present_days = 0;
     $weekoffCount = 0;
-    $holidayCount = 0;
+    $companyHolidayCount = 0;
+    $publicHolidayCount = 0;
     $leave_cl = 0;
     $leave_sl = 0;
     $leave_el = 0;
@@ -277,8 +292,10 @@ public function generatePayment(Request $request)
 
         if (isset($attendances[$date])) {
             $present_days += 1;
-        } elseif (in_array($date, $holidayDates)) {
-            $holidayCount++;
+        } elseif (in_array($date, $companyHolidayDates)) {
+            $companyHolidayCount++;
+        } elseif (in_array($date, $publicHolidayDates)) {
+            $publicHolidayCount++;
         } elseif (in_array($date, $weeklyOffDates)) {
             $weekoffCount++;
         } elseif (isset($leaveMap[$date])) {
@@ -290,11 +307,13 @@ public function generatePayment(Request $request)
     }
 
     $leaveDays = $leave_cl + $leave_sl + $leave_el;
-    $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
 
-    /* ---------------------------
+    // ✅ Final Present + Paid Days (for salary)
+    $present_days_act = $present_days + $weekoffCount + $companyHolidayCount + $publicHolidayCount + $leaveDays;
+
+    /* ----------------------------------
        SALARY CALCULATION
-    ---------------------------- */
+    ----------------------------------- */
     $gross_payable = round($per_day_rate * $present_days_act);
 
     $basic_60        = round($gross_payable * 0.6);
@@ -310,9 +329,9 @@ public function generatePayment(Request $request)
     $total_deduction = $pf + $insurance + $pt + $advance;
     $net_payable     = $gross_payable - $total_deduction;
 
-    /* ---------------------------
-       SAVE PAYMENT RECORD
-    ---------------------------- */
+    /* ----------------------------------
+       SAVE PAYMENT
+    ----------------------------------- */
     Payment::create([
         'user_id'              => $user->id,
         'from_date'            => $from,
@@ -320,7 +339,8 @@ public function generatePayment(Request $request)
         'present_days'         => $present_days_act,
         'present_days_in_month'=> $present_days,
         'weekoffCount'         => $weekoffCount,
-        'holidayCount'         => $holidayCount,
+        'holidayCount'         => $companyHolidayCount,
+        'publicHolidayCount'   => $publicHolidayCount,
         'leave_cl'             => $leave_cl,
         'leave_sl'             => $leave_sl,
         'leave_el'             => $leave_el,
@@ -339,8 +359,9 @@ public function generatePayment(Request $request)
         'net_payable'          => $net_payable,
     ]);
 
-    return back()->with('success', 'Payment generated successfully with full calendar logic (Leaves, Holidays, and Weekoffs).');
+    return back()->with('success', 'Payment generated successfully with Public Holidays, Company Holidays, Weekoffs, and Leave details.');
 }
+
 
 public function slip($id)
 {
