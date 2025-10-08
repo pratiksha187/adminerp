@@ -227,7 +227,7 @@ public function generatePayment(Request $request)
         ->whereBetween('clock_in', [$from, $to])
         ->get()
         ->groupBy(fn($a) => Carbon::parse($a->clock_in)->toDateString());
-dd($attendances);
+// dd($attendances);
     // ✅ Holidays (no type column — treat all as holidays)
     $holidays = DB::table('holidays')
         ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
@@ -727,6 +727,118 @@ public function slip($id)
 
 //     return response()->stream($callback, 200, $headers);
 // }
+// public function export(): StreamedResponse
+// {
+//     $fileName = 'salary_payments_with_attendance.csv';
+//     $payments = \App\Models\Payment::with('user')->get();
+
+//     $fromDate = \Carbon\Carbon::parse($payments->first()?->from_date ?? now()->startOfMonth());
+//     $toDate   = \Carbon\Carbon::parse($payments->first()?->to_date ?? now()->endOfMonth());
+
+//     $dateRange = [];
+//     $current = $fromDate->copy();
+//     while ($current->lte($toDate)) {
+//         $dateRange[] = $current->format('j/n');
+//         $current->addDay();
+//     }
+
+//     $columns = array_merge([
+//         'Employee Name', 'From Date', 'To Date'
+//     ], $dateRange, [
+//         'Present Days', 'Weekly Offs', 'Holidays',
+//         'CL', 'SL', 'EL',
+//         'Gross Salary', 'Per Day Rate', 'Gross Payable',
+//         'Total Deduction', 'Net Payable'
+//     ]);
+
+//     $headers = [
+//         'Content-Type' => 'text/csv',
+//         'Content-Disposition' => "attachment; filename={$fileName}",
+//         'Pragma' => 'no-cache',
+//         'Cache-Control' => 'must-revalidate',
+//         'Expires' => '0',
+//     ];
+
+//     $callback = function () use ($payments, $columns) {
+//         $file = fopen('php://output', 'w');
+//         fputcsv($file, $columns);
+
+//         foreach ($payments as $p) {
+//             $attendance = \App\Models\Attendance::where('user_id', $p->user_id)
+//                 ->whereBetween('clock_in', [$p->from_date, $p->to_date])
+//                 ->get()
+//                 ->groupBy(fn($att) => \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d'));
+
+//             $leaves = \App\Models\Leave::where('user_id', $p->user_id)
+//                 ->where('status', 'Approved')
+//                 ->where(function ($q) use ($p) {
+//                     $q->whereBetween('from_date', [$p->from_date, $p->to_date])
+//                       ->orWhereBetween('to_date', [$p->from_date, $p->to_date]);
+//                 })
+//                 ->get();
+
+//             $leaveDays = [];
+//             foreach ($leaves as $leave) {
+//                 $leaveFrom = \Carbon\Carbon::parse($leave->from_date);
+//                 $leaveTo   = \Carbon\Carbon::parse($leave->to_date);
+//                 for ($d = $leaveFrom->copy(); $d->lte($leaveTo); $d->addDay()) {
+//                     $leaveDays[$d->format('Y-m-d')] = strtoupper(substr($leave->type, 0, 2));
+//                 }
+//             }
+
+//             // ✅ Holidays (no type column)
+//             $holidays = DB::table('holidays')
+//                 ->whereBetween('date', [$p->from_date, $p->to_date])
+//                 ->pluck('date')
+//                 ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())
+//                 ->toArray();
+
+//             $dailyStatus = [];
+//             $current = \Carbon\Carbon::parse($p->from_date);
+//             $to = \Carbon\Carbon::parse($p->to_date);
+
+//             while ($current->lte($to)) {
+//                 $date = $current->format('Y-m-d');
+
+//                 if (isset($attendance[$date])) {
+//                     $dailyStatus[] = 'P';
+//                 } elseif (in_array($date, $holidays, true)) {
+//                     $dailyStatus[] = 'H';
+//                 } elseif (isset($leaveDays[$date])) {
+//                     $dailyStatus[] = $leaveDays[$date];
+//                 } elseif ($current->isSunday()) {
+//                     $dailyStatus[] = 'WO';
+//                 } else {
+//                     $dailyStatus[] = 'A';
+//                 }
+
+//                 $current->addDay();
+//             }
+
+//             fputcsv($file, array_merge([
+//                 $p->user->name,
+//                 $p->from_date,
+//                 $p->to_date,
+//             ], $dailyStatus, [
+//                 $p->present_days,
+//                 $p->weekoffCount,
+//                 $p->holidayCount,
+//                 $p->leave_cl ?? 0,
+//                 $p->leave_sl ?? 0,
+//                 $p->leave_el ?? 0,
+//                 $p->gross_salary,
+//                 $p->per_day_rate,
+//                 $p->gross_payable,
+//                 $p->total_deduction,
+//                 $p->net_payable,
+//             ]));
+//         }
+
+//         fclose($file);
+//     };
+
+//     return response()->stream($callback, 200, $headers);
+// }
 public function export(): StreamedResponse
 {
     $fileName = 'salary_payments_with_attendance.csv';
@@ -764,16 +876,26 @@ public function export(): StreamedResponse
         fputcsv($file, $columns);
 
         foreach ($payments as $p) {
-            $attendance = \App\Models\Attendance::where('user_id', $p->user_id)
-                ->whereBetween('clock_in', [$p->from_date, $p->to_date])
-                ->get()
-                ->groupBy(fn($att) => \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d'));
+            // ✅ Parse full date range properly
+            $from = \Carbon\Carbon::parse($p->from_date)->startOfDay();
+            $to   = \Carbon\Carbon::parse($p->to_date)->endOfDay();
 
+            // ✅ Attendance (include full end of day)
+            $attendance = \App\Models\Attendance::where('user_id', $p->user_id)
+                ->whereBetween('clock_in', [$from, $to])
+                ->get()
+                ->groupBy(fn($att) => \Carbon\Carbon::parse($att->clock_in)->toDateString());
+
+            // ✅ Leaves
             $leaves = \App\Models\Leave::where('user_id', $p->user_id)
                 ->where('status', 'Approved')
-                ->where(function ($q) use ($p) {
-                    $q->whereBetween('from_date', [$p->from_date, $p->to_date])
-                      ->orWhereBetween('to_date', [$p->from_date, $p->to_date]);
+                ->where(function ($q) use ($from, $to) {
+                    $q->whereBetween('from_date', [$from, $to])
+                      ->orWhereBetween('to_date', [$from, $to])
+                      ->orWhere(function ($q2) use ($from, $to) {
+                          $q2->where('from_date', '<=', $from)
+                             ->where('to_date', '>=', $to);
+                      });
                 })
                 ->get();
 
@@ -786,17 +908,16 @@ public function export(): StreamedResponse
                 }
             }
 
-            // ✅ Holidays (no type column)
+            // ✅ Holidays (include full end of day)
             $holidays = DB::table('holidays')
-                ->whereBetween('date', [$p->from_date, $p->to_date])
+                ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
                 ->pluck('date')
                 ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())
                 ->toArray();
 
+            // ✅ Build daily status
             $dailyStatus = [];
-            $current = \Carbon\Carbon::parse($p->from_date);
-            $to = \Carbon\Carbon::parse($p->to_date);
-
+            $current = $from->copy();
             while ($current->lte($to)) {
                 $date = $current->format('Y-m-d');
 
@@ -815,6 +936,7 @@ public function export(): StreamedResponse
                 $current->addDay();
             }
 
+            // ✅ Write row to CSV
             fputcsv($file, array_merge([
                 $p->user->name,
                 $p->from_date,
