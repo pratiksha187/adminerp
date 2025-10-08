@@ -673,12 +673,7 @@ public function export(): StreamedResponse
                 ->whereBetween('date', [$p->from_date, $p->to_date])
                 ->get();
 
-            $companyHolidayDates = $holidays->where('type', 'company')
-                ->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())->toArray();
-
-            $publicHolidayDates = $holidays->where('type', 'public')
-                ->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())->toArray();
-
+           
             // If no type column — treat all as company holidays
             if (empty($companyHolidayDates) && empty($publicHolidayDates)) {
                 $companyHolidayDates = $holidays->pluck('date')
