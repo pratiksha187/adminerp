@@ -238,7 +238,7 @@ public function generatePayment(Request $request)
     if (empty($companyHolidayDates) && empty($publicHolidayDates)) {
         $companyHolidayDates = $holidays->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
     }
-dd($companyHolidayDates);
+// dd($companyHolidayDates);
     // ✅ Weekly Offs (Sundays)
     $weeklyOffDates = [];
     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
@@ -472,6 +472,138 @@ public function slip($id)
 
 //     return response()->stream($callback, 200, $headers);
 // }
+// public function export(): StreamedResponse
+// {
+//     $fileName = 'salary_payments_with_attendance.csv';
+//     $payments = \App\Models\Payment::with('user')->get();
+
+//     // Set date range from first record (or fallback to current month)
+//     $fromDate = \Carbon\Carbon::parse($payments->first()?->from_date ?? now()->startOfMonth());
+//     $toDate = \Carbon\Carbon::parse($payments->first()?->to_date ?? now()->endOfMonth());
+
+//     // Generate date headers: 1/7, 2/7, ...
+//     $dateRange = [];
+//     $current = $fromDate->copy();
+//     while ($current->lte($toDate)) {
+//         $dateRange[] = $current->format('j/n');
+//         $current->addDay();
+//     }
+
+//     // 🧾 Define header row — attendance + payment details
+//     $columns = array_merge([
+//         'Employee Name',
+//         'From Date',
+//         'To Date',
+//     ], $dateRange, [
+//         'Present Days',
+//         'Weekly Offs',
+//         'Holidays',
+//         'Leaves',
+//         'Gross Salary',
+//         'Per Day Rate',
+//         'Basic (60%)',
+//         'HRA (5%)',
+//         'Conveyance (20%)',
+//         'Other Allowance',
+//         'Gross Payable',
+//         'PF',
+//         'Insurance',
+//         'PT',
+//         'Advance',
+//         'Total Deduction',
+//         'Net Payable',
+//     ]);
+
+//     $headers = [
+//         'Content-Type' => 'text/csv',
+//         'Content-Disposition' => "attachment; filename={$fileName}",
+//         'Pragma' => 'no-cache',
+//         'Cache-Control' => 'must-revalidate',
+//         'Expires' => '0',
+//     ];
+
+//     $callback = function () use ($payments, $columns, $fromDate, $toDate) {
+//         $file = fopen('php://output', 'w');
+//         fputcsv($file, $columns);
+
+//         foreach ($payments as $p) {
+//             // ✅ Fetch attendance data for user in period
+//             $attendance = \App\Models\Attendance::where('user_id', $p->user_id)
+//                 ->whereBetween('clock_in', [$p->from_date, $p->to_date])
+//                 ->get()
+//                 ->groupBy(function ($att) {
+//                     return \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d');
+//                 });
+
+//             // ✅ Fetch leaves for same period
+//             $leaves = \App\Models\Leave::where('user_id', $p->user_id)
+//                 ->where('status', 'Approved')
+//                 ->where(function ($q) use ($p) {
+//                     $q->whereBetween('from_date', [$p->from_date, $p->to_date])
+//                       ->orWhereBetween('to_date', [$p->from_date, $p->to_date]);
+//                 })
+//                 ->get();
+
+//             // Map leave days
+//             $leaveDays = [];
+//             foreach ($leaves as $leave) {
+//                 $leaveFrom = \Carbon\Carbon::parse($leave->from_date);
+//                 $leaveTo = \Carbon\Carbon::parse($leave->to_date);
+//                 for ($d = $leaveFrom->copy(); $d->lte($leaveTo); $d->addDay()) {
+//                     $leaveDays[$d->format('Y-m-d')] = strtoupper(substr($leave->type, 0, 1)); // P/L/S
+//                 }
+//             }
+
+//             // ✅ Build daily attendance status array
+//             $dailyStatus = [];
+//             $current = \Carbon\Carbon::parse($p->from_date);
+//             $to = \Carbon\Carbon::parse($p->to_date);
+//             while ($current->lte($to)) {
+//                 $key = $current->format('Y-m-d');
+//                 if (isset($attendance[$key])) {
+//                     $dailyStatus[] = 'P'; // Present
+//                 } elseif (isset($leaveDays[$key])) {
+//                     $dailyStatus[] = $leaveDays[$key]; // Leave type
+//                 } elseif ($current->isSunday()) {
+//                     $dailyStatus[] = 'WO'; // Weekly off
+//                 } else {
+//                     $dailyStatus[] = 'A'; // Absent
+//                 }
+//                 $current->addDay();
+//             }
+
+//             // ✅ Add salary details
+//             fputcsv($file, array_merge([
+//                 $p->user->name,
+//                 $p->from_date,
+//                 $p->to_date,
+//             ], $dailyStatus, [
+//                 $p->present_days,
+//                 $p->weekoffCount,
+//                 $p->holidayCount,
+//                 ($p->present_days - $p->present_days_in_month), // leave count (approx)
+//                 $p->gross_salary,
+//                 $p->per_day_rate,
+//                 $p->basic_60,
+//                 $p->hra_5,
+//                 $p->conveyance_20,
+//                 $p->other_allowance,
+//                 $p->gross_payable,
+//                 $p->pf_12,
+//                 $p->insurance,
+//                 $p->pt,
+//                 $p->advance,
+//                 $p->total_deduction,
+//                 $p->net_payable,
+//             ]));
+//         }
+
+//         fclose($file);
+//     };
+
+//     return response()->stream($callback, 200, $headers);
+// }
+
 public function export(): StreamedResponse
 {
     $fileName = 'salary_payments_with_attendance.csv';
@@ -479,7 +611,7 @@ public function export(): StreamedResponse
 
     // Set date range from first record (or fallback to current month)
     $fromDate = \Carbon\Carbon::parse($payments->first()?->from_date ?? now()->startOfMonth());
-    $toDate = \Carbon\Carbon::parse($payments->first()?->to_date ?? now()->endOfMonth());
+    $toDate   = \Carbon\Carbon::parse($payments->first()?->to_date ?? now()->endOfMonth());
 
     // Generate date headers: 1/7, 2/7, ...
     $dateRange = [];
@@ -489,29 +621,14 @@ public function export(): StreamedResponse
         $current->addDay();
     }
 
-    // 🧾 Define header row — attendance + payment details
+    // Header Row
     $columns = array_merge([
-        'Employee Name',
-        'From Date',
-        'To Date',
+        'Employee Name', 'From Date', 'To Date'
     ], $dateRange, [
-        'Present Days',
-        'Weekly Offs',
-        'Holidays',
-        'Leaves',
-        'Gross Salary',
-        'Per Day Rate',
-        'Basic (60%)',
-        'HRA (5%)',
-        'Conveyance (20%)',
-        'Other Allowance',
-        'Gross Payable',
-        'PF',
-        'Insurance',
-        'PT',
-        'Advance',
-        'Total Deduction',
-        'Net Payable',
+        'Present Days', 'Weekly Offs', 'Company Holidays', 'Public Holidays',
+        'CL', 'SL', 'EL',
+        'Gross Salary', 'Per Day Rate', 'Gross Payable',
+        'Total Deduction', 'Net Payable'
     ]);
 
     $headers = [
@@ -527,15 +644,13 @@ public function export(): StreamedResponse
         fputcsv($file, $columns);
 
         foreach ($payments as $p) {
-            // ✅ Fetch attendance data for user in period
+            // ✅ Attendance
             $attendance = \App\Models\Attendance::where('user_id', $p->user_id)
                 ->whereBetween('clock_in', [$p->from_date, $p->to_date])
                 ->get()
-                ->groupBy(function ($att) {
-                    return \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d');
-                });
+                ->groupBy(fn($att) => \Carbon\Carbon::parse($att->clock_in)->format('Y-m-d'));
 
-            // ✅ Fetch leaves for same period
+            // ✅ Leaves
             $leaves = \App\Models\Leave::where('user_id', $p->user_id)
                 ->where('status', 'Approved')
                 ->where(function ($q) use ($p) {
@@ -544,35 +659,58 @@ public function export(): StreamedResponse
                 })
                 ->get();
 
-            // Map leave days
             $leaveDays = [];
             foreach ($leaves as $leave) {
                 $leaveFrom = \Carbon\Carbon::parse($leave->from_date);
-                $leaveTo = \Carbon\Carbon::parse($leave->to_date);
+                $leaveTo   = \Carbon\Carbon::parse($leave->to_date);
                 for ($d = $leaveFrom->copy(); $d->lte($leaveTo); $d->addDay()) {
-                    $leaveDays[$d->format('Y-m-d')] = strtoupper(substr($leave->type, 0, 1)); // P/L/S
+                    $leaveDays[$d->format('Y-m-d')] = strtoupper(substr($leave->type, 0, 2)); // CL, SL, EL
                 }
             }
 
-            // ✅ Build daily attendance status array
+            // ✅ Holidays (Company + Public)
+            $holidays = DB::table('holidays')
+                ->whereBetween('date', [$p->from_date, $p->to_date])
+                ->get();
+
+            $companyHolidayDates = $holidays->where('type', 'company')
+                ->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())->toArray();
+
+            $publicHolidayDates = $holidays->where('type', 'public')
+                ->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())->toArray();
+
+            // If no type column — treat all as company holidays
+            if (empty($companyHolidayDates) && empty($publicHolidayDates)) {
+                $companyHolidayDates = $holidays->pluck('date')
+                    ->map(fn($d) => \Carbon\Carbon::parse($d)->toDateString())->toArray();
+            }
+
+            // ✅ Daily Status
             $dailyStatus = [];
             $current = \Carbon\Carbon::parse($p->from_date);
             $to = \Carbon\Carbon::parse($p->to_date);
+
             while ($current->lte($to)) {
-                $key = $current->format('Y-m-d');
-                if (isset($attendance[$key])) {
+                $date = $current->format('Y-m-d');
+
+                if (isset($attendance[$date])) {
                     $dailyStatus[] = 'P'; // Present
-                } elseif (isset($leaveDays[$key])) {
-                    $dailyStatus[] = $leaveDays[$key]; // Leave type
+                } elseif (in_array($date, $companyHolidayDates)) {
+                    $dailyStatus[] = 'H'; // Company Holiday
+                } elseif (in_array($date, $publicHolidayDates)) {
+                    $dailyStatus[] = 'PH'; // Public Holiday
+                } elseif (isset($leaveDays[$date])) {
+                    $dailyStatus[] = $leaveDays[$date]; // CL, SL, EL
                 } elseif ($current->isSunday()) {
-                    $dailyStatus[] = 'WO'; // Weekly off
+                    $dailyStatus[] = 'WO'; // Weekly Off
                 } else {
                     $dailyStatus[] = 'A'; // Absent
                 }
+
                 $current->addDay();
             }
 
-            // ✅ Add salary details
+            // ✅ Export Row
             fputcsv($file, array_merge([
                 $p->user->name,
                 $p->from_date,
@@ -581,18 +719,13 @@ public function export(): StreamedResponse
                 $p->present_days,
                 $p->weekoffCount,
                 $p->holidayCount,
-                ($p->present_days - $p->present_days_in_month), // leave count (approx)
+                $p->publicHolidayCount ?? 0,
+                $p->leave_cl ?? 0,
+                $p->leave_sl ?? 0,
+                $p->leave_el ?? 0,
                 $p->gross_salary,
                 $p->per_day_rate,
-                $p->basic_60,
-                $p->hra_5,
-                $p->conveyance_20,
-                $p->other_allowance,
                 $p->gross_payable,
-                $p->pf_12,
-                $p->insurance,
-                $p->pt,
-                $p->advance,
                 $p->total_deduction,
                 $p->net_payable,
             ]));
@@ -603,6 +736,5 @@ public function export(): StreamedResponse
 
     return response()->stream($callback, 200, $headers);
 }
-
 
 }
