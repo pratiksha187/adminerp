@@ -227,7 +227,7 @@ public function generatePayment(Request $request)
         ->whereBetween('clock_in', [$from, $to])
         ->get()
         ->groupBy(fn($a) => Carbon::parse($a->clock_in)->toDateString());
-
+dd($attendance);
     // ✅ Holidays (no type column — treat all as holidays)
     $holidays = DB::table('holidays')
         ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
