@@ -543,8 +543,8 @@ public function generatePayment(Request $request)
     ----------------------------------- */
     
     // $gross_salary = (int) ($user->salary ?? 0);
-    $gross_payable = (int) ($user->salary ?? 0);
-    // $gross_payable = round($per_day_rate * $present_days_act);
+    // $gross_payable = (int) ($user->salary ?? 0);
+    $gross_payable = round($per_day_rate * $present_days_act);
     //  dd($gross_salary);
     $basic_60        = round($gross_payable * 0.6);
    
