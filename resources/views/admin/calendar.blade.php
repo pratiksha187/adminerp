@@ -458,23 +458,43 @@ eventsSet(info) {
     // ✅ Only count if event belongs to the visible month
     if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
 
-    if (p.kind === 'attendance' && p.status === 'complete') {
-      let durMins = 0;
-      if (typeof p.durMins === 'number') durMins = p.durMins;
-      else if (p.durText) {
-        const m = p.durText.match(/(\d+)h(\d{1,2})m/);
-        if (m) durMins = (+m[1]) * 60 + (+m[2]);
-      }
+   //  if (p.kind === 'attendance' && p.status === 'complete') {
+   //    let durMins = 0;
+   //    if (typeof p.durMins === 'number') durMins = p.durMins;
+   //    else if (p.durText) {
+   //      const m = p.durText.match(/(\d+)h(\d{1,2})m/);
+   //      if (m) durMins = (+m[1]) * 60 + (+m[2]);
+   //    }
 
-      totalMins += durMins;
-      const dayStr = d.toISOString().slice(0, 10);
-      if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
-        dayMap[dayStr] = durMins;
-      }
+   //    totalMins += durMins;
+   //    const dayStr = d.toISOString().slice(0, 10);
+   //    if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
+   //      dayMap[dayStr] = durMins;
+   //    }
 
-      // ✅ Count as Comp Off if attendance has c_off true
-      if (p.c_off) cOffCount++;
-    }
+   //    // ✅ Count as Comp Off if attendance has c_off true
+   //    if (p.c_off) cOffCount++;
+   //  }
+if (p.kind === 'attendance' && p.status === 'complete') {
+  // ✅ Skip C.Off from Present Count
+  if (p.c_off) {
+    cOffCount++;
+    return;
+  }
+
+  let durMins = 0;
+  if (typeof p.durMins === 'number') durMins = p.durMins;
+  else if (p.durText) {
+    const m = p.durText.match(/(\d+)h(\d{1,2})m/);
+    if (m) durMins = (+m[1]) * 60 + (+m[2]);
+  }
+
+  totalMins += durMins;
+  const dayStr = d.toISOString().slice(0, 10);
+  if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
+    dayMap[dayStr] = durMins;
+  }
+}
 
     if (p.kind === 'holiday-label') holidayCount++;
     if (p.kind === 'weeklyoff-label') weeklyOffCount++;

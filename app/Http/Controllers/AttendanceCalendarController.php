@@ -111,7 +111,15 @@ public function events(Request $request)
         $durMins = $out ? $in->diffInMinutes($out) : null;
         $durText = $durMins ? sprintf('%dh%02dm', intdiv($durMins,60), $durMins%60) : null;
 
-        $presentDays[] = $in->toDateString();
+        // $presentDays[] = $in->toDateString();
+        // ✅ Comp Off: if attendance on holiday or weekly off
+        $day = $in->toDateString();
+        $isCOff = in_array($day, $holidayDates) || in_array($day, $weeklyOffDates->toArray());
+
+        // ✅ Add to presentDays only if NOT Comp Off
+        if (!$isCOff) {
+            $presentDays[] = $day;
+        }
 
         $lateMins = 0;
         $lateThreshold = (clone $shiftIn)->addMinutes($GRACE_IN);
