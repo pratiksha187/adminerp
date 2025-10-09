@@ -49,25 +49,21 @@ public function create()
 //         'to_date'   => 'required|date|after_or_equal:from_date',
 //     ]);
 
-//     $userid = $request->user_id;
+//     $userId = $request->user_id;
 
 //     // Prevent duplicate payment
-//     $exists = Payment::where('user_id', $userid)
+//     if (Payment::where('user_id', $userId)
 //         ->whereDate('from_date', $request->from_date)
 //         ->whereDate('to_date', $request->to_date)
-//         ->exists();
-
-//     if ($exists) {
-//         return back()->with('error', 'Payment is already generated for this period!');
+//         ->exists()) {
+//         return back()->with('error', 'Payment already generated for this period!');
 //     }
 
-//     $user = User::findOrFail($userid);
+//     $user = User::findOrFail($userId);
 //     $gross_salary = (int) ($user->salary ?? 0);
-
 //     $from = Carbon::parse($request->from_date)->startOfDay();
 //     $to   = Carbon::parse($request->to_date)->endOfDay();
 
-//     // ✅ Ensure full end date included (up to 23:59:59)
 //     if ($to->lt($from)) {
 //         return back()->with('error', 'Invalid date range!');
 //     }
@@ -76,35 +72,35 @@ public function create()
 //     $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
 
 //     /* ----------------------------------
-//        FETCH ATTENDANCE + LEAVES + HOLIDAYS
+//        FETCH ATTENDANCE / HOLIDAYS / LEAVES
 //     ----------------------------------- */
+//     $SHIFT_START   = '09:00';
+//     $REQUIRED_MINS = 9 * 60;
+//     $GRACE_IN      = 10;
+//     $GRACE_END     = 5;
 
-//     // ✅ Attendance grouped by date
-//     $attendances = Attendance::where('user_id', $user->id)
+//     // Attendance records
+//     $attendances = Attendance::where('user_id', $userId)
 //         ->whereBetween('clock_in', [$from, $to])
-//         ->get()
-//         ->groupBy(fn($a) => Carbon::parse($a->clock_in)->toDateString());
+//         ->get();
 
-//     // ✅ Holidays
+//     // Holidays
 //     $holidays = DB::table('holidays')
 //         ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
-//         ->pluck('date')
-//         ->map(fn($d) => Carbon::parse($d)->toDateString())
-//         ->toArray();
+//         ->get();
+//     $holidayDates = $holidays->pluck('date')->map(fn($d) => Carbon::parse($d)->toDateString())->toArray();
 
-//     // ✅ Weekly Offs (Always include full range)
+//     // Weekly offs (Sunday)
 //     $weeklyOffDates = collect();
-//     foreach (CarbonPeriod::create($from->copy()->startOfMonth(), '1 day', $to->copy()->endOfMonth()) as $d) {
+//     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
 //         if ($d->isSunday()) {
 //             $weeklyOffDates->push($d->toDateString());
 //         }
 //     }
-
-//     // ✅ Convert once for speed
 //     $weeklyOffArray = $weeklyOffDates->toArray();
 
-//     // ✅ Approved Leaves
-//     $leaves = Leave::where('user_id', $user->id)
+//     // Leaves
+//     $leaves = Leave::where('user_id', $userId)
 //         ->where('status', 'Approved')
 //         ->where(function ($q) use ($from, $to) {
 //             $q->whereBetween('from_date', [$from, $to])
@@ -116,54 +112,51 @@ public function create()
 //         })
 //         ->get();
 
-//     // ✅ Map leave days
+//     // Leave map
 //     $leaveMap = [];
 //     foreach ($leaves as $lv) {
-//         $period = CarbonPeriod::create($lv->from_date, $lv->to_date);
-//         foreach ($period as $d) {
-//             $leaveMap[$d->toDateString()] = strtoupper(substr($lv->type, 0, 2));
+//         foreach (CarbonPeriod::create($lv->from_date, $lv->to_date) as $d) {
+//             $leaveMap[$d->toDateString()] = strtoupper(substr($lv->type, 0, 2)); // CL / SL / EL
 //         }
 //     }
 
 //     /* ----------------------------------
-//        DAILY STATUS EVALUATION
+//        DAILY CALCULATION USING EVENT LOGIC
 //     ----------------------------------- */
+//     $presentDays = [];
+//     $cOffCount = $weekoffCount = $holidayCount = $leave_cl = $leave_sl = $leave_el = 0;
+//     // dd($cOffCount);
+//     foreach ($attendances as $row) {
+//         $in = $row->clock_in ? Carbon::parse($row->clock_in) : null;
+//         $out = $row->clock_out ? Carbon::parse($row->clock_out) : null;
+//         if (!$in) continue;
 
-//     $present_days = 0;
-//     $weekoffCount = 0;
-//     $holidayCount = 0;
-//     $leave_cl = 0;
-//     $leave_sl = 0;
-//     $leave_el = 0;
-//     $cOffCount = 0;
+//         $day = $in->toDateString();
+//         $isHoliday = in_array($day, $holidayDates);
+//         $isWeekoff = in_array($day, $weeklyOffArray);
 
-//     foreach (CarbonPeriod::create($from, '1 day', $to) as $day) {
-//         $date = $day->toDateString();
-
-//         $hasAttendance = isset($attendances[$date]);
-//         $isHoliday = in_array($date, $holidays, true);
-//         $isWeeklyOff = in_array($date, $weeklyOffArray, true);
-//         $isLeave = isset($leaveMap[$date]);
-
-//         // ✅ If worked on Sunday or Holiday => mark as Comp Off
-//         if ($hasAttendance && ($isWeeklyOff || $isHoliday)) {
+//         // Comp Off if worked on Holiday or Week Off
+//         if ($isHoliday || $isWeekoff) {
 //             $cOffCount++;
 //             continue;
 //         }
 
-//         // ✅ Present
-//         if ($hasAttendance) {
-//             $present_days++;
-//         }
-//         // ✅ Holiday (not attended)
-//         elseif ($isHoliday) {
-//             $holidayCount++;
-//         }
-//         // ✅ Weekly Off (not attended)
-//         elseif ($isWeeklyOff) {
-//             $weekoffCount++;
-//         }
-//         // ✅ Leave
+//         $presentDays[] = $day;
+//     }
+
+//     /* ----------------------------------
+//        COUNT REMAINING DAYS (from range)
+//     ----------------------------------- */
+//     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
+//         $date = $d->toDateString();
+
+//         $isPresent = in_array($date, $presentDays);
+//         $isHoliday = in_array($date, $holidayDates);
+//         $isWeekoff = in_array($date, $weeklyOffArray);
+//         $isLeave = isset($leaveMap[$date]);
+
+//         if ($isHoliday && !$isPresent) $holidayCount++;
+//         elseif ($isWeekoff && !$isPresent) $weekoffCount++;
 //         elseif ($isLeave) {
 //             $type = $leaveMap[$date];
 //             if ($type === 'CL') $leave_cl++;
@@ -172,19 +165,14 @@ public function create()
 //         }
 //     }
 
-//     // Debug check (optional)
-//     // dd(['weeklyOffArray' => $weeklyOffArray, 'weekoffCount' => $weekoffCount, 'cOffCount' => $cOffCount]);
-
+//     $present_days = count($presentDays);
 //     $leaveDays = $leave_cl + $leave_sl + $leave_el;
-
-//     // ✅ Total payable days
 //     $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
 
 //     /* ----------------------------------
 //        SALARY CALCULATION
 //     ----------------------------------- */
 //     $gross_payable = round($per_day_rate * $present_days_act);
-
 //     $basic_60        = round($gross_payable * 0.6);
 //     $hra_5           = round($gross_payable * 0.05);
 //     $conveyance_20   = round($gross_payable * 0.2);
@@ -228,7 +216,200 @@ public function create()
 //         'net_payable'          => $net_payable,
 //     ]);
 
-//     return back()->with('success', 'Payment generated successfully with correct weekly offs and C.Off logic.');
+//     /* ----------------------------------
+//        OUTPUT SUMMARY
+//     ----------------------------------- */
+//     return back()->with([
+//         'success' => '✅ Payment generated successfully with updated event-based logic!',
+//         'summary' => [
+//             'Presents'  => $present_days,
+//             'Week Offs' => $weekoffCount,
+//             'C.Offs'    => $cOffCount,
+//             'Holidays'  => $holidayCount,
+//             'Leaves'    => $leaveDays,
+//         ]
+//     ]);
+// }
+
+// public function generatePayment(Request $request)
+// {
+//     $request->validate([
+//         'user_id'   => 'required|exists:users,id',
+//         'from_date' => 'required|date',
+//         'to_date'   => 'required|date|after_or_equal:from_date',
+//     ]);
+
+//     $userid = $request->user_id;
+
+//     // Prevent duplicate payment
+//     $exists = Payment::where('user_id', $userid)
+//         ->whereDate('from_date', $request->from_date)
+//         ->whereDate('to_date', $request->to_date)
+//         ->exists();
+
+//     if ($exists) {
+//         return back()->with('error', 'Payment is already generated for this period!');
+//     }
+
+//     $user = User::findOrFail($userid);
+//     $gross_salary = (int) ($user->salary ?? 0);
+
+//     $from = Carbon::parse($request->from_date)->startOfDay();
+//     $to   = Carbon::parse($request->to_date)->endOfDay();
+
+//     if ($to->lt($from)) {
+//         return back()->with('error', 'Invalid date range!');
+//     }
+
+//     $daysInMonth  = $from->daysInMonth;
+//     $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
+
+//     /* ----------------------------------
+//        FETCH ATTENDANCE + HOLIDAYS + LEAVES
+//     ----------------------------------- */
+//     $attendances = Attendance::where('user_id', $user->id)
+//         ->whereBetween('clock_in', [$from, $to])
+//         ->orderBy('clock_in')
+//         ->get();
+
+//     // ✅ Holidays
+//     $holidays = DB::table('holidays')
+//         ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+//         ->pluck('date')
+//         ->map(fn($d) => Carbon::parse($d)->toDateString())
+//         ->toArray();
+
+//     // ✅ Weekly Offs (Sundays)
+//     $weeklyOffDates = collect();
+//     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
+//         if ($d->isSunday()) {
+//             $weeklyOffDates->push($d->toDateString());
+//         }
+//     }
+
+//     // ✅ Approved Leaves
+//     $leaves = Leave::where('user_id', $user->id)
+//         ->where('status', 'Approved')
+//         ->where(function ($q) use ($from, $to) {
+//             $q->whereBetween('from_date', [$from, $to])
+//               ->orWhereBetween('to_date', [$from, $to])
+//               ->orWhere(function ($q2) use ($from, $to) {
+//                   $q2->where('from_date', '<=', $from)
+//                      ->where('to_date', '>=', $to);
+//               });
+//         })
+//         ->get();
+
+//     // ✅ Leave mapping
+//     $leaveMap = [];
+//     foreach ($leaves as $lv) {
+//         foreach (CarbonPeriod::create($lv->from_date, $lv->to_date) as $d) {
+//             $leaveMap[$d->toDateString()] = strtoupper(substr($lv->type, 0, 2)); // CL/SL/EL
+//         }
+//     }
+
+//     /* ----------------------------------
+//        APPLY EXACT events() COMP-OFF LOGIC
+//     ----------------------------------- */
+//     $presentDays = [];
+//     $cOffCount = $weekoffCount = $holidayCount = $leave_cl = $leave_sl = $leave_el = 0;
+//     //  $isCOff = in_array($day, $holidayDates) || in_array($day, $weeklyOffDates->toArray());
+
+//     foreach ($attendances as $row) {
+//         $in = $row->clock_in ? Carbon::parse($row->clock_in) : null;
+//         if (!$in) continue;
+
+//         $day = $in->toDateString();
+      
+//         $isCOff = in_array($day, $holidays) || in_array($day, $weeklyOffDates->toArray());
+//         // dd($isCOff);
+//         if ($isCOff) {
+//             $cOffCount++;  // ✅ Worked on a holiday or weekly off
+//         } else {
+//             $presentDays[] = $day; // ✅ Regular present
+//         }
+//     }
+
+//     // ✅ Now count all other days
+//     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
+//         $date = $d->toDateString();
+
+//         $isPresent = in_array($date, $presentDays);
+//         $isHoliday = in_array($date, $holidays);
+//         $isWeekoff = in_array($date, $weeklyOffDates->toArray());
+//         $isLeave = isset($leaveMap[$date]);
+
+//         if ($isHoliday && !$isPresent) $holidayCount++;
+//         elseif ($isWeekoff && !$isPresent) $weekoffCount++;
+//         elseif ($isLeave) {
+//             $type = $leaveMap[$date];
+//             if ($type === 'CL') $leave_cl++;
+//             elseif ($type === 'SL') $leave_sl++;
+//             elseif ($type === 'EL') $leave_el++;
+//         }
+//     }
+
+//     $present_days = count($presentDays);
+//     $leaveDays = $leave_cl + $leave_sl + $leave_el;
+//     $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
+
+//     /* ----------------------------------
+//        SALARY CALCULATION
+//     ----------------------------------- */
+//     $gross_payable = round($per_day_rate * $present_days_act);
+//     $basic_60        = round($gross_payable * 0.6);
+//     $hra_5           = round($gross_payable * 0.05);
+//     $conveyance_20   = round($gross_payable * 0.2);
+//     $other_allowance = $gross_payable - $basic_60 - $hra_5 - $conveyance_20;
+
+//     $pf        = (int) ($user->pf ?? 0);
+//     $insurance = (int) ($user->insurance ?? 0);
+//     $pt        = (int) ($user->pt ?? 0);
+//     $advance   = (int) ($user->advance ?? 0);
+
+//     $total_deduction = $pf + $insurance + $pt + $advance;
+//     $net_payable     = $gross_payable - $total_deduction;
+
+//     /* ----------------------------------
+//        SAVE PAYMENT
+//     ----------------------------------- */
+//     Payment::create([
+//         'user_id'              => $user->id,
+//         'from_date'            => $from,
+//         'to_date'              => $to,
+//         'present_days'         => $present_days_act,
+//         'present_days_in_month'=> $present_days,
+//         'weekoffCount'         => $weekoffCount,
+//         'holidayCount'         => $holidayCount,
+//         'cOffCount'            => $cOffCount,
+//         'leave_cl'             => $leave_cl,
+//         'leave_sl'             => $leave_sl,
+//         'leave_el'             => $leave_el,
+//         'gross_salary'         => $gross_salary,
+//         'per_day_rate'         => $per_day_rate,
+//         'basic_60'             => $basic_60,
+//         'hra_5'                => $hra_5,
+//         'conveyance_20'        => $conveyance_20,
+//         'other_allowance'      => $other_allowance,
+//         'gross_payable'        => $gross_payable,
+//         'pf_12'                => $pf,
+//         'insurance'            => $insurance,
+//         'pt'                   => $pt,
+//         'advance'              => $advance,
+//         'total_deduction'      => $total_deduction,
+//         'net_payable'          => $net_payable,
+//     ]);
+
+//     return back()->with([
+//         'success' => '✅ Payment generated successfully using same logic as calendar events!',
+//         'summary' => [
+//             'Presents'  => $present_days,
+//             'Week Offs' => $weekoffCount,
+//             'C.Offs'    => $cOffCount,
+//             'Holidays'  => $holidayCount,
+//             'Leaves'    => $leaveDays,
+//         ]
+//     ]);
 // }
 public function generatePayment(Request $request)
 {
@@ -238,21 +419,18 @@ public function generatePayment(Request $request)
         'to_date'   => 'required|date|after_or_equal:from_date',
     ]);
 
-    $userid = $request->user_id;
+    $userId = $request->user_id;
 
     // Prevent duplicate payment
-    $exists = Payment::where('user_id', $userid)
+    if (Payment::where('user_id', $userId)
         ->whereDate('from_date', $request->from_date)
         ->whereDate('to_date', $request->to_date)
-        ->exists();
-
-    if ($exists) {
+        ->exists()) {
         return back()->with('error', 'Payment is already generated for this period!');
     }
 
-    $user = User::findOrFail($userid);
+    $user = User::findOrFail($userId);
     $gross_salary = (int) ($user->salary ?? 0);
-
     $from = Carbon::parse($request->from_date)->startOfDay();
     $to   = Carbon::parse($request->to_date)->endOfDay();
 
@@ -264,32 +442,29 @@ public function generatePayment(Request $request)
     $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
 
     /* ----------------------------------
-       FETCH ATTENDANCE + LEAVES + HOLIDAYS
+       FETCH ATTENDANCE + HOLIDAYS + LEAVES
     ----------------------------------- */
-
-    // Attendance grouped by date
     $attendances = Attendance::where('user_id', $user->id)
         ->whereBetween('clock_in', [$from, $to])
-        ->get()
-        ->groupBy(fn($a) => Carbon::parse($a->clock_in)->toDateString());
+        ->orderBy('clock_in')
+        ->get();
 
-    // Holidays
-    $holidays = DB::table('holidays')
+    // ✅ Holidays
+    $holidayDates = DB::table('holidays')
         ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
         ->pluck('date')
         ->map(fn($d) => Carbon::parse($d)->toDateString())
         ->toArray();
 
-    // Weekly Offs (Sundays for full month)
-    $weeklyOffDates = collect();
-    foreach (CarbonPeriod::create($from->copy()->startOfMonth(), '1 day', $to->copy()->endOfMonth()) as $d) {
+    // ✅ Weekly Offs (Sundays)
+    $weeklyOffDates = [];
+    foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
         if ($d->isSunday()) {
-            $weeklyOffDates->push($d->toDateString());
+            $weeklyOffDates[] = $d->toDateString();
         }
     }
-    $weeklyOffArray = $weeklyOffDates->toArray();
 
-    // Approved Leaves
+    // ✅ Approved Leaves
     $leaves = Leave::where('user_id', $user->id)
         ->where('status', 'Approved')
         ->where(function ($q) use ($from, $to) {
@@ -302,69 +477,82 @@ public function generatePayment(Request $request)
         })
         ->get();
 
-    // Map leave days by type
+    // ✅ Leave mapping
     $leaveMap = [];
     foreach ($leaves as $lv) {
-        $period = CarbonPeriod::create($lv->from_date, $lv->to_date);
-        foreach ($period as $d) {
-            $leaveMap[$d->toDateString()] = strtoupper(substr($lv->type, 0, 2)); // CL/SL/EL
+        foreach (CarbonPeriod::create($lv->from_date, $lv->to_date) as $d) {
+            $leaveMap[$d->toDateString()] = strtoupper(substr($lv->type, 0, 2));
         }
     }
 
     /* ----------------------------------
-       DAILY STATUS EVALUATION
+       APPLY EXACT events() COMP-OFF LOGIC
     ----------------------------------- */
-
-    $present_days = 0;
-    $weekoffCount = 0;
-    $holidayCount = 0;
-    $leave_cl = 0;
-    $leave_sl = 0;
-    $leave_el = 0;
+    $presentDays = [];
     $cOffCount = 0;
 
-    foreach (CarbonPeriod::create($from, '1 day', $to) as $day) {
-        $date = $day->toDateString();
+    foreach ($attendances as $row) {
+        $in = $row->clock_in ? Carbon::parse($row->clock_in) : null;
+        if (!$in) continue;
 
-        $hasAttendance = isset($attendances[$date]);
-        $isHoliday = in_array($date, $holidays, true);
-        $isWeeklyOff = in_array($date, $weeklyOffArray, true);
+        $day = $in->toDateString();
+        $isHoliday = in_array($day, $holidayDates, true);
+        $isWeekoff = in_array($day, $weeklyOffDates, true);
+
+        if ($isHoliday || $isWeekoff) {
+            // ✅ Employee worked on Sunday or Holiday => count as C.Off
+            $cOffCount++;
+        } else {
+            // ✅ Regular working day
+            $presentDays[] = $day;
+        }
+    }
+// dd($cOffCount);
+    /* ----------------------------------
+       DAILY SUMMARY COUNTS
+    ----------------------------------- */
+    $weekoffCount = 0;
+    $holidayCount = 0;
+    $leave_cl = $leave_sl = $leave_el = 0;
+
+    foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
+        $date = $d->toDateString();
+        $isPresent = in_array($date, $presentDays);
+        $isHoliday = in_array($date, $holidayDates);
+        $isWeekoff = in_array($date, $weeklyOffDates);
         $isLeave = isset($leaveMap[$date]);
 
-        // If worked on a Weekly Off or Holiday => mark as C.Off
-        if ($hasAttendance && ($isWeeklyOff || $isHoliday)) {
-            $cOffCount++;
-            continue;
-        }
-
-        if ($hasAttendance) {
-            $present_days++;
-        } elseif ($isHoliday) {
-            $holidayCount++;
-        } elseif ($isWeeklyOff) {
-            $weekoffCount++;
-        } elseif ($isLeave) {
+        if ($isHoliday && !$isPresent) $holidayCount++;
+        elseif ($isWeekoff && !$isPresent) $weekoffCount++;
+        elseif ($isLeave) {
             $type = $leaveMap[$date];
             if ($type === 'CL') $leave_cl++;
             elseif ($type === 'SL') $leave_sl++;
             elseif ($type === 'EL') $leave_el++;
         }
     }
-// dd($cOffCount);
+
+    $present_days = count($presentDays);
+
     $leaveDays = $leave_cl + $leave_sl + $leave_el;
-
-    // Total payable days (excluding C.Off)
+    
     $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
-
+//  dd($present_days_act);
     /* ----------------------------------
        SALARY CALCULATION
     ----------------------------------- */
-    $gross_payable = round($per_day_rate * $present_days_act);
+    
+    // $gross_salary = (int) ($user->salary ?? 0);
+    $gross_payable = (int) ($user->salary ?? 0);
+    // $gross_payable = round($per_day_rate * $present_days_act);
+    //  dd($gross_salary);
     $basic_60        = round($gross_payable * 0.6);
+   
     $hra_5           = round($gross_payable * 0.05);
+    // dd($hra_5);
     $conveyance_20   = round($gross_payable * 0.2);
     $other_allowance = $gross_payable - $basic_60 - $hra_5 - $conveyance_20;
-
+// dd($other_allowance);
     $pf        = (int) ($user->pf ?? 0);
     $insurance = (int) ($user->insurance ?? 0);
     $pt        = (int) ($user->pt ?? 0);
@@ -372,7 +560,7 @@ public function generatePayment(Request $request)
 
     $total_deduction = $pf + $insurance + $pt + $advance;
     $net_payable     = $gross_payable - $total_deduction;
-
+// dd($cOffCount);
     /* ----------------------------------
        SAVE PAYMENT
     ----------------------------------- */
@@ -403,183 +591,18 @@ public function generatePayment(Request $request)
         'net_payable'          => $net_payable,
     ]);
 
-    /* ----------------------------------
-       OUTPUT SUCCESS WITH SUMMARY
-    ----------------------------------- */
     return back()->with([
-        'success' => '✅ Payment generated successfully!',
+        'success' => '✅ Payment generated successfully (includes proper Comp Off logic)!',
         'summary' => [
+            'Presents'  => $present_days,
             'Week Offs' => $weekoffCount,
             'C.Offs'    => $cOffCount,
             'Holidays'  => $holidayCount,
-            'Presents'  => $present_days,
             'Leaves'    => $leaveDays,
         ]
     ]);
 }
 
-// public function generatePayment(Request $request)
-// {
-//     $request->validate([
-//         'user_id'   => 'required|exists:users,id',
-//         'from_date' => 'required|date',
-//         'to_date'   => 'required|date|after_or_equal:from_date',
-//     ]);
-
-//     $userid = $request->user_id;
-
-//     // Prevent duplicate payment
-//     $exists = Payment::where('user_id', $userid)
-//         ->whereDate('from_date', $request->from_date)
-//         ->whereDate('to_date', $request->to_date)
-//         ->exists();
-
-//     if ($exists) {
-//         return back()->with('error', 'Payment is already generated for this period!');
-//     }
-
-//     $user = User::findOrFail($userid);
-//     $gross_salary = (int) ($user->salary ?? 0);
-
-//     $from = Carbon::parse($request->from_date)->startOfDay();
-//     $to   = Carbon::parse($request->to_date)->endOfDay();
-
-//     $daysInMonth  = $from->daysInMonth;
-//     $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
-
-//     /* ----------------------------------
-//        FETCH ATTENDANCE + LEAVES + HOLIDAYS
-//     ----------------------------------- */
-
-//     // ✅ Attendance grouped by date
-//     $attendances = Attendance::where('user_id', $user->id)
-//         ->whereBetween('clock_in', [$from, $to])
-//         ->get()
-//         ->groupBy(fn($a) => Carbon::parse($a->clock_in)->toDateString());
-// // dd($attendances);
-//     // ✅ Holidays (no type column — treat all as holidays)
-//     $holidays = DB::table('holidays')
-//         ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
-//         ->pluck('date')
-//         ->map(fn($d) => Carbon::parse($d)->toDateString())
-//         ->toArray();
-
-//     $companyHolidayDates = $holidays;  // treat all as company/public holidays
-//     $publicHolidayDates  = [];         // not used, but defined for consistency
-
-//     // ✅ Weekly Offs (Sundays)
-//     $weeklyOffDates = [];
-//     foreach (CarbonPeriod::create($from, '1 day', $to) as $d) {
-//         if ($d->isSunday()) {
-//             $weeklyOffDates[] = $d->toDateString();
-//         }
-//     }
-
-//     // ✅ Approved Leaves
-//     $leaves = Leave::where('user_id', $user->id)
-//         ->where('status', 'Approved')
-//         ->where(function ($q) use ($from, $to) {
-//             $q->whereBetween('from_date', [$from, $to])
-//               ->orWhereBetween('to_date', [$from, $to])
-//               ->orWhere(function ($q2) use ($from, $to) {
-//                   $q2->where('from_date', '<=', $from)
-//                      ->where('to_date', '>=', $to);
-//               });
-//         })
-//         ->get();
-
-//     // ✅ Map leave days by type (CL/SL/EL)
-//     $leaveMap = [];
-//     foreach ($leaves as $lv) {
-//         $period = CarbonPeriod::create($lv->from_date, $lv->to_date);
-//         foreach ($period as $d) {
-//             $leaveMap[$d->toDateString()] = strtoupper(substr($lv->type, 0, 2)); // CL / SL / EL
-//         }
-//     }
-
-//     /* ----------------------------------
-//        DAILY STATUS EVALUATION
-//     ----------------------------------- */
-
-//     $present_days = 0;
-//     $weekoffCount = 0;
-//     $holidayCount = 0;
-//     $leave_cl = 0;
-//     $leave_sl = 0;
-//     $leave_el = 0;
-
-//     foreach (CarbonPeriod::create($from, '1 day', $to) as $day) {
-//         $date = $day->toDateString();
-
-//         if (isset($attendances[$date])) {
-//             $present_days++;
-//         } elseif (in_array($date, $companyHolidayDates, true)) {
-//             $holidayCount++;
-//         } elseif (in_array($date, $weeklyOffDates, true)) {
-//             $weekoffCount++;
-//         } elseif (isset($leaveMap[$date])) {
-//             $type = $leaveMap[$date];
-//             if ($type === 'CL') $leave_cl++;
-//             elseif ($type === 'SL') $leave_sl++;
-//             elseif ($type === 'EL') $leave_el++;
-//         }
-//     }
-
-//     $leaveDays = $leave_cl + $leave_sl + $leave_el;
-
-//     // ✅ Total payable days
-//     $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
-
-//     /* ----------------------------------
-//        SALARY CALCULATION
-//     ----------------------------------- */
-//     $gross_payable = round($per_day_rate * $present_days_act);
-
-//     $basic_60        = round($gross_payable * 0.6);
-//     $hra_5           = round($gross_payable * 0.05);
-//     $conveyance_20   = round($gross_payable * 0.2);
-//     $other_allowance = $gross_payable - $basic_60 - $hra_5 - $conveyance_20;
-
-//     $pf        = (int) ($user->pf ?? 0);
-//     $insurance = (int) ($user->insurance ?? 0);
-//     $pt        = (int) ($user->pt ?? 0);
-//     $advance   = (int) ($user->advance ?? 0);
-
-//     $total_deduction = $pf + $insurance + $pt + $advance;
-//     $net_payable     = $gross_payable - $total_deduction;
-
-//     /* ----------------------------------
-//        SAVE PAYMENT
-//     ----------------------------------- */
-//     Payment::create([
-//         'user_id'              => $user->id,
-//         'from_date'            => $from,
-//         'to_date'              => $to,
-//         'present_days'         => $present_days_act,
-//         'present_days_in_month'=> $present_days,
-//         'weekoffCount'         => $weekoffCount,
-//         'holidayCount'         => $holidayCount,
-//         'publicHolidayCount'   => 0, // not used
-//         'leave_cl'             => $leave_cl,
-//         'leave_sl'             => $leave_sl,
-//         'leave_el'             => $leave_el,
-//         'gross_salary'         => $gross_salary,
-//         'per_day_rate'         => $per_day_rate,
-//         'basic_60'             => $basic_60,
-//         'hra_5'                => $hra_5,
-//         'conveyance_20'        => $conveyance_20,
-//         'other_allowance'      => $other_allowance,
-//         'gross_payable'        => $gross_payable,
-//         'pf_12'                => $pf,
-//         'insurance'            => $insurance,
-//         'pt'                   => $pt,
-//         'advance'              => $advance,
-//         'total_deduction'      => $total_deduction,
-//         'net_payable'          => $net_payable,
-//     ]);
-
-//     return back()->with('success', 'Payment generated successfully with holidays, weekoffs, and leave details.');
-// }
 
 
 public function slip($id)

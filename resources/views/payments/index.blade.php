@@ -26,6 +26,23 @@ body { font-family: 'Poppins', sans-serif; color: #1e293b; background: #f8fafc; 
 #slipBody .text-end { text-align: right; }
 #slipBody .text-muted { color: #6b7280; font-size: 0.85rem; }
 #slipBody .badge { font-size: 0.85rem; }
+
+.table th {
+    background-color: #1c2c3e;
+    color: white;
+}
+.table td.num {
+    text-align: right;
+}
+.chip {
+    background-color: #f25c05;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+
 </style>
 
 <div class="card p-3 p-md-4 shadow-sm">
