@@ -8,7 +8,7 @@ class Attendance extends Model
 {
     use HasFactory;
      protected $table = 'attendances';
-    protected $fillable = ['user_id', 'clock_in', 'clock_out','latitude','longitude'];
+    protected $fillable = ['user_id', 'clock_in', 'clock_out','latitude','longitude','out_latitude','out_longitude'];
 
     public function user()
     {
