@@ -136,21 +136,81 @@ class AttendanceController extends Controller
         return $earthRadius * $c;
     }
     
+    // public function clockOut(Request $request)
+    // {
+    //     // $time = $request->device_time ?? now();
+    //     $time = $request->device_time ? Carbon::parse($request->device_time)->timezone('Asia/Kolkata') : now(); 
+
+    //     $attendance = Attendance::where('user_id', auth()->id())
+    //         ->whereDate('clock_in', now()->toDateString())
+    //         ->first();
+
+    //     if ($attendance) {
+    //         $attendance->update(['clock_out' => $time]);
+    //     }
+
+    //     return redirect()->back()->with('success', 'Clock Out successful!');
+    // }
+
     public function clockOut(Request $request)
-    {
-        // $time = $request->device_time ?? now();
-        $time = $request->device_time ? Carbon::parse($request->device_time)->timezone('Asia/Kolkata') : now(); 
+{
+    // ✅ 1) Validate location input
+    $request->validate([
+        'latitude'  => 'required|numeric|between:-90,90',
+        'longitude' => 'required|numeric|between:-180,180',
+    ]);
 
-        $attendance = Attendance::where('user_id', auth()->id())
-            ->whereDate('clock_in', now()->toDateString())
-            ->first();
+    $maxDistanceMeters = 500;
+    $userLat = (float) $request->input('latitude');
+    $userLng = (float) $request->input('longitude');
 
-        if ($attendance) {
-            $attendance->update(['clock_out' => $time]);
+    // ✅ 2) Geofence validation (same as ClockIn)
+    $locations = \App\Models\Location::select('latitude', 'longitude')->get();
+    $withinAllowedLocation = false;
+
+    foreach ($locations as $location) {
+        if ($this->distance(
+            (float) $location->latitude,
+            (float) $location->longitude,
+            $userLat,
+            $userLng
+        ) <= $maxDistanceMeters) {
+            $withinAllowedLocation = true;
+            break;
         }
-
-        return redirect()->back()->with('success', 'Clock Out successful!');
     }
+
+    if (!$withinAllowedLocation) {
+        return back()->with('error', '❌ You are outside the allowed clock-out zones.');
+    }
+
+    // ✅ 3) Find today’s attendance record
+    $attendance = \App\Models\Attendance::where('user_id', auth()->id())
+        ->whereDate('clock_in', now('Asia/Kolkata')->toDateString())
+        ->first();
+
+    if (!$attendance) {
+        return back()->with('error', '⚠️ You have not clocked in today.');
+    }
+
+    // ✅ 4) Prevent multiple clock-outs
+    if ($attendance->clock_out) {
+        return back()->with('error', '⚠️ You have already clocked out today.');
+    }
+
+    // ✅ 5) Use authoritative server time (IST)
+    $nowIst = \Carbon\Carbon::now('Asia/Kolkata');
+
+    // ✅ 6) Update attendance with clock-out + location data
+    $attendance->update([
+        'clock_out' => $nowIst,
+        'out_latitude'  => round($userLat, 8),
+        'out_longitude' => round($userLng, 8),
+    ]);
+
+    return redirect()->back()->with('success', '✅ Clock Out successful!');
+}
+
 
     public function report(Request $request)
     {

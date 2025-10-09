@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -7,7 +6,9 @@
 
     <!-- 🔁 CURRENT DEVICE TIME -->
     <div class="d-flex justify-content-end mb-3">
-        <span class="text-muted fw-medium">Current Time: <span id="deviceTime" class="fw-bold text-dark"></span></span>
+        <span class="text-muted fw-medium">Current Time: 
+            <span id="deviceTime" class="fw-bold text-dark"></span>
+        </span>
     </div>
 
     <!-- 📌 Breadcrumb -->
@@ -71,6 +72,7 @@
 
             {{-- ⏰ Clock In / Clock Out --}}
             @if(!$attendance)
+                {{-- ✅ CLOCK IN FORM --}}
                 <form action="{{ route('attendance.clockin') }}" method="POST" id="clockInForm">
                     @csrf
 
@@ -90,9 +92,13 @@
                     </button>
                 </form>
             @elseif($attendance && !$attendance->clock_out)
+                {{-- ✅ CLOCK OUT FORM --}}
                 <form action="{{ route('attendance.clockout') }}" method="POST" id="clockOutForm">
                     @csrf
+                    <input type="hidden" name="latitude" id="latitudeOut">
+                    <input type="hidden" name="longitude" id="longitudeOut">
                     <input type="hidden" name="device_time" id="clockOutTime">
+
                     <button type="submit" class="btn btn-danger w-100">
                         <i class="bi bi-box-arrow-right me-1"></i> Clock Out
                     </button>
@@ -140,6 +146,7 @@
     let userLat = null;
     let userLng = null;
 
+    // ✅ Function to get location (for Clock In)
     function getLocation() {
         const status = document.getElementById("status");
         const coords = document.getElementById("coords");
@@ -164,7 +171,7 @@
                                     Longitude: ${userLng}<br>
                                     Accuracy: ±${position.coords.accuracy} meters`;
 
-                // 🔁 Reverse Geocoding (OpenStreetMap API)
+                // 🔁 Reverse Geocoding
                 try {
                     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLat}&lon=${userLng}`);
                     const data = await response.json();
@@ -191,25 +198,31 @@
     // Auto fetch location on page load
     window.onload = getLocation;
 
-    // Prevent submit if location not available
-   // document.getElementById('clockInForm')?.addEventListener('submit', function (e) {
-      //  if (!userLat || !userLng) {
-       //     e.preventDefault();
-       //     alert("⚠️ Unable to get your location. Please allow location access.");
-       // }
-  //  });
+    // ✅ Disable Clock-In double submit
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('clockInForm');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Please wait...';
+                }
+            });
+        }
+    });
 
-   document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('clockInForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const button = form.querySelector('button[type="submit"]');
-            if (button) {
-                button.disabled = true;
-                button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Please wait...';
-            }
-        });
-    }
-});
+    // ✅ Get location for Clock Out
+    document.addEventListener('DOMContentLoaded', () => {
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                document.getElementById('latitudeOut').value = pos.coords.latitude;
+                document.getElementById('longitudeOut').value = pos.coords.longitude;
+            },
+            err => alert('⚠️ Unable to get your location: ' + err.message),
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    });
 </script>
+
 @endsection
