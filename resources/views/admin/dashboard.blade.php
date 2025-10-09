@@ -192,11 +192,24 @@
     window.onload = getLocation;
 
     // Prevent submit if location not available
-    document.getElementById('clockInForm')?.addEventListener('submit', function (e) {
-        if (!userLat || !userLng) {
-            e.preventDefault();
-            alert("⚠️ Unable to get your location. Please allow location access.");
-        }
-    });
+   // document.getElementById('clockInForm')?.addEventListener('submit', function (e) {
+      //  if (!userLat || !userLng) {
+       //     e.preventDefault();
+       //     alert("⚠️ Unable to get your location. Please allow location access.");
+       // }
+  //  });
+
+   document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('clockInForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const button = form.querySelector('button[type="submit"]');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Please wait...';
+            }
+        });
+    }
+});
 </script>
 @endsection

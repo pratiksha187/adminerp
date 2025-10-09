@@ -12,29 +12,32 @@ use App\Exports\AttendanceExport;
 use Yajra\DataTables\DataTables;
 use App\Models\ManualAttendance;
 
-
-
 class AttendanceController extends Controller
 {
-   
-   
     public function clockIn(Request $request)
     {
-        // 1) Validate cleanly (no device_time needed)
         $request->validate([
             'latitude'  => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
         ]);
 
         $maxDistanceMeters = 500;
-
         $userLat = (float) $request->input('latitude');
         $userLng = (float) $request->input('longitude');
 
-        // 2) Geofence check against saved Locations
-        $locations = Location::query()->select('latitude', 'longitude')->get();
+        // ✅ STEP 1: Check if already clocked in today
+        $existing = Attendance::where('user_id', auth()->id())
+            ->whereDate('clock_in', now('Asia/Kolkata')->toDateString())
+            ->first();
 
+        if ($existing) {
+            return back()->with('error', '⚠️ You have already clocked in today.');
+        }
+
+        // ✅ STEP 2: Location validation
+        $locations = \App\Models\Location::select('latitude', 'longitude')->get();
         $withinAllowedLocation = false;
+
         foreach ($locations as $location) {
             if ($this->distance(
                 (float) $location->latitude,
@@ -48,27 +51,71 @@ class AttendanceController extends Controller
         }
 
         if (!$withinAllowedLocation) {
-            return back()->with('error', 'You are outside the allowed clock-in zones.');
+            return back()->with('error', '❌ You are outside the allowed clock-in zone.');
         }
 
-        // 3) Authoritative clock-in: server time in IST
-        $nowIst = Carbon::now('Asia/Kolkata');
+        // ✅ STEP 3: Authoritative IST clock-in time
+        $nowIst = \Carbon\Carbon::now('Asia/Kolkata');
 
-        // 4) Save (round to 8 dp if your DB is DECIMAL(12,8))
+        // ✅ STEP 4: Insert clean record
         Attendance::create([
             'user_id'   => auth()->id(),
-            'clock_in'  => $nowIst,                   // authoritative IST time
+            'clock_in'  => $nowIst,
             'latitude'  => round($userLat, 8),
             'longitude' => round($userLng, 8),
-            // 'clock_out' left null by default
         ]);
 
-        return back()->with('success', 'Clocked in successfully!');
+        return back()->with('success', '✅ Clocked in successfully!');
     }
 
-    /**
-     * Haversine distance in meters.
-     */
+    // public function clockIn(Request $request)
+    // {
+    //     // 1) Validate cleanly (no device_time needed)
+    //     $request->validate([
+    //         'latitude'  => 'required|numeric|between:-90,90',
+    //         'longitude' => 'required|numeric|between:-180,180',
+    //     ]);
+
+    //     $maxDistanceMeters = 500;
+
+    //     $userLat = (float) $request->input('latitude');
+    //     $userLng = (float) $request->input('longitude');
+
+    //     // 2) Geofence check against saved Locations
+    //     $locations = Location::query()->select('latitude', 'longitude')->get();
+
+    //     $withinAllowedLocation = false;
+    //     foreach ($locations as $location) {
+    //         if ($this->distance(
+    //             (float) $location->latitude,
+    //             (float) $location->longitude,
+    //             $userLat,
+    //             $userLng
+    //         ) <= $maxDistanceMeters) {
+    //             $withinAllowedLocation = true;
+    //             break;
+    //         }
+    //     }
+
+    //     if (!$withinAllowedLocation) {
+    //         return back()->with('error', 'You are outside the allowed clock-in zones.');
+    //     }
+
+    //     // 3) Authoritative clock-in: server time in IST
+    //     $nowIst = Carbon::now('Asia/Kolkata');
+
+    //     // 4) Save (round to 8 dp if your DB is DECIMAL(12,8))
+    //     Attendance::create([
+    //         'user_id'   => auth()->id(),
+    //         'clock_in'  => $nowIst,                   // authoritative IST time
+    //         'latitude'  => round($userLat, 8),
+    //         'longitude' => round($userLng, 8),
+    //         // 'clock_out' left null by default
+    //     ]);
+
+    //     return back()->with('success', 'Clocked in successfully!');
+    // }
+
     private function distance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; // meters
