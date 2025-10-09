@@ -375,154 +375,76 @@
          ].filter(Boolean).join('\n');
          info.el.setAttribute('title', tip);
        },
-//    eventsSet(info) {
-//   const events = calendar.getEvents();
-//   let totalMins = 0;
-//   let presentDayFraction = 0;
-//   let holidayCount = 0;
-//   let weeklyOffCount = 0;
-//   let leaveCount = 0; // ✅ new counter
 
-//   const currentMonth = calendar.view.currentStart.getMonth();
-//   const currentYear  = calendar.view.currentStart.getFullYear();
+      eventsSet(info) {
+      const events = calendar.getEvents();
+      let totalMins = 0;
+      let presentDayFraction = 0;
+      let holidayCount = 0;
+      let weeklyOffCount = 0;
+      let leaveCount = 0;
+      let cOffCount = 0; // ✅ NEW counter for Comp Off
 
-//   const dayMap = {};
+      const currentMonth = calendar.view.currentStart.getMonth();
+      const currentYear  = calendar.view.currentStart.getFullYear();
 
-//   events.forEach(ev => {
-//     const p = ev.extendedProps || {};
-//     const d = ev.start;
-//     if (!d) return;
+      const dayMap = {};
 
-//     // ✅ Only count if event date belongs to the current visible month
-//     if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
+      events.forEach(ev => {
+         const p = ev.extendedProps || {};
+         const d = ev.start;
+         if (!d) return;
 
-//     if (p.kind === 'attendance' && p.status === 'complete') {
-//       let durMins = 0;
-//       if (typeof p.durMins === 'number') durMins = p.durMins;
-//       else if (p.durText) {
-//         const m = p.durText.match(/(\d+)h(\d{1,2})m/);
-//         if (m) durMins = (+m[1]) * 60 + (+m[2]);
-//       }
+         // ✅ Only count if event belongs to the visible month
+         if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
 
-//       totalMins += durMins;
-//       const dayStr = d.toISOString().slice(0, 10);
-//       if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
-//         dayMap[dayStr] = durMins;
-//       }
-//     }
+            if (p.kind === 'attendance' && p.status === 'complete') {
+            // ✅ Skip C.Off from Present Count
+            if (p.c_off) {
+               cOffCount++;
+               return;
+            }
 
-//     if (p.kind === 'holiday-label') holidayCount++;
-//     if (p.kind === 'weeklyoff-label') weeklyOffCount++;
+            let durMins = 0;
+            if (typeof p.durMins === 'number') durMins = p.durMins;
+            else if (p.durText) {
+               const m = p.durText.match(/(\d+)h(\d{1,2})m/);
+               if (m) durMins = (+m[1]) * 60 + (+m[2]);
+            }
 
-//     // ✅ Handle approved leave as present (not absent)
-//     if (p.kind === 'leave-label') leaveCount++;
-//   });
+            totalMins += durMins;
+            const dayStr = d.toISOString().slice(0, 10);
+            if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
+               dayMap[dayStr] = durMins;
+            }
+            }
 
-//   // ✅ Half-day rule for attendance
-//   Object.values(dayMap).forEach(mins => {
-//     if (mins < 240) presentDayFraction += 0.5;
-//     else presentDayFraction += 1;
-//   });
+            if (p.kind === 'holiday-label') holidayCount++;
+            if (p.kind === 'weeklyoff-label') weeklyOffCount++;
+            if (p.kind === 'leave-label') leaveCount++;
+      });
 
-//   // Update stats
-//   const hours = Math.floor(totalMins / 60);
-//   const mins  = totalMins % 60;
-//   document.getElementById('statHours').textContent = `${hours}h ${String(mins).padStart(2,'0')}m`;
-//   document.getElementById('statPresent').textContent = presentDayFraction;
-//   document.getElementById('statHoliday').textContent = holidayCount;
-//   document.getElementById('statWeeklyOff').textContent = weeklyOffCount;
+      // ✅ Half-day rule
+      Object.values(dayMap).forEach(mins => {
+         if (mins < 240) presentDayFraction += 0.5;
+         else presentDayFraction += 1;
+      });
 
-//   // ✅ Total Present = Present + Holiday + WeeklyOff + Leave
-//   const totalDays = presentDayFraction + holidayCount + weeklyOffCount + leaveCount;
-//   document.getElementById('statTotalPresent').textContent = totalDays;
-// }
-eventsSet(info) {
-  const events = calendar.getEvents();
-  let totalMins = 0;
-  let presentDayFraction = 0;
-  let holidayCount = 0;
-  let weeklyOffCount = 0;
-  let leaveCount = 0;
-  let cOffCount = 0; // ✅ NEW counter for Comp Off
+      // ✅ Update stats
+      const hours = Math.floor(totalMins / 60);
+      const mins  = totalMins % 60;
+      document.getElementById('statHours').textContent = `${hours}h ${String(mins).padStart(2,'0')}m`;
+      document.getElementById('statPresent').textContent = presentDayFraction;
+      document.getElementById('statHoliday').textContent = holidayCount;
+      document.getElementById('statWeeklyOff').textContent = weeklyOffCount;
 
-  const currentMonth = calendar.view.currentStart.getMonth();
-  const currentYear  = calendar.view.currentStart.getFullYear();
+      // ✅ Show Comp Off count
+      document.getElementById('statCoff').textContent = cOffCount;
 
-  const dayMap = {};
-
-  events.forEach(ev => {
-    const p = ev.extendedProps || {};
-    const d = ev.start;
-    if (!d) return;
-
-    // ✅ Only count if event belongs to the visible month
-    if (d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
-
-   //  if (p.kind === 'attendance' && p.status === 'complete') {
-   //    let durMins = 0;
-   //    if (typeof p.durMins === 'number') durMins = p.durMins;
-   //    else if (p.durText) {
-   //      const m = p.durText.match(/(\d+)h(\d{1,2})m/);
-   //      if (m) durMins = (+m[1]) * 60 + (+m[2]);
-   //    }
-
-   //    totalMins += durMins;
-   //    const dayStr = d.toISOString().slice(0, 10);
-   //    if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
-   //      dayMap[dayStr] = durMins;
-   //    }
-
-   //    // ✅ Count as Comp Off if attendance has c_off true
-   //    if (p.c_off) cOffCount++;
-   //  }
-if (p.kind === 'attendance' && p.status === 'complete') {
-  // ✅ Skip C.Off from Present Count
-  if (p.c_off) {
-    cOffCount++;
-    return;
-  }
-
-  let durMins = 0;
-  if (typeof p.durMins === 'number') durMins = p.durMins;
-  else if (p.durText) {
-    const m = p.durText.match(/(\d+)h(\d{1,2})m/);
-    if (m) durMins = (+m[1]) * 60 + (+m[2]);
-  }
-
-  totalMins += durMins;
-  const dayStr = d.toISOString().slice(0, 10);
-  if (!dayMap[dayStr] || durMins > dayMap[dayStr]) {
-    dayMap[dayStr] = durMins;
-  }
-}
-
-    if (p.kind === 'holiday-label') holidayCount++;
-    if (p.kind === 'weeklyoff-label') weeklyOffCount++;
-    if (p.kind === 'leave-label') leaveCount++;
-  });
-
-  // ✅ Half-day rule
-  Object.values(dayMap).forEach(mins => {
-    if (mins < 240) presentDayFraction += 0.5;
-    else presentDayFraction += 1;
-  });
-
-  // ✅ Update stats
-  const hours = Math.floor(totalMins / 60);
-  const mins  = totalMins % 60;
-  document.getElementById('statHours').textContent = `${hours}h ${String(mins).padStart(2,'0')}m`;
-  document.getElementById('statPresent').textContent = presentDayFraction;
-  document.getElementById('statHoliday').textContent = holidayCount;
-  document.getElementById('statWeeklyOff').textContent = weeklyOffCount;
-
-  // ✅ Show Comp Off count
-  document.getElementById('statCoff').textContent = cOffCount;
-
-  // ✅ Total Present = Present + Holiday + WeeklyOff + Leave + C.Off
-  const totalDays = presentDayFraction + holidayCount + weeklyOffCount + leaveCount + cOffCount;
-  document.getElementById('statTotalPresent').textContent = totalDays;
-}
-
+      // ✅ Total Present = Present + Holiday + WeeklyOff + Leave + C.Off
+      const totalDays = presentDayFraction + holidayCount + weeklyOffCount + leaveCount + cOffCount;
+      document.getElementById('statTotalPresent').textContent = totalDays;
+      }
 
      });
    

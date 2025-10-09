@@ -38,7 +38,7 @@ body { font-family: 'Poppins', sans-serif; color: #1e293b; background: #f8fafc; 
         </div>
 
         <!-- Salary Table -->
-        <div class="table-responsive">
+        <!-- <div class="table-responsive">
             <table class="table table-bordered table-hover">
                 <thead class="table-light">
                     <tr>
@@ -77,7 +77,92 @@ body { font-family: 'Poppins', sans-serif; color: #1e293b; background: #f8fafc; 
                     @endforelse
                 </tbody>
             </table>
-        </div>
+        </div> -->
+@if(session('success'))
+<div class="alert alert-success shadow-sm p-3">
+    <h5>{{ session('success') }}</h5>
+    @if(session('summary'))
+        <ul class="mb-0 ps-3">
+            @foreach(session('summary') as $label => $value)
+                <li><strong>{{ $label }}:</strong> {{ $value }}</li>
+            @endforeach
+        </ul>
+    @endif
+</div>
+@endif
+
+<div class="table-responsive mt-3">
+    <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+            <tr class="text-center">
+                <th rowspan="2">Employee</th>
+                <th colspan="2">Period</th>
+                <th colspan="6">Attendance Summary</th>
+                <th colspan="4">Earnings (₹)</th>
+                <th colspan="4">Deductions (₹)</th>
+                <th rowspan="2">Net Payable (₹)</th>
+            </tr>
+            <tr class="text-center">
+                <th>From</th>
+                <th>To</th>
+                <th>Present</th>
+                <th>Week Off</th>
+                <th>Holiday</th>
+                <th>C.Off</th>
+                <th>CL</th>
+                <th>SL</th>
+                <th>Basic</th>
+                <th>HRA</th>
+                <th>Conveyance</th>
+                <th>Other</th>
+                <th>PF</th>
+                <th>PT</th>
+                <th>Insurance</th>
+                <th>Advance</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @forelse($payments as $payment)
+                <tr>
+                    <td>{{ $payment->user->name }}</td>
+                    <td><span class="chip">{{ \Carbon\Carbon::parse($payment->from_date)->format('d-M-Y') }}</span></td>
+                    <td><span class="chip">{{ \Carbon\Carbon::parse($payment->to_date)->format('d-M-Y') }}</span></td>
+
+                    <!-- Attendance Summary -->
+                    <td class="num">{{ $payment->present_days_in_month }}</td>
+                    <td class="num">{{ $payment->weekoffCount }}</td>
+                    <td class="num">{{ $payment->holidayCount }}</td>
+                    <td class="num text-primary fw-bold">{{ $payment->cOffCount ?? 0 }}</td>
+                    <td class="num">{{ $payment->leave_cl }}</td>
+                    <td class="num">{{ $payment->leave_sl }}</td>
+
+                    <!-- Earnings -->
+                    <td class="num">{{ number_format($payment->basic_60, 2) }}</td>
+                    <td class="num">{{ number_format($payment->hra_5, 2) }}</td>
+                    <td class="num">{{ number_format($payment->conveyance_20, 2) }}</td>
+                    <td class="num">{{ number_format($payment->other_allowance, 2) }}</td>
+
+                    <!-- Deductions -->
+                    <td class="num text-danger">{{ number_format($payment->pf_12, 2) }}</td>
+                    <td class="num text-danger">{{ number_format($payment->pt, 2) }}</td>
+                    <td class="num text-danger">{{ number_format($payment->insurance, 2) }}</td>
+                    <td class="num text-danger">{{ number_format($payment->advance, 2) }}</td>
+
+                    <!-- Net Payable -->
+                    <td class="num amount fw-bold text-success">{{ number_format($payment->net_payable, 2) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="18" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox"></i> No payments found.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
 
     </div>
 </div>

@@ -92,7 +92,7 @@ public function events(Request $request)
     }
 
     // Attendance events
-    $attendanceEvents = $rows->map(function ($row) use (
+        $attendanceEvents = $rows->map(function ($row) use (
         &$presentDays, $SHIFT_START, $REQUIRED_MINS, $GRACE_IN, $GRACE_END, $fmtHM, 
         $holidayDates, $weeklyOffDates
     ) {
