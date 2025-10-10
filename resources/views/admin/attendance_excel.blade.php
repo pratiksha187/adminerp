@@ -26,11 +26,12 @@
                 <td>{{ $att->clock_in ? \Carbon\Carbon::parse($att->clock_in)->format('h:i A') : '—' }}</td>
                 <td>{{ $att->clock_out ? \Carbon\Carbon::parse($att->clock_out)->format('h:i A') : '—' }}</td>
                 <td>{{ $att->worked_hours }}</td>
-                <td>{{ $att->overtime }}</td>
+                <td>{{ $att->overtime }}</td> <!-- ✅ Only numeric value -->
             </tr>
         @endforeach
     </tbody>
 </table>
+
 
     <!-- <table border="1" cellpadding="5" cellspacing="0" width="100%">
         <thead>

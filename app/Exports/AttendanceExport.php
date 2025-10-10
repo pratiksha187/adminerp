@@ -27,21 +27,42 @@ class AttendanceExport implements FromView
         $normalHours = 9; // standard working hours per day
 
         // Add worked_hours and overtime to each record
+        // foreach ($attendances as $att) {
+        //     if ($att->clock_in && $att->clock_out) {
+        //         $clockIn = Carbon::parse($att->clock_in);
+        //         $clockOut = Carbon::parse($att->clock_out);
+
+        //         $hours = $clockOut->diffInHours($clockIn);
+        //         $minutes = $clockOut->diffInMinutes($clockIn) % 60;
+
+        //         $att->worked_hours = sprintf('%02d hrs %02d min', $hours, $minutes);
+        //         $att->overtime = $hours > $normalHours ? ($hours - $normalHours) . ' hrs' : '0 hrs';
+        //     } else {
+        //         $att->worked_hours = '—';
+        //         $att->overtime = '—';
+        //     }
+        // }
+
         foreach ($attendances as $att) {
             if ($att->clock_in && $att->clock_out) {
                 $clockIn = Carbon::parse($att->clock_in);
                 $clockOut = Carbon::parse($att->clock_out);
 
+                // ✅ Always positive worked hours
                 $hours = $clockOut->diffInHours($clockIn);
                 $minutes = $clockOut->diffInMinutes($clockIn) % 60;
 
                 $att->worked_hours = sprintf('%02d hrs %02d min', $hours, $minutes);
-                $att->overtime = $hours > $normalHours ? ($hours - $normalHours) . ' hrs' : '0 hrs';
+
+                // ✅ Overtime calculation (only number, no "hrs" text)
+                $normalHours = 9;
+                $att->overtime = $hours > $normalHours ? ($hours - $normalHours) : 0;
             } else {
                 $att->worked_hours = '—';
-                $att->overtime = '—';
+                $att->overtime = 0;
             }
         }
+
 
         return view('admin.attendance_excel', [
             'attendances' => $attendances,
