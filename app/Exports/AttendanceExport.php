@@ -43,25 +43,25 @@ class AttendanceExport implements FromView
         //     }
         // }
 
-        foreach ($attendances as $att) {
-            if ($att->clock_in && $att->clock_out) {
-                $clockIn = Carbon::parse($att->clock_in);
-                $clockOut = Carbon::parse($att->clock_out);
+     foreach ($attendances as $att) {
+        if ($att->clock_in && $att->clock_out) {
+            $clockIn = Carbon::parse($att->clock_in);
+            $clockOut = Carbon::parse($att->clock_out);
 
-                // ✅ Always positive worked hours
-                $hours = $clockOut->diffInHours($clockIn);
-                $minutes = $clockOut->diffInMinutes($clockIn) % 60;
+            // ✅ Always positive worked hours
+            $hours = $clockOut->diffInHours($clockIn);
+            $minutes = $clockOut->diffInMinutes($clockIn) % 60;
 
-                $att->worked_hours = sprintf('%02d hrs %02d min', $hours, $minutes);
+            $att->worked_hours = sprintf('%02d hrs %02d min', $hours, $minutes);
 
-                // ✅ Overtime calculation (only number, no "hrs" text)
-                $normalHours = 9;
-                $att->overtime = $hours > $normalHours ? ($hours - $normalHours) : 0;
-            } else {
-                $att->worked_hours = '—';
-                $att->overtime = 0;
-            }
+            // ✅ Overtime (numeric only)
+            $normalHours = 9;
+            $att->overtime = $hours > $normalHours ? ($hours - $normalHours) : 0;
+        } else {
+            $att->worked_hours = '—';
+            $att->overtime = 0;
         }
+    }
 
 
         return view('admin.attendance_excel', [
