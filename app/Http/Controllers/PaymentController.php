@@ -431,6 +431,7 @@ public function generatePayment(Request $request)
 
     $user = User::findOrFail($userId);
     $gross_salary = (int) ($user->salary ?? 0);
+  
     $from = Carbon::parse($request->from_date)->startOfDay();
     $to   = Carbon::parse($request->to_date)->endOfDay();
 
@@ -439,7 +440,9 @@ public function generatePayment(Request $request)
     }
 
     $daysInMonth  = $from->daysInMonth;
-    $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
+    // $per_day_rate = $daysInMonth > 0 ? round($gross_salary / $daysInMonth) : 0;
+    $per_day_rate = $daysInMonth > 0 ? (int) $gross_salary / $daysInMonth: 0;
+
 
     /* ----------------------------------
        FETCH ATTENDANCE + HOLIDAYS + LEAVES
@@ -536,7 +539,7 @@ public function generatePayment(Request $request)
 
     $leaveDays = $leave_cl + $leave_sl + $leave_el;
     
-    $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays;
+    $present_days_act = $present_days + $weekoffCount + $holidayCount + $leaveDays+$cOffCount;
 //  dd($present_days_act);
     /* ----------------------------------
        SALARY CALCULATION
@@ -544,14 +547,14 @@ public function generatePayment(Request $request)
     
     // $gross_salary = (int) ($user->salary ?? 0);
     // $gross_payable = (int) ($user->salary ?? 0);
-    $gross_payable = round($per_day_rate * $present_days_act);
-    //  dd($gross_salary);
-    $basic_60        = round($gross_payable * 0.6);
-   
-    $hra_5           = round($gross_payable * 0.05);
+    $gross_payable = $per_day_rate * $present_days_act;
+    //  dd($gross_payable);
+    $basic_60        = $gross_payable * 0.6;
+//    dd($basic_60);
+    $hra_5           = $gross_payable * 0.05;
     // dd($hra_5);
-    $conveyance_20   = round($gross_payable * 0.2);
-    $other_allowance = $gross_payable - $basic_60 - $hra_5 - $conveyance_20;
+    $conveyance_20   = $gross_payable * 0.2;
+    $other_allowance = round($gross_payable - $basic_60 - $hra_5 - $conveyance_20);
 // dd($other_allowance);
     $pf        = (int) ($user->pf ?? 0);
     $insurance = (int) ($user->insurance ?? 0);
@@ -559,8 +562,8 @@ public function generatePayment(Request $request)
     $advance   = (int) ($user->advance ?? 0);
 
     $total_deduction = $pf + $insurance + $pt + $advance;
-    $net_payable     = $gross_payable - $total_deduction;
-// dd($cOffCount);
+    $net_payable     = $other_allowance - $total_deduction;
+// dd($net_payable);
     /* ----------------------------------
        SAVE PAYMENT
     ----------------------------------- */

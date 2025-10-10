@@ -38,6 +38,7 @@
                             <th>Clock In</th>
                             <th>Clock Out</th>
                             <th>Worked Hours</th>
+                              <th>Overtime</th> 
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -63,14 +64,16 @@
                 }
             },
             columns: [
-                { data: 'id', name: 'id' },
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'user.name', name: 'user.name' },
                 { data: 'date', name: 'date' },
                 { data: 'clock_in', name: 'clock_in' },
                 { data: 'clock_out', name: 'clock_out' },
                 { data: 'worked_hours', name: 'worked_hours', orderable: false, searchable: false },
+                { data: 'overtime', name: 'overtime', orderable: false, searchable: false }
             ]
         });
+
     });
 </script>
 
