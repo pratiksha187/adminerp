@@ -114,11 +114,11 @@
 
                 <h5 class="text-primary">Basic Details</h5>
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <!-- <div class="col-md-6">
                         <label for="employee_code">Employee Code</label>
                         <input id="employee_code" type="text" name="employee_code" class="form-control @error('employee_code') is-invalid @enderror" required value="{{ old('employee_code') }}">
                         @error('employee_code') <div class="text-danger">{{ $message }}</div> @enderror
-                    </div>
+                    </div> -->
                     <div class="col-md-6">
                         <label for="mobile_no">Mobile</label>
                         <input id="mobile_no" type="text" name="mobile_no" class="form-control @error('mobile_no') is-invalid @enderror" value="{{ old('mobile_no') }}">

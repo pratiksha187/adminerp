@@ -87,34 +87,77 @@ class RegisterController extends Controller
         ]);
     }
 
-    protected function create(array $data)
-    {
-        return User::create([
-            'name'              => $data['name'],
-            'email'             => $data['email'],
-            'password'          => Hash::make($data['password']),
-            'employee_code'     => $data['employee_code'] ?? null,
-            'mobile_no'         => $data['mobile_no'] ?? null,
-            'gender'            => $data['gender'] ?? null,
-            'marital_status'    => $data['marital_status'] ?? null,
-            'dob'               => $data['dob'] ?? null,
-            'join_date'         => $data['join_date'] ?? null,
-            'confirmation_date' => $data['confirmation_date'] ?? null,
-            'probation_months'  => $data['probation_months'] ?? null,
-            'aadhaar'           => $data['aadhaar'] ?? null,
-            'hours_day'         => $data['hours_day'] ?? null,
-            'salary'            => $data['salary'] ?? null,
-            'days_week'         => $data['days_week'] ?? null,
-            'role'              => $data['role'],
-            'insurance'         => $data['insurance'],
-            'pt'                => $data['pt'],
-            'advance'           => $data['advance'],
-            'pf'                => $data['pf'],
-            'cl'                => 4,
-            'sl'                => 4,
-            'el'                => 4 
-        ]);
+    // protected function create(array $data)
+    // {
+    //     return User::create([
+    //         'name'              => $data['name'],
+    //         'email'             => $data['email'],
+    //         'password'          => Hash::make($data['password']),
+    //         'employee_code'     => $data['employee_code'] ?? null,
+    //         'mobile_no'         => $data['mobile_no'] ?? null,
+    //         'gender'            => $data['gender'] ?? null,
+    //         'marital_status'    => $data['marital_status'] ?? null,
+    //         'dob'               => $data['dob'] ?? null,
+    //         'join_date'         => $data['join_date'] ?? null,
+    //         'confirmation_date' => $data['confirmation_date'] ?? null,
+    //         'probation_months'  => $data['probation_months'] ?? null,
+    //         'aadhaar'           => $data['aadhaar'] ?? null,
+    //         'hours_day'         => $data['hours_day'] ?? null,
+    //         'salary'            => $data['salary'] ?? null,
+    //         'days_week'         => $data['days_week'] ?? null,
+    //         'role'              => $data['role'],
+    //         'insurance'         => $data['insurance'],
+    //         'pt'                => $data['pt'],
+    //         'advance'           => $data['advance'],
+    //         'pf'                => $data['pf'],
+    //         'cl'                => 4,
+    //         'sl'                => 4,
+    //         'el'                => 4 
+    //     ]);
+    // }
+protected function create(array $data)
+{
+    // Get the last user with an employee_code
+    $lastUser = User::whereNotNull('employee_code')
+        ->orderBy('id', 'desc')
+        ->first();
+
+    // Generate next employee code
+    if ($lastUser && preg_match('/^SC(\d+)$/', $lastUser->employee_code, $matches)) {
+        $nextNumber = (int)$matches[1] + 1;
+    } else {
+        $nextNumber = 1;
     }
+
+    // Format code like SC001
+    $employeeCode = 'SC' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+    return User::create([
+        'name'              => $data['name'],
+        'email'             => $data['email'],
+        'password'          => Hash::make($data['password']),
+        'employee_code'     => $employeeCode, // Auto-generated
+        'mobile_no'         => $data['mobile_no'] ?? null,
+        'gender'            => $data['gender'] ?? null,
+        'marital_status'    => $data['marital_status'] ?? null,
+        'dob'               => $data['dob'] ?? null,
+        'join_date'         => $data['join_date'] ?? null,
+        'confirmation_date' => $data['confirmation_date'] ?? null,
+        'probation_months'  => $data['probation_months'] ?? null,
+        'aadhaar'           => $data['aadhaar'] ?? null,
+        'hours_day'         => $data['hours_day'] ?? null,
+        'salary'            => $data['salary'] ?? null,
+        'days_week'         => $data['days_week'] ?? null,
+        'role'              => $data['role'] ?? null,
+        'insurance'         => $data['insurance'] ?? null,
+        'pt'                => $data['pt'] ?? null,
+        'advance'           => $data['advance'] ?? null,
+        'pf'                => $data['pf'] ?? null,
+        'cl'                => 4,
+        'sl'                => 4,
+        'el'                => 4,
+    ]);
+}
 
     public function updateStatus(Request $request, $id)
     {
