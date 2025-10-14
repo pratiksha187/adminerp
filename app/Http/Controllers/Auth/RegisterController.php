@@ -130,7 +130,7 @@ protected function create(array $data)
     }
 
     // Format code like SC001
-    $employeeCode = 'SC' . str_pad($nextNumber, 3, '00', STR_PAD_LEFT);
+    $employeeCode = 'SC' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
     return User::create([
         'name'              => $data['name'],
