@@ -68,7 +68,7 @@ class RegisterController extends Controller
             'name'              => ['required', 'string', 'max:255'],
             'email'             => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password'          => ['required', 'string', 'min:8', 'confirmed'],
-            'employee_code'     => ['required', 'string', 'max:255', 'unique:users,employee_code'],
+            // 'employee_code'     => ['required', 'string', 'max:255', 'unique:users,employee_code'],
             'mobile_no'         => ['nullable', 'string', 'max:15'],
             'gender'            => ['nullable', 'in:Male,Female'],
             'marital_status'    => ['nullable', 'in:Single,Married'],
