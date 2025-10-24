@@ -26,7 +26,8 @@ class EngineeringController extends Controller
         $unit  = DB::table('unit')->get();
 
         $users = DB::table('users')
-                ->whereIn('role', [4, 5])
+                ->whereIn('role', [4, 5,15,18])
+                ->where('is_active',1)
                 ->get();
 // dd($users);
 
@@ -46,6 +47,7 @@ class EngineeringController extends Controller
             'total_quantity' => 'nullable|numeric',
             'supervisor_id' => 'required',
             'labour' => 'nullable|array',
+            'description_of_work_done' => 'nullable',
             'labour.*' => 'nullable|integer|min:0',
         ]);
 
@@ -61,6 +63,7 @@ class EngineeringController extends Controller
                 'total_quantity' => $validated['total_quantity'] ?? 0,
                 'supervisor_id' => $validated['supervisor_id'],
                 'labour' => $validated['labour'] ?? [],
+                'description_of_work_done' =>$validated['description_of_work_done'],
             ]);
         } catch (\Exception $e) {
             return response()->json([

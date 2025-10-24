@@ -251,6 +251,14 @@
           </div>
         </div>
       </div>
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+        <div class="mb-3 mt-2">
+              <label class="form-label">Description of work done</label>
+              <input type="text" name="description_of_work_done" id="description_of_work_done" class="form-control" required>
+      </div>
+      </div>
+      </div>
 
       <!-- Submit -->
       <div class="text-end mb-5">
