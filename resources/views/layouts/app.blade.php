@@ -129,10 +129,10 @@
 {{-- ===== DPR (roles 1,2,4,17) ===== --}}
 @php
     $canSee = [
-        'work-entry.index'                => in_array($roleId, [1,2,4], true), // Engg Work Report
-        'store-requirement.list'          => in_array($roleId, [1,2,17], true),   // Material Requirement
-        'store-requirement.accepted.list' => in_array($roleId, [1,2,17], true),   // Accept Material List
-        'store-dpr.list'                  => in_array($roleId, [1,4,17], true),   // Store Manager Report
+        'work-entry.index'                => in_array($roleId, [1,2,4,18], true), // Engg Work Report
+        'store-requirement.list'          => in_array($roleId, [1,2,17,18], true),   // Material Requirement
+        'store-requirement.accepted.list' => in_array($roleId, [1,2,17,18], true),   // Accept Material List
+        'store-dpr.list'                  => in_array($roleId, [1,4,17,18], true),   // Store Manager Report
     ];
 
     // check active route
