@@ -68,53 +68,7 @@ class AttendanceController extends Controller
         return back()->with('success', '✅ Clocked in successfully!');
     }
 
-    // public function clockIn(Request $request)
-    // {
-    //     // 1) Validate cleanly (no device_time needed)
-    //     $request->validate([
-    //         'latitude'  => 'required|numeric|between:-90,90',
-    //         'longitude' => 'required|numeric|between:-180,180',
-    //     ]);
-
-    //     $maxDistanceMeters = 500;
-
-    //     $userLat = (float) $request->input('latitude');
-    //     $userLng = (float) $request->input('longitude');
-
-    //     // 2) Geofence check against saved Locations
-    //     $locations = Location::query()->select('latitude', 'longitude')->get();
-
-    //     $withinAllowedLocation = false;
-    //     foreach ($locations as $location) {
-    //         if ($this->distance(
-    //             (float) $location->latitude,
-    //             (float) $location->longitude,
-    //             $userLat,
-    //             $userLng
-    //         ) <= $maxDistanceMeters) {
-    //             $withinAllowedLocation = true;
-    //             break;
-    //         }
-    //     }
-
-    //     if (!$withinAllowedLocation) {
-    //         return back()->with('error', 'You are outside the allowed clock-in zones.');
-    //     }
-
-    //     // 3) Authoritative clock-in: server time in IST
-    //     $nowIst = Carbon::now('Asia/Kolkata');
-
-    //     // 4) Save (round to 8 dp if your DB is DECIMAL(12,8))
-    //     Attendance::create([
-    //         'user_id'   => auth()->id(),
-    //         'clock_in'  => $nowIst,                   // authoritative IST time
-    //         'latitude'  => round($userLat, 8),
-    //         'longitude' => round($userLng, 8),
-    //         // 'clock_out' left null by default
-    //     ]);
-
-    //     return back()->with('success', 'Clocked in successfully!');
-    // }
+    
 
     private function distance($lat1, $lon1, $lat2, $lon2)
     {
@@ -136,80 +90,66 @@ class AttendanceController extends Controller
         return $earthRadius * $c;
     }
     
-    // public function clockOut(Request $request)
-    // {
-    //     // $time = $request->device_time ?? now();
-    //     $time = $request->device_time ? Carbon::parse($request->device_time)->timezone('Asia/Kolkata') : now(); 
-
-    //     $attendance = Attendance::where('user_id', auth()->id())
-    //         ->whereDate('clock_in', now()->toDateString())
-    //         ->first();
-
-    //     if ($attendance) {
-    //         $attendance->update(['clock_out' => $time]);
-    //     }
-
-    //     return redirect()->back()->with('success', 'Clock Out successful!');
-    // }
+  
 
     public function clockOut(Request $request)
-{
-    // ✅ 1) Validate location input
-    $request->validate([
-        'latitude'  => 'required|numeric|between:-90,90',
-        'longitude' => 'required|numeric|between:-180,180',
-    ]);
+    {
+        // ✅ 1) Validate location input
+        $request->validate([
+            'latitude'  => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
 
-    $maxDistanceMeters = 500;
-    $userLat = (float) $request->input('latitude');
-    $userLng = (float) $request->input('longitude');
+        $maxDistanceMeters = 500;
+        $userLat = (float) $request->input('latitude');
+        $userLng = (float) $request->input('longitude');
 
-    // ✅ 2) Geofence validation (same as ClockIn)
-    $locations = \App\Models\Location::select('latitude', 'longitude')->get();
-    $withinAllowedLocation = false;
+        // ✅ 2) Geofence validation (same as ClockIn)
+        $locations = \App\Models\Location::select('latitude', 'longitude')->get();
+        $withinAllowedLocation = false;
 
-    foreach ($locations as $location) {
-        if ($this->distance(
-            (float) $location->latitude,
-            (float) $location->longitude,
-            $userLat,
-            $userLng
-        ) <= $maxDistanceMeters) {
-            $withinAllowedLocation = true;
-            break;
+        foreach ($locations as $location) {
+            if ($this->distance(
+                (float) $location->latitude,
+                (float) $location->longitude,
+                $userLat,
+                $userLng
+            ) <= $maxDistanceMeters) {
+                $withinAllowedLocation = true;
+                break;
+            }
         }
+
+        if (!$withinAllowedLocation) {
+            return back()->with('error', '❌ You are outside the allowed clock-out zones.');
+        }
+
+        // ✅ 3) Find today’s attendance record
+        $attendance = \App\Models\Attendance::where('user_id', auth()->id())
+            ->whereDate('clock_in', now('Asia/Kolkata')->toDateString())
+            ->first();
+
+        if (!$attendance) {
+            return back()->with('error', '⚠️ You have not clocked in today.');
+        }
+
+        // ✅ 4) Prevent multiple clock-outs
+        if ($attendance->clock_out) {
+            return back()->with('error', '⚠️ You have already clocked out today.');
+        }
+
+        // ✅ 5) Use authoritative server time (IST)
+        $nowIst = \Carbon\Carbon::now('Asia/Kolkata');
+
+        // ✅ 6) Update attendance with clock-out + location data
+        $attendance->update([
+            'clock_out' => $nowIst,
+            'out_latitude'  => round($userLat, 8),
+            'out_longitude' => round($userLng, 8),
+        ]);
+
+        return redirect()->back()->with('success', '✅ Clock Out successful!');
     }
-
-    if (!$withinAllowedLocation) {
-        return back()->with('error', '❌ You are outside the allowed clock-out zones.');
-    }
-
-    // ✅ 3) Find today’s attendance record
-    $attendance = \App\Models\Attendance::where('user_id', auth()->id())
-        ->whereDate('clock_in', now('Asia/Kolkata')->toDateString())
-        ->first();
-
-    if (!$attendance) {
-        return back()->with('error', '⚠️ You have not clocked in today.');
-    }
-
-    // ✅ 4) Prevent multiple clock-outs
-    if ($attendance->clock_out) {
-        return back()->with('error', '⚠️ You have already clocked out today.');
-    }
-
-    // ✅ 5) Use authoritative server time (IST)
-    $nowIst = \Carbon\Carbon::now('Asia/Kolkata');
-
-    // ✅ 6) Update attendance with clock-out + location data
-    $attendance->update([
-        'clock_out' => $nowIst,
-        'out_latitude'  => round($userLat, 8),
-        'out_longitude' => round($userLng, 8),
-    ]);
-
-    return redirect()->back()->with('success', '✅ Clock Out successful!');
-}
 
 
     public function report(Request $request)
@@ -240,40 +180,73 @@ class AttendanceController extends Controller
         return Excel::download(new AttendanceExport($start, $end), 'AttendanceReport.xlsx');
     }
 
+public function attendanceDatatable(Request $request)
+{
+    $start = $request->start_date ?? now()->startOfMonth()->toDateString();
+    $end = $request->end_date ?? now()->endOfMonth()->toDateString();
+
+    $data = \App\Models\Attendance::with('user')
+        ->whereBetween('clock_in', [$start . ' 00:00:00', $end . ' 23:59:59'])
+        ->orderBy('clock_in', 'desc');
+
+    return DataTables::of($data)
+        ->addIndexColumn()
+        ->addColumn('date', function($row) {
+            return \Carbon\Carbon::parse($row->clock_in)->format('Y-m-d');
+        })
+        ->editColumn('clock_in', function($row) {
+            return \Carbon\Carbon::parse($row->clock_in)->format('h:i A');
+        })
+        ->editColumn('clock_out', function($row) {
+            return $row->clock_out 
+                ? \Carbon\Carbon::parse($row->clock_out)->format('h:i A') 
+                : '—';
+        })
+        ->addColumn('worked_hours', function($row) {
+            if ($row->clock_in && $row->clock_out) {
+                return \Carbon\Carbon::parse($row->clock_in)
+                        ->diff(\Carbon\Carbon::parse($row->clock_out))
+                        ->format('%h hrs %i min');
+            }
+            return '—';
+        })
+        ->rawColumns(['date', 'clock_in', 'clock_out', 'worked_hours'])
+        ->make(true);
+}
 
 
-    public function attendanceDatatable(Request $request)
-    {
-        $start = $request->start_date ?? now()->startOfMonth()->toDateString();
-        $end = $request->end_date ?? now()->endOfMonth()->toDateString();
+    // public function attendanceDatatable(Request $request)
+    // {
+    //     $start = $request->start_date ?? now()->startOfMonth()->toDateString();
+    //     $end = $request->end_date ?? now()->endOfMonth()->toDateString();
 
-        $data = \App\Models\Attendance::with('user')
-            ->whereBetween('clock_in', [$start . ' 00:00:00', $end . ' 23:59:59'])
-            ->orderBy('clock_in', 'desc');
-
-        return DataTables::of($data)
-            ->addIndexColumn()
-            ->editColumn('date', function($row) {
-                return \Carbon\Carbon::parse($row->clock_in)->format('Y-m-d');
-            })
-            ->editColumn('clock_in', function($row) {
-                return \Carbon\Carbon::parse($row->clock_in)->format('h:i A');
-            })
-            ->editColumn('clock_out', function($row) {
-                return $row->clock_out 
-                    ? \Carbon\Carbon::parse($row->clock_out)->format('h:i A') 
-                    : '—';
-            })
-            ->addColumn('worked_hours', function($row) {
-                if ($row->clock_in && $row->clock_out) {
-                    return \Carbon\Carbon::parse($row->clock_in)
-                            ->diff(\Carbon\Carbon::parse($row->clock_out))
-                            ->format('%h hrs %i min');
-                }
-                return '—';
-            })
-            ->make(true);
-    }
+    //     $data = \App\Models\Attendance::with('user')
+    //         ->whereBetween('clock_in', [$start . ' 00:00:00', $end . ' 23:59:59'])
+    //         ->orderBy('clock_in', 'desc');
+    //     // dd($data);
+    //     return DataTables::of($data)
+    //         ->addIndexColumn()
+    //         // ->editColumn('date', function($row) {
+    //         //     return \Carbon\Carbon::parse($row->clock_in)->format('Y-m-d');
+    //         // })
+    //         ->editColumn('clock_in', function($row) {
+    //             return \Carbon\Carbon::parse($row->clock_in)->format('h:i A');
+    //         })
+    //         ->editColumn('clock_out', function($row) {
+    //             return $row->clock_out 
+    //                 ? \Carbon\Carbon::parse($row->clock_out)->format('h:i A') 
+    //                 : '—';
+    //         })
+    //         ->addColumn('worked_hours', function($row) {
+    //             if ($row->clock_in && $row->clock_out) {
+    //                 return \Carbon\Carbon::parse($row->clock_in)
+    //                         ->diff(\Carbon\Carbon::parse($row->clock_out))
+    //                         ->format('%h hrs %i min');
+    //             }
+    //             return '—';
+    //         })
+    //         ->make(true);
+    // }
 
 
     public function  manualattendence(){
@@ -315,16 +288,6 @@ class AttendanceController extends Controller
     }
 
     $user = auth()->user();
-// dd($user->id);
-
-
-    // $existing = ManualAttendance::where('user_id', $user->id)
-    //     ->whereDate('clock_in', $clockIn->toDateString())
-    //     ->first();
-// dd($existing());
-    // if ($existing) {
-    //     return back()->with('error', 'Manual attendance for this date already exists.');
-    // }
 
     ManualAttendance::create([
         'date' => $request->date,
@@ -337,16 +300,7 @@ class AttendanceController extends Controller
     return back()->with('success', 'Manual attendance entry saved successfully.');
 }
 
-    // public function getManualData(Request $request)
-    // {
-    //     $userId = Auth::id();
-    //     if ($request->ajax()) {
-    //         $data = ManualAttendance::query();
-           
-    //         // dd($data);
-    //         return DataTables::of($data)->make(true);
-    //     }
-    // }
+   
 public function getManualData(Request $request)
 {
     $userId = Auth::id();
