@@ -19,27 +19,63 @@ class RegisterController extends Controller
         // ✅ Get a scalar role id for the logged-in user (null if none)
         $roleId = DB::table('users')->where('id', Auth::id())->value('role');
 
-        if ($request->ajax()) {
-            $users = DB::table('users')
-                ->leftJoin('role', 'users.role', '=', 'role.id')
-                ->select([
-                    'users.*',
-                    'users.id',
-                    'users.employee_code',
-                    'users.name',
-                    'users.email',
-                    'users.department',
-                    'users.is_active',
-                    'users.role as role_id',
-                    DB::raw('COALESCE(role.role, "N/A") as role_name'),
-                ]);
+        // if ($request->ajax()) {
+        //     $users = DB::table('users')
+        //         ->leftJoin('role', 'users.role', '=', 'role.id')
+        //         ->select([
+        //             'users.*',
+        //             'users.id',
+        //             'users.employee_code',
+        //             'users.name',
+        //             'users.email',
+        //             'users.department',
+        //             'users.is_active',
+        //             'users.role as role_id',
+        //             DB::raw('COALESCE(role.role, "N/A") as role_name'),
+        //         ]);
+        //     // dd( $users );
+        //     return DataTables::of($users)
+        //         // ✅ already selected role_name; just return it
+        //         ->editColumn('role_name', fn ($u) => $u->role_name)
+        //         ->editColumn('is_active', fn ($u) => (int) $u->is_active)
+        //         ->make(true);
+        // }
+if ($request->ajax()) {
 
-            return DataTables::of($users)
-                // ✅ already selected role_name; just return it
-                ->editColumn('role_name', fn ($u) => $u->role_name)
-                ->editColumn('is_active', fn ($u) => (int) $u->is_active)
-                ->make(true);
-        }
+    $users = DB::table('users')
+        ->leftJoin('role', 'users.role', '=', 'role.id')
+        ->select([
+            'users.id',
+            'users.employee_code',
+            'users.name',
+            'users.email',
+            'users.department',
+            'users.is_active',
+            'users.role as role_id',
+            DB::raw('COALESCE(role.role, "N/A") as role_name'),
+        ]);
+
+    return DataTables::of($users)
+
+        // ✅ Only search name, email, employee_code and status
+        ->filter(function ($query) use ($request) {
+            if (!empty($request->search['value'])) {
+                $search = strtolower($request->search['value']);
+
+                $query->where(function ($q) use ($search) {
+                    $q->whereRaw("LOWER(users.employee_code) LIKE ?", ["%{$search}%"])
+                      ->orWhereRaw("LOWER(users.name) LIKE ?", ["%{$search}%"])
+                      ->orWhereRaw("LOWER(users.email) LIKE ?", ["%{$search}%"])
+                      ->orWhereRaw("LOWER(users.is_active) LIKE ?", ["%{$search}%"]);
+                      // ✅ Removed search from role_name
+                });
+            }
+        })
+
+        ->editColumn('role_name', fn ($u) => $u->role_name)
+        ->editColumn('is_active', fn ($u) => (int) $u->is_active)
+        ->make(true);
+}
 
         $roles = DB::table('role')->select('id', 'role')->get();
 
