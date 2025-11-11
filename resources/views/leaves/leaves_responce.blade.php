@@ -17,6 +17,8 @@
                         <th>HOD</th>
                         <th>Status</th>
                         <th>HR Remark</th>
+                        <th>Document</th>
+
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -39,6 +41,19 @@
                             @endif
                         </td>
                         <td>{{ $leave->hr_reason ?? '—' }}</td>
+                        <td>
+                            @if($leave->pdf_path)
+                                <a href="{{ asset('storage/' . $leave->pdf_path) }}" target="_blank" class="btn btn-sm btn-info">
+                                    Show PDF
+                                </a>
+                                <a href="{{ asset('storage/' . $leave->pdf_path) }}" download class="btn btn-sm btn-primary">
+                                    Download
+                                </a>
+                            @else
+                                <span class="text-muted">Not Generated</span>
+                            @endif
+                        </td>
+
                         <td>
                             @if($leave->status === 'Pending')
                             <!-- Button trigger modal -->
@@ -81,6 +96,9 @@
                                 <em>No action</em>
                             @endif
                         </td>
+
+                       
+
                     </tr>
                     @empty
                     <tr>

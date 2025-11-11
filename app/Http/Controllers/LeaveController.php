@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+
+
 class LeaveController extends Controller
 {
 
@@ -93,36 +97,77 @@ class LeaveController extends Controller
         return view('leaves.leaves_responce', compact('leaves','role'));
     }
 
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'status' => 'required|in:Approved,Rejected',
+    //         'hr_reason' => 'nullable|string|max:500',
+    //     ]);
+
+    //     $leave = Leave::findOrFail($id);
+    //     $leave->status = $request->status;
+    //     $leave->hr_reason = $request->hr_reason;
+    //     $leave->save();
+    //     if ($request->status === 'Rejected') {
+    //             $user = $leave->user; // relationship: Leave belongsTo User
+
+    //             // Map type back to users table column
+    //             $leaveColumn = match ($leave->type) {
+    //                 'Sick'   => 'sl',
+    //                 'Casual' => 'cl',
+    //                 'Paid'   => 'el',
+    //                 default  => null,
+    //             };
+
+    //             if ($leaveColumn) {
+    //                 // Give back 1 leave balance
+    //                 $user->increment($leaveColumn, 1);
+    //             }
+    //     }
+
+    //     return back()->with('success', 'Leave status updated successfully!');
+    // }
     public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:Approved,Rejected',
-            'hr_reason' => 'nullable|string|max:500',
-        ]);
+{
+    $request->validate([
+        'status' => 'required|in:Approved,Rejected',
+        'hr_reason' => 'nullable|string|max:500',
+    ]);
 
-        $leave = Leave::findOrFail($id);
-        $leave->status = $request->status;
-        $leave->hr_reason = $request->hr_reason;
-        $leave->save();
-        if ($request->status === 'Rejected') {
-                $user = $leave->user; // relationship: Leave belongsTo User
+    $leave = Leave::findOrFail($id);
+    $leave->status = $request->status;
+    $leave->hr_reason = $request->hr_reason;
+    $leave->save();
 
-                // Map type back to users table column
-                $leaveColumn = match ($leave->type) {
-                    'Sick'   => 'sl',
-                    'Casual' => 'cl',
-                    'Paid'   => 'el',
-                    default  => null,
-                };
+    if ($request->status === 'Rejected') {
+        $user = $leave->user;
 
-                if ($leaveColumn) {
-                    // Give back 1 leave balance
-                    $user->increment($leaveColumn, 1);
-                }
+        $leaveColumn = match ($leave->type) {
+            'Sick'   => 'sl',
+            'Casual' => 'cl',
+            'Paid'   => 'el',
+            default  => null,
+        };
+
+        if ($leaveColumn) {
+            $user->increment($leaveColumn, 1);
         }
-
-        return back()->with('success', 'Leave status updated successfully!');
     }
+
+    // ✅ Generate PDF after status update
+    $pdf = Pdf::loadView('leaves.pdf_leave', compact('leave'));
+
+    $fileName = 'leave_'.$leave->id.'_'.time().'.pdf';
+    $path = 'leave_pdfs/'.$fileName;
+
+    Storage::disk('public')->put($path, $pdf->output());
+
+    $leave->pdf_path = $path;
+    $leave->save();
+
+    return back()->with('success', 'Leave status updated and PDF generated successfully!');
+}
+
 }
 
 
