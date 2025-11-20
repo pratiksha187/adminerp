@@ -422,10 +422,13 @@ $(document).ready(function () {
 
             if (X > 0) {
                 let A = (X * X) / 162;
+                console.log(A);
                 let Bval = A * 12;
+                 console.log(Bval);
                 let Total = Q * Bval;
+                 console.log(Total);
 
-                qty = Math.floor((Total / 1000) * 10000) / 10000;
+                qty = Math.floor((Total));
             }
         }
 
