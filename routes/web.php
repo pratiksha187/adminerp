@@ -56,8 +56,13 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
 
     // Work Entry
     Route::get('/work-entry', [EngineeringController::class, 'index'])->name('work-entry.index');
+
+    Route::get('/all-engg-work-entry', [EngineeringController::class, 'allenggworkentry'])->name('allenggworkentry');
+
     Route::post('/work-entry/save', [EngineeringController::class, 'saveworkdata'])->name('work-entry.save');
     Route::get('/work-entry/data', [EngineeringController::class, 'data'])->name('work-entry.data');
+    Route::get('work-entry/view/{id}', [EngineeringController::class, 'view'])->name('work-entry.view');
+
 
     // Chapter Descriptions
     Route::get('/descriptions/{chapter_id}', [EngineeringController::class, 'getDescriptions']);

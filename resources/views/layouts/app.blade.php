@@ -129,6 +129,8 @@
 {{-- ===== DPR (roles 1,2,4,17) ===== --}}
 @php
     $canSee = [
+        'allenggworkentry'                => in_array($roleId, [1,2,4,18], true), // Engg Work Report
+
         'work-entry.index'                => in_array($roleId, [1,2,4,18], true), // Engg Work Report
         'store-requirement.list'          => in_array($roleId, [1,2,17,18], true),   // Material Requirement
         'store-requirement.accepted.list' => in_array($roleId, [1,2,17,18], true),   // Accept Material List
@@ -150,13 +152,19 @@
     </a>
     <div class="collapse {{ $dprActive ? 'show' : '' }}" id="enggMenu">
 
+        @if($canSee['allenggworkentry'])
+            <a href="{{ route('allenggworkentry') }}" 
+               class="{{ request()->routeIs('allenggworkentry') ? 'active' : '' }}">
+                <i class="bi bi-receipt me-2"></i> All Engg Work Entry
+            </a>
+        @endif
         {{-- Engg Work Report --}}
-        @if($canSee['work-entry.index'])
+        <!-- @if($canSee['work-entry.index'])
             <a href="{{ route('work-entry.index') }}" 
                class="{{ request()->routeIs('work-entry.index') ? 'active' : '' }}">
                 <i class="bi bi-receipt me-2"></i> Engg Daily Work Report
             </a>
-        @endif
+        @endif -->
 
         {{-- Store Manager Main --}}
         @if($canSee['store-requirement.list'] || $canSee['store-requirement.accepted.list'] || $canSee['store-dpr.list'])

@@ -179,23 +179,57 @@
                 @endforeach
               </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-2" id="tonnage-box" style="display:none;">
+                <label class="form-label">Tonnage Value</label>
+                <select id="tonnage" class="form-select">
+                    <option value="">Select</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                    <option value="12">12</option>
+                    <option value="16">16</option>
+                    <option value="20">20</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
+            
+            <div class="col-md-2" id="length-box">
               <label class="form-label">Length (L)</label>
-              <input type="number" step="0.01" name="length" class="form-control" value="0.00" min="0" required>
+              <input type="number" step="0.01" id="length" name="length" class="form-control" value="0.00" min="0">
             </div>
-            <div class="col-md-2">
+
+            <div class="col-md-2" id="breadth-box">
               <label class="form-label">Breadth (B)</label>
-              <input type="number" step="0.01" name="breadth" class="form-control" value="0.00" min="0" required>
+              <input type="number" step="0.01" id="breadth" name="breadth" class="form-control" value="0.00" min="0">
             </div>
-            <div class="col-md-2">
+
+            <div class="col-md-2" id="height-box">
               <label class="form-label">Height (H)</label>
-              <input type="number" step="0.01" name="height" class="form-control" value="0.00" min="0" required>
+              <input type="number" step="0.01" id="height" name="height" class="form-control" value="0.00" min="0">
             </div>
+
+            <div class="col-md-2" id="days-box" style="display:none;">
+                <label class="form-label">Days</label>
+                <input type="number" step="1" id="days" name="days" class="form-control" value="1" min="1">
+            </div>
+
+            <div class="col-md-2" id="intime-box" style="display:none;">
+                <label class="form-label">In Time</label>
+                <input type="time" id="in_time" name="in_time" class="form-control">
+            </div>
+
+            <div class="col-md-2" id="outtime-box" style="display:none;">
+                <label class="form-label">Out Time</label>
+                <input type="time" id="out_time" name="out_time" class="form-control">
+            </div>
+
+            
+
             <div class="col-md-4">
-              <label class="form-label">Total Quantity</label>
-              <input type="text" name="total_quantity" class="form-control bg-light" placeholder="Auto-calculated" readonly>
-              <small class="text-muted">Auto-calculated (L × B × H)</small>
+              <label class="form-label">Total Value</label>
+              <input type="text" id="total_qty" name="total_quantity" class="form-control bg-light" readonly>
+              <small class="text-muted">Auto-calculated</small>
             </div>
+
           </div>
         </div>
       </div>
@@ -267,27 +301,7 @@
       </div>
     </form>
 
-    <!-- Recent Entries Table -->
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5>📜 Recent Entries</h5>
-        <div class="table-responsive">
-          <table class="table table-bordered table-hover mt-3" id="entriesTable">
-            <thead>
-              <tr>
-                <th>Sr. No.</th>
-                <th>Date</th>
-                <th>Chapter</th>
-                <th>Description</th>
-                <th>Quantity</th>
-                <th>Labour</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+  
 
   </div>
 </div>
@@ -307,16 +321,7 @@
       width: '100%'
     });
 
-    // Auto-calc quantity (L*B*H) + tiny visual feedback
-    $('input[name="length"], input[name="breadth"], input[name="height"]').on('input', function () {
-      let l = parseFloat($('input[name="length"]').val()) || 0;
-      let b = parseFloat($('input[name="breadth"]').val()) || 0;
-      let h = parseFloat($('input[name="height"]').val()) || 0;
-      const $qty = $('input[name="total_quantity"]');
-      $qty.val((l * b * h).toFixed(2));
-      $qty.addClass('is-valid'); setTimeout(()=> $qty.removeClass('is-valid'), 350);
-    });
-
+   
     // Total Labour Count
     $(document).on('input', 'input[name^="labour"]', function () {
       let total = 0;
@@ -326,55 +331,193 @@
       $('#totalLabour').text(total);
     });
 
-    // DataTable
-    let table = $('#entriesTable').DataTable({
-      processing: true,
-      serverSide: true,
-      ajax: "{{ route('work-entry.data') }}",
-      columns: [
-        { data: null, searchable: false, orderable: false },
-        { data: 'date' },
-        { data: 'chapter_name' },
-        { data: 'description' },
-        { data: 'total_quantity' },
-        { data: 'labour_count' }
-      ],
-      order: [[1, 'desc']],
-      drawCallback: function (settings) {
-        table.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
-          cell.innerHTML = i + 1;
-        });
-      }
-    });
 
-    // Form Submit (same logic)
-    $('#workEntryForm').submit(function (e) {
-      e.preventDefault();
-      let form = $(this);
+$("#workEntryForm").submit(function(e){
+    e.preventDefault();
 
-      $.post("{{ route('work-entry.save') }}", form.serialize())
-        .done(function (response) {
-          if (response.success) {
-            table.ajax.reload(null, false);
-            form[0].reset();
-            $('#totalLabour').text('0');
-            $('input[name="total_quantity"]').val('');
-            $('.select2').val('').trigger('change');
-            alert('Entry saved successfully!');
-          } else {
-            alert('Failed to save entry.');
-          }
-        })
-        .fail(function (xhr) {
-          if (xhr.status === 422) {
-            let errors = xhr.responseJSON.errors;
-            alert(Object.values(errors).flat().join("\n"));
-          } else {
-            alert('An error occurred. Please try again.');
-          }
+    $.post("{{ route('work-entry.save') }}", $(this).serialize())
+        .done(res=>{
+            if(res.success){
+                window.location.href = "{{ route('allenggworkentry') }}";
+            } else {
+                alert("Failed to save entry.");
+            }
         });
-    });
+});
   });
+</script>
+
+<script>
+$(document).ready(function () {
+
+    function calculateQty() {
+
+        let unit = $("select[name='unit'] option:selected").text().trim().toLowerCase();
+
+        let L = parseFloat($("#length").val()) || 0;
+        let B = parseFloat($("#breadth").val()) || 0;
+        let H = parseFloat($("#height").val()) || 0;
+        let D = parseFloat($("#days").val()) || 0;
+
+        let inTime = $("#in_time").val();
+        let outTime = $("#out_time").val();
+        let X = parseFloat($("#tonnage").val()) || 0;
+
+        let qty = 0;
+
+        // ------- Square Metre -------
+        if (unit.includes("square") && unit.includes("metre")) {
+            qty = L * H;
+        }
+
+        // ------- Cubic Metre -------
+        else if (unit.includes("cubic") && unit.includes("metre")) {
+            qty = L * B * H;
+        }
+
+        // ------- Kilogramme -------
+        else if (unit.includes("kilogram") || unit === "kg" || unit.includes("kg")) {
+            qty = L;
+        }
+
+        // ------- Running Metre -------
+        else if (unit.includes("running") || unit.includes("rm") || unit.includes("rmt")) {
+            qty = L;
+        }
+
+        // ------- Day -------
+        else if (unit.includes("day")) {
+            qty = D;
+        }
+
+        // ------- Hour -------
+        else if (unit.includes("hour")) {
+            if (inTime && outTime) {
+                let start = new Date("2000-01-01 " + inTime);
+                let end = new Date("2000-01-01 " + outTime);
+                let diff = (end - start) / (1000 * 60 * 60);
+                qty = diff > 0 ? diff : 0;
+            }
+        }
+
+        // ------- PER TEST -------
+        else if (unit.includes("per test") || unit.includes("test")) {
+            qty = L;
+        }
+
+        // ------- LITRE (L × B × H / 1000) -------
+        else if (
+            unit.includes("litre") ||
+            unit.includes("liter") ||
+            unit.includes("ltr") ||
+            unit.includes("lt")
+        ) {
+            qty = (L * B * H) / 1000;
+        }
+
+        // ------- Metric Tonne -------
+        else if (unit.includes("metric") || unit.includes("tonne") || unit.includes("mt")) {
+
+            let Q = L;
+
+            if (X > 0) {
+                let A = (X * X) / 162;
+                let Bval = A * 12;
+                let Total = Q * Bval;
+
+                qty = Math.floor((Total / 1000) * 10000) / 10000;
+            }
+        }
+
+        // ------- Default -------
+        else {
+            qty = L * B * H;
+        }
+
+        $("#total_qty").val(qty.toFixed(3));
+    }
+
+
+    // ================= UNIT VISIBILITY =================
+    $("select[name='unit']").on("change", function () {
+
+        let unit = $("select[name='unit'] option:selected").text().trim().toLowerCase();
+
+        $("#length-box, #breadth-box, #height-box, #days-box, #intime-box, #outtime-box, #tonnage-box").hide();
+
+
+        // ------- Square Metre -------
+        if (unit.includes("square") && unit.includes("metre")) {
+            $("#length-box").show();
+            $("#height-box").show();
+        }
+
+        // ------- Cubic Metre -------
+        else if (unit.includes("cubic") && unit.includes("metre")) {
+            $("#length-box").show();
+            $("#breadth-box").show();
+            $("#height-box").show();
+        }
+
+        // ------- Kilogramme -------
+        else if (unit.includes("kilogram") || unit.includes("kg")) {
+            $("#length-box").show();
+        }
+
+        // ------- Running Metre -------
+        else if (unit.includes("running") || unit.includes("rm")) {
+            $("#length-box").show();
+        }
+
+        // ------- PER TEST -------
+        else if (unit.includes("per test") || unit.includes("test")) {
+            $("#length-box").show();
+        }
+
+        // ------- LITRE (needs L, B, H) -------
+        else if (
+            unit.includes("litre") ||
+            unit.includes("liter") ||
+            unit.includes("ltr") ||
+            unit.includes("lt")
+        ) {
+            $("#length-box").show();
+            $("#breadth-box").show();
+            $("#height-box").show();
+        }
+
+        // ------- Day -------
+        else if (unit.includes("day")) {
+            $("#days-box").show();
+        }
+
+        // ------- Hour -------
+        else if (unit.includes("hour")) {
+            $("#intime-box").show();
+            $("#outtime-box").show();
+        }
+
+        // ------- Metric Tonne -------
+        else if (unit.includes("metric") || unit.includes("tonne") || unit.includes("mt")) {
+            $("#length-box").show();
+            $("#tonnage-box").show();
+        }
+
+        // ------- Default -------
+        else {
+            $("#length-box").show();
+            $("#breadth-box").show();
+            $("#height-box").show();
+        }
+
+        calculateQty();
+    });
+
+    $("#length, #breadth, #height, #days, #in_time, #out_time, #tonnage").on("input change", function () {
+        calculateQty();
+    });
+
+});
 </script>
 
 @endsection
