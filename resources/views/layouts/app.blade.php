@@ -306,9 +306,9 @@
         </div>
     @endif
 
-    {{-- ===== po (roles 1,2,17) ===== --}}
+    {{-- ===== po (roles 1,2,17,4) ===== --}}
     @php $poActive = request()->routeIs('po*'); @endphp
-    @if(in_array($roleId, [1, 2, 17], true))
+    @if(in_array($roleId, [1, 2, 17,4], true))
         <a class="d-flex justify-content-between align-items-center {{ $poActive ? 'active-parent' : '' }}"
            data-bs-toggle="collapse" href="#poMenu" aria-expanded="{{ $poActive ? 'true' : 'false' }}">
             <span><i class="bi bi-file-earmark-text me-2"></i> PO</span>
