@@ -14,19 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class POController extends Controller
 {
 
-//     public function showpo()
-//     {
-//         $userId = Auth::id();
-//         $userDetails = DB::table('users')
-//                     ->select('role')
-//                     ->where('id', $userId)   
-//                     ->first();
 
-//         $role = $userDetails->role;
-//         $purchaseOrders = PurchaseOrder::orderBy('id', 'DESC')->get();
-// dd($purchaseOrders);
-//         return view('PO.index', compact('purchaseOrders','role'));
-//     }
 public function showpo()
 {
     $userId = Auth::id();
@@ -160,7 +148,7 @@ public function showpo()
         }
 
         // 4. Generate PDF
-        $pdf = Pdf::loadView('po.pdf', [
+        $pdf = Pdf::loadView('PO.pdf', [
             'po' => $po->load('items')
         ]);
 
