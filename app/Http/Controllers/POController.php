@@ -36,7 +36,7 @@ public function showpo()
 
     public function createpo(){
 
-            $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
+    $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
     $lastNumber = 1;
 
     if ($latestPO) {
