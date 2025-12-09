@@ -93,7 +93,7 @@
             <!-- CONSIGNEE -->
             <div class="col-6 border-box">
                 <strong>Consignee :</strong>
- <br>
+                <br>
                 <label class="mt-1 mb-0 small">Company Name:</label>
                
                 <input type="text" name="consignee_name" class="form-control form-control-sm"
@@ -120,7 +120,7 @@
             <!-- BUYER -->
             <div class="col-6 border-box">
                 <strong>Delivery Location:     </strong>
-<br>
+                <br>
                 <label class="mt-1 mb-0 small">Company Name:</label>
                 <input type="text" name="buyer_name" class="form-control form-control-sm"
                     value="SWARAJYA CONSTRUCTION PRIVATE LIMITED">
@@ -297,11 +297,17 @@ function calculateTotal() {
     document.getElementById("cgstAmount").value = cgstAmount.toFixed(2);
     document.getElementById("sgstAmount").value = sgstAmount.toFixed(2);
 
+    // let grandTotal = subtotal + cgstAmount + sgstAmount;
+
+    // document.getElementById("grandTotal").value = grandTotal.toFixed(2);
+
+    // // Add this line to display in words
+    // document.getElementById("grandTotalWords").value = numberToWords(Math.round(grandTotal));
+
     let grandTotal = subtotal + cgstAmount + sgstAmount;
     document.getElementById("grandTotal").value = grandTotal.toFixed(2);
+    document.getElementById("grandTotalWords").value = numberToWords(grandTotal);
 
-    // Add this line to display in words
-    document.getElementById("grandTotalWords").value = numberToWords(Math.round(grandTotal));
 
 }
 
@@ -371,25 +377,67 @@ document.addEventListener('click', function (e) {
     }
 });
 
-
-
 function numberToWords(num) {
     const a = [
         '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
         'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
     ];
-    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const b = [
+        '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
+    ];
 
-    if ((num = num.toString()).length > 9) return 'Overflow';
-    let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{3})$/);
-    if (!n) return; 
+    if (isNaN(num)) return '';
+
     let str = '';
-    str += (Number(n[1]) !== 0) ? (a[Number(n[1])] || (b[n[1][0]] + ' ' + a[n[1][1]])) + ' Crore ' : '';
-    str += (Number(n[2]) !== 0) ? (a[Number(n[2])] || (b[n[2][0]] + ' ' + a[n[2][1]])) + ' Lakh ' : '';
-    str += (Number(n[3]) !== 0) ? (a[Number(n[3])] || (b[n[3][0]] + ' ' + a[n[3][1]])) + ' Thousand ' : '';
-    str += (Number(n[4]) !== 0) ? (a[Number(n[4])] || (b[n[4][0]] + ' ' + a[n[4][1]])) + ' ' : '';
-    return str.trim() + ' Rupees Only';
+    let [rupees, paise] = num.toString().split('.');
+    rupees = parseInt(rupees);
+    paise = parseInt(paise || 0);
+
+    if (rupees === 0) str = 'Zero Rupees';
+    else {
+        const crore = Math.floor(rupees / 10000000);
+        rupees %= 10000000;
+        const lakh = Math.floor(rupees / 100000);
+        rupees %= 100000;
+        const thousand = Math.floor(rupees / 1000);
+        rupees %= 1000;
+        const hundred = Math.floor(rupees / 100);
+        rupees %= 100;
+
+        if (crore) str += (a[crore] || (b[Math.floor(crore/10)] + ' ' + a[crore%10])) + ' Crore ';
+        if (lakh) str += (a[lakh] || (b[Math.floor(lakh/10)] + ' ' + a[lakh%10])) + ' Lakh ';
+        if (thousand) str += (a[thousand] || (b[Math.floor(thousand/10)] + ' ' + a[thousand%10])) + ' Thousand ';
+        if (hundred) str += a[hundred] + ' Hundred ';
+        if (rupees) str += (str !== '' ? 'and ' : '') + (a[rupees] || (b[Math.floor(rupees/10)] + ' ' + a[rupees%10]));
+        str += ' Rupees';
+    }
+
+    if (paise > 0) {
+        if (paise < 20) str += ' and ' + a[paise] + ' Paise';
+        else str += ' and ' + b[Math.floor(paise / 10)] + ' ' + a[paise % 10] + ' Paise';
+    }
+
+    return str.trim() + ' Only';
 }
+
+
+// function numberToWords(num) {
+//     const a = [
+//         '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+//         'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+//     ];
+//     const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+//     if ((num = num.toString()).length > 9) return 'Overflow';
+//     let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{3})$/);
+//     if (!n) return; 
+//     let str = '';
+//     str += (Number(n[1]) !== 0) ? (a[Number(n[1])] || (b[n[1][0]] + ' ' + a[n[1][1]])) + ' Crore ' : '';
+//     str += (Number(n[2]) !== 0) ? (a[Number(n[2])] || (b[n[2][0]] + ' ' + a[n[2][1]])) + ' Lakh ' : '';
+//     str += (Number(n[3]) !== 0) ? (a[Number(n[3])] || (b[n[3][0]] + ' ' + a[n[3][1]])) + ' Thousand ' : '';
+//     str += (Number(n[4]) !== 0) ? (a[Number(n[4])] || (b[n[4][0]] + ' ' + a[n[4][1]])) + ' ' : '';
+//     return str.trim() + ' Rupees Only';
+// }
 
 </script>
 
