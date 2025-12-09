@@ -61,7 +61,7 @@
 <table style="border:0; margin-bottom:10px;">
 <tr>
     <td style="border:0;">
-        <strong>Ref. No.:</strong> {{ $po->ref_no }}
+        <strong>Ref. No.:</strong> {{ $po->po_no }}
     </td>
     <td style="border:0; text-align:right;">
         <strong>Date:</strong> {{ \Carbon\Carbon::parse($po->po_date)->format('d/m/Y') }}

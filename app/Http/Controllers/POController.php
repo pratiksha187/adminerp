@@ -36,26 +36,25 @@ public function showpo()
 
     public function createpo(){
 
-          $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
+            $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
+    $lastNumber = 1;
 
-        if ($latestPO && preg_match('/SC\/(\d+)\/(\d{4}-\d{2})/', $latestPO->po_no, $match)) {
-            // Extract last running number
-            $lastNumber = (int)$match[1] + 1;
-        } else {
-            $lastNumber = 1;
-        }
+    if ($latestPO) {
+        $parts = explode('/', $latestPO->po_no);
+    
+        $lastNumber = intval(end($parts)) + 1;
+        
+    }
 
-        // Current financial year (e.g., 2025-26)
-        $yearStart = date('Y');
-        $yearEnd = date('y') + 1;
-        $financialYear = $yearStart . '-' . $yearEnd;
+    $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
 
-        // Format number as 2 digits: 01, 02, 03...
-        $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
+    // Calculate financial year
+    $currentYear = date('Y');
+    $nextYear = date('y') + 1;
+    $financialYear = $currentYear . '-' . $nextYear;
 
-        // Final PO Format
-        $po_no = "SC/$financialYear/$nextNumber";
-        // dd($po_no);
+    // Final PO
+    $po_no = "SC/$financialYear/$nextNumber";
         $userId = Auth::id();
         $userDetails = DB::table('users')
                     ->select('role')
@@ -68,29 +67,30 @@ public function showpo()
 
     public function storepo(Request $request)
     {
-        // Generate next PO number
-        $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
+    $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
+    $lastNumber = 1;
 
-        if ($latestPO && preg_match('/SC\/(\d+)\/(\d{4}-\d{2})/', $latestPO->po_no, $match)) {
-            // Extract last running number
-            $lastNumber = (int)$match[1] + 1;
-        } else {
-            $lastNumber = 1;
-        }
+    if ($latestPO) {
+        $parts = explode('/', $latestPO->po_no);
+    
+        $lastNumber = intval(end($parts)) + 1;
+        
+    }
 
-        // Current financial year (e.g., 2025-26)
-        $yearStart = date('Y');
-        $yearEnd = date('y') + 1;
-        $financialYear = $yearStart . '-' . $yearEnd;
+    $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
 
-        // Format number as 2 digits: 01, 02, 03...
-        $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
+    // Calculate financial year
+    $currentYear = date('Y');
+    $nextYear = date('y') + 1;
+    $financialYear = $currentYear . '-' . $nextYear;
 
-        // Final PO Format
-        $po_no = "SC/$nextNumber/$financialYear";
-
+    // Final PO
+    $po_no = "SC/$financialYear/$nextNumber";
+//  dd( $po_no);
+// dd($finalPONumber);
+        // dd($po_no );
         $po = PurchaseOrder::create([
-            'ref_no' => $request->ref_no,
+            'ref_no' => $po_no,
             'po_no' => $po_no,
             'po_date' => $request->po_date,
             'supplier_ref' => $request->supplier_ref,
