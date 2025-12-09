@@ -92,9 +92,10 @@
 
             <!-- CONSIGNEE -->
             <div class="col-6 border-box">
-                <strong>Consignee (Ship To):</strong>
-
+                <strong>Consignee :</strong>
+ <br>
                 <label class="mt-1 mb-0 small">Company Name:</label>
+               
                 <input type="text" name="consignee_name" class="form-control form-control-sm"
                     value="SWARAJYA CONSTRUCTION PRIVATE LIMITED">
 
@@ -118,8 +119,8 @@
 
             <!-- BUYER -->
             <div class="col-6 border-box">
-                <strong>Buyer (Bill To):</strong>
-
+                <strong>Delivery Location:     </strong>
+<br>
                 <label class="mt-1 mb-0 small">Company Name:</label>
                 <input type="text" name="buyer_name" class="form-control form-control-sm"
                     value="SWARAJYA CONSTRUCTION PRIVATE LIMITED">

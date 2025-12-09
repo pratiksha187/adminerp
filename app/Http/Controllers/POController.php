@@ -54,7 +54,7 @@ public function showpo()
         $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
 
         // Final PO Format
-        $po_no = "SC/$nextNumber/$financialYear";
+        $po_no = "SC/$financialYear/$nextNumber";
         // dd($po_no);
         $userId = Auth::id();
         $userDetails = DB::table('users')

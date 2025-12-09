@@ -95,7 +95,7 @@
 <table>
     <tr>
         <td class="border-box" style="width:50%">
-            <strong>Consignee (Ship To):</strong><br><br>
+            <strong>Consignee :</strong><br><br>
 
             <strong>Company Name:</strong> {{ $po->consignee_name }}<br>
             <strong>Address:</strong><br>
@@ -106,7 +106,7 @@
         </td>
 
         <td class="border-box" style="width:50%">
-            <strong>Buyer (Bill To):</strong><br><br>
+            <strong>Delivery Location:</strong><br><br>
 
             <strong>Company Name:</strong> {{ $po->buyer_name }}<br>
             <strong>Address:</strong><br>
