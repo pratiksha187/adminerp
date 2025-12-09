@@ -305,6 +305,21 @@
             </a>
         </div>
     @endif
+
+    {{-- ===== po (roles 1,2,17) ===== --}}
+    @php $poActive = request()->routeIs('po*'); @endphp
+    @if(in_array($roleId, [1, 2, 17], true))
+        <a class="d-flex justify-content-between align-items-center {{ $poActive ? 'active-parent' : '' }}"
+           data-bs-toggle="collapse" href="#poMenu" aria-expanded="{{ $poActive ? 'true' : 'false' }}">
+            <span><i class="bi bi-file-earmark-text me-2"></i> PO</span>
+            <i class="bi bi-chevron-down small"></i>
+        </a>
+        <div class="collapse {{ $poActive ? 'show' : '' }}" id="poMenu">
+            <a href="{{ route('showpo') }}" class="{{ request()->routeIs('showpo') ? 'active' : '' }}">
+                <i class="bi bi-receipt me-2"></i> Add PO
+            </a>
+        </div>
+    @endif
 </div>
 
 <!-- Main Content -->

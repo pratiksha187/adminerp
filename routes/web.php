@@ -14,6 +14,8 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\AttendanceCalendarController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\StoreDprController;
+
+use App\Http\Controllers\POController;
 Route::get('/', function () {
     return view('auth.login');
 });
@@ -133,6 +135,12 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
       
     Route::post('/store-requirements/status/{id}', [StoreDprController::class, 'updateRequirementStatus'])->name('store-requirement.status');
     Route::get('/store-requirements/{id}', [StoreDprController::class, 'show'])->name('store-requirement.view');
+   
+    Route::get('/create-po', [POController::class, 'createpo'])->name('createpo');
+    Route::post('/purchase-order/store', [POController::class, 'storepo'])
+        ->name('po.store');
+    Route::get('/show-po', [POController::class, 'showpo'])->name('showpo');
+
 
 });
 
