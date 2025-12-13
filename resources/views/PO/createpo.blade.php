@@ -22,10 +22,27 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+
     <!-- FORM START -->
     <form action="{{ route('po.store') }}" method="POST">
         @csrf
-
+        {{-- COMPANY SELECT --}}
+        <div class="mb-3">
+            <label class="form-label"><strong>Select Company</strong></label>
+            <select name="company_id" id="companySelect" class="form-control" required>
+                <option value="">-- Select Company --</option>
+                @foreach($companies as $company)
+                    <option value="{{ $company->id }}"
+                        data-name="{{ $company->name }}"
+                        data-address="{{ $company->address }}"
+                        data-phone="{{ $company->phone }}"
+                        data-email="{{ $company->email }}"
+                        data-gstin="{{ $company->gstin }}">
+                        {{ $company->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
         <!-- HEADER -->
         <div class="d-flex justify-content-between mb-3">
 
@@ -46,7 +63,7 @@
         <div class="row mb-3">
 
             <!-- LEFT BOX -->
-            <div class="col-6 border-box">
+            <!-- <div class="col-6 border-box">
                 <strong>SWARAJYA CONSTRUCTION PRIVATE LIMITED</strong><br>
                 Crescent peirl - B B-G/1, Veena Nagar,<br>
                 Katrang Road, Near St. Anthony Church<br>
@@ -54,7 +71,15 @@
                 Cont : 9326216153 <br>
                 Email : swarajyaconstruction@outlook.com <br>
                 GSTIN : 27ABOCS3387C1Z0 <br>
+            </div> -->
+            <div class="col-6 border-box" id="companyBox">
+                <strong id="c_name">Select Company</strong><br>
+                <span id="c_address"></span><br>
+                Cont : <span id="c_phone"></span><br>
+                Email : <span id="c_email"></span><br>
+                GSTIN : <span id="c_gstin"></span><br>
             </div>
+
 
             <!-- RIGHT BOX -->
             <div class="col-6 border-box">
@@ -243,12 +268,35 @@
         </div>
 
         <!-- SIGNATURE -->
-        <div class="mt-4 text-end">
+        <!-- <div class="mt-4 text-end">
             <strong class="me-2">For:</strong>
             <input type="text" class="form-control form-control-sm d-inline-block" name="forpo" style="width:250px;">
             <br><br><br>
             <strong>Authorised Signatory</strong>
-        </div>
+        </div> -->
+        <!-- SIGNATURE -->
+<div class="mt-4 text-end">
+    <label class="small fw-bold">Authorised Person Name</label>
+    <input type="text"
+           name="authorised_name"
+           class="form-control form-control-sm d-inline-block"
+           style="width:250px;"
+           placeholder="Enter Name">
+
+    <br><br>
+
+    <strong>For:</strong>
+    <input type="text"
+           class="form-control form-control-sm d-inline-block"
+           name="forpo"
+           style="width:250px;"
+           placeholder="Company / Firm Name">
+
+    <br><br><br>
+
+    <strong>Authorised Signatory</strong>
+</div>
+
 
         <button type="submit" class="btn btn-success mt-4 w-100">SAVE PURCHASE ORDER</button>
 
@@ -256,7 +304,19 @@
     <!-- FORM END -->
 
 </div>
+<script>
+    // Company selection dynamic change
+document.getElementById('companySelect').addEventListener('change', function () {
+    let opt = this.options[this.selectedIndex];
 
+    document.getElementById('c_name').innerText = opt.dataset.name || '';
+    document.getElementById('c_address').innerText = opt.dataset.address || '';
+    document.getElementById('c_phone').innerText = opt.dataset.phone || '';
+    document.getElementById('c_email').innerText = opt.dataset.email || '';
+    document.getElementById('c_gstin').innerText = opt.dataset.gstin || '';
+});
+
+</script>
 <script>
 // Set Today's Date
 const today = new Date();
