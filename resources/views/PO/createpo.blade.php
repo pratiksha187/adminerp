@@ -213,9 +213,11 @@ body { background:#fff; font-size:14px; }
 </tr>
 </tfoot>
 </table>
+ <div class="mb-3">
+            <label class="fw-bold">Grand Total (in Words)</label>
+            <input type="text" name="grandTotalWords" id="grandTotalWords" class="form-control fw-bold" readonly>
+        </div>
 
-<!-- <input id="grandTotalWords" class="form-control fw-bold mb-3" readonly> -->
-<input id="grandTotalWords" name="grandTotalWords" class="form-control fw-bold mb-3" readonly>
 <button type="button" id="addRowBtn" class="btn btn-primary">Add Item</button>
 
  <!-- TERMS -->
@@ -311,8 +313,12 @@ function calcTotal(){
     document.getElementById('cgstAmount').value = (sub*0.09).toFixed(2);
     document.getElementById('sgstAmount').value = (sub*0.09).toFixed(2);
     document.getElementById('grandTotal').value = grand.toFixed(2);
-    document.getElementById('grandTotalWords').value =
-        grand.toFixed(2) + ' Rupees Only';
+    document.getElementById('grandTotalWords').value = numberToWords(grand);
+
+    // document.getElementById('grandTotalWords').value = numberToWords(grandTotal);
+    // document.getElementById('grandTotalWords').value = numberToWords(grandTotal);
+
+        // grand.toFixed(2) + ' Rupees Only';
 }
 
 /* EVENTS */
@@ -362,6 +368,11 @@ document.getElementById('gstType').onchange = e=>{
     calcTotal();
 };
 
+
+
+  
+
+
 calcTotal();
 
 
@@ -381,6 +392,82 @@ calcTotal();
             e.target.closest('tr').remove();
         }
     });
+
+
+
+function numberToWords(num) {
+    const a = [
+        '', 'One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+        'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'
+    ];
+    const b = ['', '', 'Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+    if (isNaN(num)) return '';
+
+    let [r, p] = Number(num).toFixed(2).split('.');
+    r = parseInt(r, 10);
+    p = parseInt(p, 10);
+
+    let str = '';
+
+    function twoDigits(n) {
+        if (n < 20) return a[n];
+        return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+    }
+
+    if (r >= 10000000) {
+        str += twoDigits(Math.floor(r / 10000000)) + ' Crore ';
+        r %= 10000000;
+    }
+    if (r >= 100000) {
+        str += twoDigits(Math.floor(r / 100000)) + ' Lakh ';
+        r %= 100000;
+    }
+    if (r >= 1000) {
+        str += twoDigits(Math.floor(r / 1000)) + ' Thousand ';
+        r %= 1000;
+    }
+    if (r >= 100) {
+        str += a[Math.floor(r / 100)] + ' Hundred ';
+        r %= 100;
+    }
+    if (r > 0) {
+        str += (str !== '' ? 'and ' : '') + twoDigits(r);
+    }
+
+    if (str.trim() === '') str = 'Zero';
+
+    str = str.trim() + ' Rupees';
+
+    if (p > 0) {
+        str += ' and ' + twoDigits(p) + ' Paise';
+    }
+
+    return str + ' Only';
+}
+
+function calcTotal(){
+    let sub = 0, igst = 0;
+
+    document.querySelectorAll('#itemBody tr').forEach(r=>{
+        sub += +r.querySelector('.amount').value || 0;
+        igst += +r.querySelector('.igst_amount')?.value || 0;
+    });
+
+    document.getElementById('subtotal').value = sub.toFixed(2);
+
+    let grand = document.getElementById('gstType').value === 'igst'
+        ? sub + igst
+        : sub * 1.18;
+
+    document.getElementById('cgstAmount').value = (sub * 0.09).toFixed(2);
+    document.getElementById('sgstAmount').value = (sub * 0.09).toFixed(2);
+    document.getElementById('grandTotal').value = grand.toFixed(2);
+
+    // ✅ FIXED LINE
+    document.getElementById('grandTotalWords').value = numberToWords(grand);
+}
+
 
 </script>
 
