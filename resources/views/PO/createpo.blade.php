@@ -171,11 +171,7 @@ body { background:#fff; font-size:14px; }
 </tbody>
 
 <tfoot>
-<tr>
-    <th colspan="6" class="text-end">Sub Total</th>
-    <th><input id="subtotal" name="subtotal" class="form-control" readonly>
-    </th>
-</tr>
+
 
 <tr>
     <th colspan="6" class="text-end">GST Type</th>
@@ -204,7 +200,11 @@ body { background:#fff; font-size:14px; }
         <input id="sgstAmount" name="sgst_amount" class="form-control" readonly>
     </th>
 </tr>
-
+<tr>
+    <th colspan="6" class="text-end">Sub Total</th>
+    <th><input id="subtotal" name="subtotal" class="form-control" readonly>
+    </th>
+</tr>
 <tr>
     <th colspan="6" class="text-end">Grand Total</th>
     <th>
