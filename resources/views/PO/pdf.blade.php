@@ -178,7 +178,7 @@
     </tr>
 </table>
 
-<p><strong>Grand Total (In Words):</strong> {{ $po->grand_total_words }}</p>
+<p><strong>Grand Total (In Words):</strong> {{ $po->grandTotalWords }}</p>
 
 <!-- TERMS -->
 <h4>Terms & Conditions</h4>
