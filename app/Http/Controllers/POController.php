@@ -233,7 +233,7 @@ class POController extends Controller
         'cgst_amount'       => $request->cgst_amount,
         'sgst_amount'       => $request->sgst_amount,
         'grand_total'       => $request->grand_total,
-        'grandTotalWords' => $request->grand_total_words,
+        'grandTotalWords' => $request->grandTotalWords,
 
         'authorised_name'   => $request->authorised_name,
     ]);
