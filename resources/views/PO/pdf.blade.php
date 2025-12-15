@@ -2,9 +2,7 @@
 <html>
 <head>
     <style>
-        @page {
-            margin: 0;
-        }
+        @page { margin: 0; }
 
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -31,7 +29,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 0; /* 🔥 removes gap between tables */
+            margin: 0;
         }
 
         th, td {
@@ -48,15 +46,21 @@
         .no-border {
             border: none !important;
         }
+
+        .text-right {
+            text-align: right;
+        }
     </style>
 </head>
 
 <body>
 
-@if($company && $company->letterhead)
+@if(!empty($company?->letterhead))
     <img src="{{ public_path($company->letterhead) }}" class="pdf-bg">
 @endif
+
 <br><br><br><br>
+
 <h2 class="heading">Purchase Order</h2>
 
 <!-- HEADER -->
@@ -65,54 +69,52 @@
         <td class="no-border">
             <strong>Ref. No:</strong> {{ $po->po_no }}
         </td>
-        <td class="no-border" style="text-align:right;">
+        <td class="no-border text-right">
             <strong>Date:</strong> {{ \Carbon\Carbon::parse($po->po_date)->format('d/m/Y') }}
         </td>
     </tr>
 </table>
 
-<!-- TOP TWO BOXES -->
+<!-- COMPANY & PO DETAILS -->
 <table>
     <tr>
         <td class="border-box" style="width:50%;">
-            <strong>{{ $company->name }}</strong><br>
-            {!! nl2br($company->address) !!}<br>
-            Contact: {{ $company->phone }}<br>
-            Email: {{ $company->email }}<br>
-            GSTIN: {{ $company->gstin }}
+            <strong>{{ $company->name ?? '' }}</strong><br>
+            {!! nl2br(e($company->address ?? '')) !!}<br>
+            Contact: {{ $company->phone ?? '' }}<br>
+            Email: {{ $company->email ?? '' }}<br>
+            GSTIN: {{ $company->gstin ?? '' }}
         </td>
 
         <td class="border-box" style="width:50%;">
-            <strong>Purchase Order No:</strong> {{ $po->po_no }}<br>
-            <strong>Dated:</strong> {{ $po->po_date }}<br>
-            <strong>Supplier’s Ref:</strong> {{ $po->supplier_ref }}<br>
-            <strong>Dispatched Through:</strong> {{ $po->dispatch_through }}<br>
+            <strong>PO No:</strong> {{ $po->po_no }}<br>
+            <strong>Date:</strong> {{ $po->po_date }}<br>
+            <strong>Supplier Ref:</strong> {{ $po->supplier_ref }}<br>
+            <strong>Dispatch Through:</strong> {{ $po->dispatch_through }}<br>
             <strong>Destination:</strong> {{ $po->destination }}
         </td>
     </tr>
 </table>
 
-<!-- CONSIGNEE & DELIVERY (NO GAP) -->
+<!-- CONSIGNEE & DELIVERY -->
 <table>
     <tr>
         <td class="border-box" style="width:50%;">
             <strong>Consignee:</strong><br><br>
-            <strong>Company Name:</strong> {{ $po->consignee_name }}<br>
-            <strong>Address:</strong><br>
-            {!! nl2br($po->consignee_address) !!}<br>
-            <strong>Phone:</strong> {{ $po->consignee_phone }}<br>
-            <strong>Email:</strong> {{ $po->consignee_email }}<br>
-            <strong>GSTIN:</strong> {{ $po->consignee_gstin }}
+            {{ $po->consignee_name }}<br>
+            {!! nl2br(e($po->consignee_address)) !!}<br>
+            Phone: {{ $po->consignee_phone }}<br>
+            Email: {{ $po->consignee_email }}<br>
+            GSTIN: {{ $po->consignee_gstin }}
         </td>
 
         <td class="border-box" style="width:50%;">
             <strong>Delivery Location:</strong><br><br>
-            <strong>Company Name:</strong> {{ $po->buyer_name }}<br>
-            <strong>Address:</strong><br>
-            {!! nl2br($po->buyer_address) !!}<br>
-            <strong>Phone:</strong> {{ $po->buyer_phone }}<br>
-            <strong>Email:</strong> {{ $po->buyer_email }}<br>
-            <strong>GSTIN:</strong> {{ $po->buyer_gstin }}
+            {{ $po->buyer_name }}<br>
+            {!! nl2br(e($po->buyer_address)) !!}<br>
+            Phone: {{ $po->buyer_phone }}<br>
+            Email: {{ $po->buyer_email }}<br>
+            GSTIN: {{ $po->buyer_gstin }}
         </td>
     </tr>
 </table>
@@ -148,36 +150,43 @@
 </table>
 
 <!-- TOTALS -->
-<table style="margin-top:0px;">
+<table style="margin-top:5px;">
     <tr>
-        <td class="no-border" style="width:70%; text-align:right;">Subtotal:</td>
+        <td class="no-border text-right" style="width:70%;">Subtotal:</td>
         <td>{{ number_format($po->subtotal, 2) }}</td>
     </tr>
-    <tr>
-        <td class="no-border" style="text-align:right;">CGST ({{ $po->cgst_percent }}%):</td>
-        <td>{{ number_format($po->cgst_amount, 2) }}</td>
-    </tr>
-    <tr>
-        <td class="no-border" style="text-align:right;">SGST ({{ $po->sgst_percent }}%):</td>
-        <td>{{ number_format($po->sgst_amount, 2) }}</td>
-    </tr>
 
-    <br> <br> <br> <br>
+    @if($po->gst_type === 'igst')
+        <tr>
+            <td class="no-border text-right">IGST:</td>
+            <td>{{ number_format($po->items->sum('igst_amount'), 2) }}</td>
+        </tr>
+    @else
+        <tr>
+            <td class="no-border text-right">CGST:</td>
+            <td>{{ number_format($po->cgst_amount, 2) }}</td>
+        </tr>
+        <tr>
+            <td class="no-border text-right">SGST:</td>
+            <td>{{ number_format($po->sgst_amount, 2) }}</td>
+        </tr>
+    @endif
+
     <tr>
-        <td class="no-border" style="text-align:right;"><strong>Grand Total:</strong></td>
+        <td class="no-border text-right"><strong>Grand Total:</strong></td>
         <td><strong>{{ number_format($po->grand_total, 2) }}</strong></td>
     </tr>
 </table>
 
-<p><strong>Grand Total In Words:</strong> {{ $po->grandTotalWords }}</p>
+<p><strong>Grand Total (In Words):</strong> {{ $po->grand_total_words }}</p>
 
 <!-- TERMS -->
-<h4>Terms & Conditions:</h4>
+<h4>Terms & Conditions</h4>
 <table>
     @foreach($po->terms as $term)
-    <tr>
-        <td>{{ $term->term }}</td>
-    </tr>
+        <tr>
+            <td>{{ $term->term }}</td>
+        </tr>
     @endforeach
 </table>
 

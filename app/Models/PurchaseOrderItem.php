@@ -8,6 +8,6 @@ class PurchaseOrderItem extends Model
 {
     protected $table = 'po_items';
     protected $fillable = [
-        'purchase_order_id', 'description', 'hsn', 'qty', 'unit', 'rate', 'amount'
+        'purchase_order_id', 'description', 'hsn', 'qty', 'unit', 'rate', 'amount','igst_percent','igst_amount'
     ];
 }
