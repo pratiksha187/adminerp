@@ -38,16 +38,16 @@ class POController extends Controller
 
         $companies = DB::table('companies')->get();
         $latestPO = PurchaseOrder::orderBy('id', 'DESC')->first();
-        $lastNumber = 1;
+        // $lastNumber = 1;
 
-        if ($latestPO) {
-            $parts = explode('/', $latestPO->po_no);
+        // if ($latestPO) {
+        //     $parts = explode('/', $latestPO->po_no);
         
-            $lastNumber = intval(end($parts)) + 1;
+        //     $lastNumber = intval(end($parts)) + 1;
             
-        }
+        // }
 
-        $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
+        // $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
 
         // Calculate financial year
         $currentYear = date('Y');
@@ -55,7 +55,7 @@ class POController extends Controller
         $financialYear = $currentYear . '-' . $nextYear;
 
         // Final PO
-        $po_no = "SC/$financialYear/$nextNumber";
+        // $po_no = "SC/$financialYear/$nextNumber";
         $userId = Auth::id();
         $userDetails = DB::table('users')
                     ->select('role')
@@ -63,7 +63,7 @@ class POController extends Controller
                     ->first();
 
         $role = $userDetails->role;
-        return view('PO.createpo',compact('role','po_no','companies'));
+        return view('PO.createpo',compact('role','companies'));
     }
 
    
@@ -72,25 +72,25 @@ class POController extends Controller
 {
     // dd($request);
     // 1️⃣ Generate PO Number
-    $latestPO = PurchaseOrder::latest()->first();
+    // $latestPO = PurchaseOrder::latest()->first();
       $company_id= $request->company_id;
-    $lastNumber = 1;
+    // $lastNumber = 1;
 
-    if ($latestPO) {
-        $parts = explode('/', $latestPO->po_no);
-        $lastNumber = intval(end($parts)) + 1;
-    }
+    // if ($latestPO) {
+    //     $parts = explode('/', $latestPO->po_no);
+    //     $lastNumber = intval(end($parts)) + 1;
+    // }
 
-    $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
+    // $nextNumber = str_pad($lastNumber, 2, '0', STR_PAD_LEFT);
 
-    $financialYear = date('Y') . '-' . (date('y') + 1);
-    $po_no = "SC/$financialYear/$nextNumber";
+    // $financialYear = date('Y') . '-' . (date('y') + 1);
+    // $po_no = "SC/$financialYear/$nextNumber";
 
     // 2️⃣ Save Purchase Order
     $po = PurchaseOrder::create([
         'company_id'        => $company_id,
-        'ref_no'            => $po_no,
-        'po_no'             => $po_no,
+        'ref_no'            => $request->po_no,
+        'po_no'             => $request->po_no,
         'po_date'           => $request->po_date,
         'supplier_ref'      => $request->supplier_ref,
         'dispatch_through'  => $request->dispatch_through,
@@ -153,7 +153,7 @@ class POController extends Controller
                 ->first();
 
             $pdf = Pdf::loadView('PO.pdf', [
-                'po' => $po,
+                'po' => $request->po_no,
                 'company' => $company
             ]);
 
