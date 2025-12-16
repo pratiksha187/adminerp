@@ -141,6 +141,8 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
         ->name('po.store');
     Route::get('/show-po', [POController::class, 'showpo'])->name('showpo');
 
+Route::delete('/purchase-orders/{id}', [POController::class, 'destroy'])
+    ->name('po.destroy');
 
 });
 

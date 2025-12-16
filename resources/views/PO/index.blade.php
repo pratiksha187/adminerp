@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
 
 <div class="container mt-4">
 
@@ -42,6 +47,16 @@
                                 <a href="{{ url('po_pdfs/PO_'.$po->id.'.pdf') }}" target="_blank" class="btn btn-sm btn-secondary">
                                     PDF
                                 </a>
+                                 <form action="{{ route('po.destroy', $po->id) }}"
+          method="POST"
+          class="d-inline"
+          onsubmit="return confirm('Are you sure you want to delete this Purchase Order?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-danger">
+            Delete
+        </button>
+    </form>
 
                             </td>
                         </tr>
