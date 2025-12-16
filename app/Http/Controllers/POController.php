@@ -187,6 +187,7 @@ class POController extends Controller
 
     public function storepo(Request $request)
 {
+    // dd($request);
     // 1️⃣ Generate PO Number
     $latestPO = PurchaseOrder::latest()->first();
       $company_id= $request->company_id;
@@ -212,6 +213,8 @@ class POController extends Controller
         'dispatch_through'  => $request->dispatch_through,
         'destination'       => $request->destination,
         'forpo'             => $request->forpo,
+        'sgst_percent'      =>$request->sgst_percent,
+        'cgst_percent'      =>$request->cgst_percent,
 
         // Consignee
         'consignee_name'    => $request->consignee_name,

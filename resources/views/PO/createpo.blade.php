@@ -44,7 +44,7 @@ body { background:#fff; font-size:14px; }
 <div class="d-flex justify-content-between mb-3">
     <div style="width:220px;">
         <label><strong>Ref. No.</strong></label>
-        <input type="text" name="ref_no" class="form-control" value="{{ $po_no }}">
+        <input type="text" name="ref_no" class="form-control" value="">
     </div>
     <div class="align-self-end">
         <strong>Date:</strong> <span id="todayDate"></span>
@@ -63,7 +63,7 @@ body { background:#fff; font-size:14px; }
 
     <div class="col-6 border-box">
         <label>PO No</label>
-        <input name="po_no" class="form-control mb-2" value="{{ $po_no }}">
+        <input name="po_no" class="form-control mb-2" value="">
 
         <label>Date</label>
         <input type="date" name="po_date" class="form-control mb-2" value="{{ date('Y-m-d') }}">
@@ -187,7 +187,7 @@ body { background:#fff; font-size:14px; }
 
 <tbody id="igstSummary"></tbody>
 
-<tr class="cgstRow">
+<!-- <tr class="cgstRow">
     <th colspan="6" class="text-end">CGST (9%)</th>
     <th>
         <input id="cgstAmount" name="cgst_amount" class="form-control" readonly>
@@ -199,7 +199,29 @@ body { background:#fff; font-size:14px; }
     <th>
         <input id="sgstAmount" name="sgst_amount" class="form-control" readonly>
     </th>
+</tr> -->
+<tr class="cgstRow">
+    <th colspan="5" class="text-end">CGST (%)</th>
+    <th>
+        <input type="number" step="0.01" id="cgstPercent" name="cgst_percent"
+               class="form-control" value="9">
+    </th>
+    <th>
+        <input id="cgstAmount" name="cgst_amount" class="form-control" readonly>
+    </th>
 </tr>
+
+<tr class="cgstRow">
+    <th colspan="5" class="text-end">SGST (%)</th>
+    <th>
+        <input type="number" step="0.01" id="sgstPercent" name="sgst_percent"
+               class="form-control" value="9">
+    </th>
+    <th>
+        <input id="sgstAmount" name="sgst_amount" class="form-control" readonly>
+    </th>
+</tr>
+
 <tr>
     <th colspan="6" class="text-end">Sub Total</th>
     <th><input id="subtotal" name="subtotal" class="form-control" readonly>
@@ -260,19 +282,14 @@ body { background:#fff; font-size:14px; }
 
 </form>
 </div>
-
 <script>
 let itemIndex = 1;
-function updateSerialNumbers() {
-    document.querySelectorAll('#itemBody tr').forEach((row, index) => {
-        row.querySelector('.sr').innerText = index + 1;
-    });
-}
-/* DATE */
-document.getElementById('todayDate').innerText =
-new Date().toLocaleDateString();
 
-/* COMPANY DATA */
+/* ===================== DATE ===================== */
+document.getElementById('todayDate').innerText =
+    new Date().toLocaleDateString();
+
+/* ===================== COMPANY DATA ===================== */
 document.getElementById('companySelect').addEventListener('change', e => {
     let o = e.target.selectedOptions[0];
     ['name','address','phone','email','gstin'].forEach(k=>{
@@ -280,195 +297,160 @@ document.getElementById('companySelect').addEventListener('change', e => {
     });
 });
 
-/* CALC ROW */
+/* ===================== SERIAL NO ===================== */
+function updateSerialNumbers() {
+    document.querySelectorAll('#itemBody tr').forEach((row, index) => {
+        row.querySelector('.sr').innerText = index + 1;
+    });
+}
+
+/* ===================== ROW CALC ===================== */
 function calcRow(row){
-    let q = row.querySelector('.qty').value || 0;
-    let r = row.querySelector('.rate').value || 0;
-    let ig = row.querySelector('.igst_percent')?.value || 0;
+    let qty  = parseFloat(row.querySelector('.qty').value) || 0;
+    let rate = parseFloat(row.querySelector('.rate').value) || 0;
+    let igstPercent = parseFloat(row.querySelector('.igst_percent')?.value) || 0;
 
-    let amt = q * r;
-    let igAmt = amt * ig / 100;
+    let amount = qty * rate;
+    let igstAmt = amount * igstPercent / 100;
 
-    row.querySelector('.amount').value = amt.toFixed(2);
+    row.querySelector('.amount').value = amount.toFixed(2);
+
     if(row.querySelector('.igst_amount')){
-        row.querySelector('.igst_amount').value = igAmt.toFixed(2);
+        row.querySelector('.igst_amount').value = igstAmt.toFixed(2);
     }
+
     calcTotal();
 }
 
-/* TOTAL */
+/* ===================== TOTAL CALC ===================== */
 function calcTotal(){
     let sub = 0, igst = 0;
+
     document.querySelectorAll('#itemBody tr').forEach(r=>{
-        sub += +r.querySelector('.amount').value || 0;
-        igst += +r.querySelector('.igst_amount')?.value || 0;
+        sub += parseFloat(r.querySelector('.amount').value) || 0;
+        igst += parseFloat(r.querySelector('.igst_amount')?.value) || 0;
     });
 
     document.getElementById('subtotal').value = sub.toFixed(2);
 
-    let grand = document.getElementById('gstType').value === 'igst'
-        ? sub + igst
-        : sub * 1.18;
+    let gstType = document.getElementById('gstType').value;
 
-    document.getElementById('cgstAmount').value = (sub*0.09).toFixed(2);
-    document.getElementById('sgstAmount').value = (sub*0.09).toFixed(2);
+    let cgstPercent = parseFloat(document.getElementById('cgstPercent')?.value) || 0;
+    let sgstPercent = parseFloat(document.getElementById('sgstPercent')?.value) || 0;
+
+    let cgstAmt = sub * cgstPercent / 100;
+    let sgstAmt = sub * sgstPercent / 100;
+
+    let grand = 0;
+
+    if(gstType === 'igst'){
+        grand = sub + igst;
+        document.getElementById('cgstAmount').value = '0.00';
+        document.getElementById('sgstAmount').value = '0.00';
+    } else {
+        document.getElementById('cgstAmount').value = cgstAmt.toFixed(2);
+        document.getElementById('sgstAmount').value = sgstAmt.toFixed(2);
+        grand = sub + cgstAmt + sgstAmt;
+    }
+
     document.getElementById('grandTotal').value = grand.toFixed(2);
     document.getElementById('grandTotalWords').value = numberToWords(grand);
-
-    // document.getElementById('grandTotalWords').value = numberToWords(grandTotal);
-    // document.getElementById('grandTotalWords').value = numberToWords(grandTotal);
-
-        // grand.toFixed(2) + ' Rupees Only';
 }
 
-/* EVENTS */
+/* ===================== EVENTS ===================== */
 document.addEventListener('input', e=>{
     if(e.target.closest('#itemBody tr')){
         calcRow(e.target.closest('tr'));
     }
 });
 
+document.getElementById('cgstPercent').addEventListener('input', calcTotal);
+document.getElementById('sgstPercent').addEventListener('input', calcTotal);
 
-
+/* ===================== ADD ITEM ===================== */
 document.getElementById('addRowBtn').addEventListener('click', () => {
     let tbody = document.getElementById('itemBody');
     let tr = tbody.querySelector('tr').cloneNode(true);
 
-    // Clear values
     tr.querySelectorAll('input, select').forEach(el => el.value = '');
 
-    // Update input names with new index
     tr.querySelectorAll('[name]').forEach(el => {
         el.name = el.name.replace(/\[\d+]/, `[${itemIndex}]`);
     });
 
     tbody.appendChild(tr);
     itemIndex++;
-
-    updateSerialNumbers();   // ✅ IMPORTANT
+    updateSerialNumbers();
 });
 
-
-/* REMOVE */
+/* ===================== REMOVE ITEM ===================== */
 document.addEventListener('click', e=>{
     if(e.target.classList.contains('remove-item')){
         e.target.closest('tr').remove();
+        updateSerialNumbers();
         calcTotal();
     }
 });
 
-/* GST TOGGLE */
-document.getElementById('gstType').onchange = e=>{
+/* ===================== GST TOGGLE ===================== */
+document.getElementById('gstType').addEventListener('change', e=>{
     document.querySelectorAll('.igstCol').forEach(c=>{
-        c.classList.toggle('d-none', e.target.value!=='igst');
+        c.classList.toggle('d-none', e.target.value !== 'igst');
     });
+
     document.querySelectorAll('.cgstRow').forEach(c=>{
-        c.classList.toggle('d-none', e.target.value==='igst');
+        c.classList.toggle('d-none', e.target.value === 'igst');
     });
+
     calcTotal();
-};
+});
 
+/* ===================== TERMS ===================== */
+document.getElementById('addTermBtn').addEventListener('click', () => {
+    let tbody = document.querySelector('#termsTable tbody');
+    tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+            <td><input type="text" name="terms[]" class="form-control form-control-sm"></td>
+            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-term">X</button></td>
+        </tr>
+    `);
+});
 
+document.addEventListener('click', e=>{
+    if(e.target.classList.contains('remove-term')){
+        e.target.closest('tr').remove();
+    }
+});
 
-  
-
-
+/* ===================== INIT ===================== */
 calcTotal();
 
-
-
- document.getElementById('addTermBtn').addEventListener('click', function () {
-        let tbody = document.querySelector('#termsTable tbody');
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input type="text" name="terms[]" class="form-control form-control-sm" placeholder="Enter term & condition"></td>
-            <td class="text-center" style="width:80px;"><button type="button" class="btn btn-danger btn-sm remove-term">X</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    document.addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-term')) {
-            e.target.closest('tr').remove();
-        }
-    });
-
-
-
-function numberToWords(num) {
-    const a = [
-        '', 'One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
-        'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'
-    ];
+/* ===================== NUMBER TO WORDS ===================== */
+function numberToWords(num){
+    const a = ['', 'One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+        'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
     const b = ['', '', 'Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
 
-    if (isNaN(num)) return '';
-
-    let [r, p] = Number(num).toFixed(2).split('.');
-    r = parseInt(r, 10);
-    p = parseInt(p, 10);
+    let [r,p] = Number(num).toFixed(2).split('.');
+    r = parseInt(r); p = parseInt(p);
 
     let str = '';
 
-    function twoDigits(n) {
-        if (n < 20) return a[n];
-        return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
-    }
+    const two = n => n < 20 ? a[n] : b[Math.floor(n/10)] + (n%10?' '+a[n%10]:'');
 
-    if (r >= 10000000) {
-        str += twoDigits(Math.floor(r / 10000000)) + ' Crore ';
-        r %= 10000000;
-    }
-    if (r >= 100000) {
-        str += twoDigits(Math.floor(r / 100000)) + ' Lakh ';
-        r %= 100000;
-    }
-    if (r >= 1000) {
-        str += twoDigits(Math.floor(r / 1000)) + ' Thousand ';
-        r %= 1000;
-    }
-    if (r >= 100) {
-        str += a[Math.floor(r / 100)] + ' Hundred ';
-        r %= 100;
-    }
-    if (r > 0) {
-        str += (str !== '' ? 'and ' : '') + twoDigits(r);
-    }
+    if(r>=10000000){ str+=two(Math.floor(r/10000000))+' Crore '; r%=10000000; }
+    if(r>=100000){ str+=two(Math.floor(r/100000))+' Lakh '; r%=100000; }
+    if(r>=1000){ str+=two(Math.floor(r/1000))+' Thousand '; r%=1000; }
+    if(r>=100){ str+=a[Math.floor(r/100)]+' Hundred '; r%=100; }
+    if(r>0){ str+=(str?'and ':'')+two(r); }
 
-    if (str.trim() === '') str = 'Zero';
+    if(!str) str='Zero';
 
-    str = str.trim() + ' Rupees';
+    str+=' Rupees';
+    if(p>0) str+=' and '+two(p)+' Paise';
 
-    if (p > 0) {
-        str += ' and ' + twoDigits(p) + ' Paise';
-    }
-
-    return str + ' Only';
+    return str+' Only';
 }
-
-function calcTotal(){
-    let sub = 0, igst = 0;
-
-    document.querySelectorAll('#itemBody tr').forEach(r=>{
-        sub += +r.querySelector('.amount').value || 0;
-        igst += +r.querySelector('.igst_amount')?.value || 0;
-    });
-
-    document.getElementById('subtotal').value = sub.toFixed(2);
-
-    let grand = document.getElementById('gstType').value === 'igst'
-        ? sub + igst
-        : sub * 1.18;
-
-    document.getElementById('cgstAmount').value = (sub * 0.09).toFixed(2);
-    document.getElementById('sgstAmount').value = (sub * 0.09).toFixed(2);
-    document.getElementById('grandTotal').value = grand.toFixed(2);
-
-    // ✅ FIXED LINE
-    document.getElementById('grandTotalWords').value = numberToWords(grand);
-}
-
-
 </script>
 
 @endsection
