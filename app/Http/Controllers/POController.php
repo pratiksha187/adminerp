@@ -264,16 +264,7 @@ class POController extends Controller
         ]);
     }
 
-    // 5️⃣ Generate PDF
-    // $company = Company::find($request->company_id);
-// $company =DB::table('companies')
-//                 ->where('id', $company_id)
-//                 ->first();
-//     $pdf = Pdf::loadView('PO.pdf', compact('po', 'company'));
- // 4. Generate PDF
-            // $pdf = Pdf::loadView('PO.pdf', [
-            //     'po' => $po->load('items')
-            // ]);
+   
             $company = DB::table('companies')
                 ->where('id', $company_id)
                 ->first();
