@@ -38,7 +38,9 @@ Route::get('/attendance/calendar/events', [AttendanceCalendarController::class, 
     Route::post('/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clockout');
 
     // Register / All Users
+     Route::middleware('role:1,2,17')->group(function () {
     Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+      });
     Route::get('/employees/{user}', [RegisterController::class, 'show']);          // fetch one (JSON)
     Route::put('/employees/{user}', [RegisterController::class, 'update']);        // update
     // You already have:
