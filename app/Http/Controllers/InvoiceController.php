@@ -125,11 +125,18 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'No invoice found');
         }
 
-        $pdf = Pdf::loadView('invoice.pdf', compact('invoice', 'roleId'))
-            ->setPaper('A4', 'portrait')
-            ->setOptions([
-                'isRemoteEnabled' => true
-            ]);
+        // $pdf = Pdf::loadView('invoice.pdf', compact('invoice', 'roleId'))
+        //     ->setPaper('A4', 'portrait')
+        //     ->setOptions([
+        //         'isRemoteEnabled' => true
+        //     ]);
+        $pdf = Pdf::loadView('invoice.pdf', compact('invoice'))
+    ->setPaper('A4', 'portrait')
+    ->setOptions([
+        'isRemoteEnabled' => true,
+        'fontDir' => storage_path('fonts/'),
+        'fontCache' => storage_path('fonts/'),
+    ]);
 
         return $pdf->download('TaxInvoice.pdf');
     }
