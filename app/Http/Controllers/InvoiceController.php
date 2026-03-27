@@ -130,7 +130,7 @@ class InvoiceController extends Controller
         //     ->setOptions([
         //         'isRemoteEnabled' => true
         //     ]);
-        $pdf = Pdf::loadView('invoice.pdf', compact('invoice'))
+        $pdf = Pdf::loadView('invoice.pdf', compact('invoice','roleId'))
     ->setPaper('A4', 'portrait')
     ->setOptions([
         'isRemoteEnabled' => true,
