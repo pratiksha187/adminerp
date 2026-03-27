@@ -16,14 +16,30 @@ use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\StoreDprController;
 
 use App\Http\Controllers\POController;
+
+use App\Http\Controllers\PayrollController;
+
+use App\Http\Controllers\InvoiceController;
+
+// Route::get('/invoice', [InvoiceController::class, 'form']);
+Route::post('/invoice/generate', [InvoiceController::class, 'generate']);
+Route::get('/invoice/download', [InvoiceController::class, 'download']);
+
+Route::get('/invoice', [InvoiceController::class, 'form'])->name('invoice.form');
+Route::get('/invoice/list', [InvoiceController::class, 'list'])->name('invoice.list');
+
+
+Route::get('/payroll/upload', [PayrollController::class, 'uploadForm'])->name('payroll.upload.form');
+Route::post('/payroll/import', [PayrollController::class, 'importExcel'])->name('payroll.import');
+Route::get('/payroll/list', [PayrollController::class, 'index'])->name('payroll.index');
+Route::get('/payroll/show/{id}', [PayrollController::class, 'show'])->name('payroll.show');
+Route::get('/payroll/download-slip/{id}', [PayrollController::class, 'downloadSlip'])->name('payroll.downloadSlip');
+
 Route::get('/', function () {
     return view('auth.login');
 });
 
 Auth::routes();
-
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-// Route::get('/test', [App\Http\Controllers\AdminController::class, 'test'])->name('test');
 
 
 Route::middleware(['auth'])->group(function () {
