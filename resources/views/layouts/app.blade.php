@@ -671,6 +671,67 @@
     </div>
 @endif
 
+
+@php
+    $allowAll     = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+    $allowManager = [1,2,17];
+
+    $canSeeAttendance = [
+        'calendar' => in_array($roleId, $allowAll, true),
+        'report'   => in_array($roleId, $allowManager, true),
+        'manual'   => in_array($roleId, $allowAll, true),
+        'accept'   => in_array($roleId, $allowManager, true),
+    ];
+
+    $attendanceActive = request()->routeIs('attendance.*');
+@endphp
+
+
+@if(in_array(true, $canSeeAttendance, true))
+
+    <!-- ATTENDANCE MENU -->
+    <div class="menu-parent {{ $attendanceActive ? 'active-parent' : '' }}" data-target="attendanceMenu">
+        <div class="nav-left">
+            <i class="bi bi-clock"></i>
+            <span>Attendance</span>
+        </div>
+        <i class="bi bi-chevron-down submenu-toggle-icon"></i>
+    </div>
+
+    <div class="submenu {{ $attendanceActive ? 'show' : '' }}" id="attendanceMenu">
+
+        @if($canSeeAttendance['calendar'])
+            <a href="{{ route('attendance.calendar.view') }}"
+               class="{{ request()->routeIs('attendance.calendar.view') ? 'active' : '' }}">
+                <i class="bi bi-calendar-check"></i> Attendance Calendar
+            </a>
+        @endif
+
+        @if($canSeeAttendance['report'])
+            <a href="{{ route('attendance.report') }}"
+               class="{{ request()->routeIs('attendance.report') ? 'active' : '' }}">
+                <i class="bi bi-clock-history"></i> Daily Login/Logout
+            </a>
+        @endif
+
+        @if($canSeeAttendance['manual'])
+            <a href="{{ route('attendance.manualattendence') }}"
+               class="{{ request()->routeIs('attendance.manualattendence') ? 'active' : '' }}">
+                <i class="bi bi-pencil-square"></i> Manual Attendance
+            </a>
+        @endif
+
+        @if($canSeeAttendance['accept'])
+            <a href="{{ route('attendance.acceptattendence') }}"
+               class="{{ request()->routeIs('attendance.acceptattendence') ? 'active' : '' }}">
+                <i class="bi bi-check2-circle"></i> Accept Attendance
+            </a>
+        @endif
+
+    </div>
+
+@endif
+
         @php
             $leaveActive = request()->routeIs('leave.*') || request()->routeIs('hr.leaves.*');
             $canLeave = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
@@ -756,29 +817,7 @@
     $invoiceActive = request()->routeIs('invoice*') || request()->routeIs('showinvoice'); 
 @endphp
 
-@if(in_array($roleId, [1, 2, 17, 4], true))
-    <div class="menu-parent {{ $invoiceActive ? 'active-parent' : '' }}" data-target="invoiceMenu">
-        <div class="nav-left">
-            <i class="bi bi-receipt"></i>
-            <span>Invoice</span>
-        </div>
-        <i class="bi bi-chevron-down submenu-toggle-icon"></i>
-    </div>
 
-    <div class="submenu {{ $invoiceActive ? 'show' : '' }}" id="invoiceMenu">
-        
-        <a href="{{ route('invoice.form') }}" 
-           class="{{ request()->routeIs('invoice.form') ? 'active' : '' }}">
-            <i class="bi bi-plus-square"></i> Create Invoice
-        </a>
-
-        <a href="{{ route('invoice.list') }}" 
-           class="{{ request()->routeIs('invoice.list') ? 'active' : '' }}">
-            <i class="bi bi-list"></i> View Invoices
-        </a>
-
-    </div>
-@endif
 
     </aside>
 

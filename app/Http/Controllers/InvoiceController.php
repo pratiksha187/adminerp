@@ -116,28 +116,28 @@ class InvoiceController extends Controller
     /**
      * 📥 Download PDF
      */
-    public function download()
-    {
-        $roleId = $this->getUserRole();
-        $invoice = session('invoice');
+    // public function download()
+    // {
+    //     $roleId = $this->getUserRole();
+    //     $invoice = session('invoice');
 
-        if (!$invoice) {
-            return redirect()->back()->with('error', 'No invoice found');
-        }
+    //     if (!$invoice) {
+    //         return redirect()->back()->with('error', 'No invoice found');
+    //     }
 
-        // $pdf = Pdf::loadView('invoice.pdf', compact('invoice', 'roleId'))
-        //     ->setPaper('A4', 'portrait')
-        //     ->setOptions([
-        //         'isRemoteEnabled' => true
-        //     ]);
-        $pdf = Pdf::loadView('invoice.pdf', compact('invoice','roleId'))
-    ->setPaper('A4', 'portrait')
-    ->setOptions([
-        'isRemoteEnabled' => true,
-        'fontDir' => storage_path('fonts/'),
-        'fontCache' => storage_path('fonts/'),
-    ]);
+    //     // $pdf = Pdf::loadView('invoice.pdf', compact('invoice', 'roleId'))
+    //     //     ->setPaper('A4', 'portrait')
+    //     //     ->setOptions([
+    //     //         'isRemoteEnabled' => true
+    //     //     ]);
+    //     $pdf = Pdf::loadView('invoice.pdf', compact('invoice','roleId'))
+    // ->setPaper('A4', 'portrait')
+    // ->setOptions([
+    //     'isRemoteEnabled' => true,
+    //     'fontDir' => storage_path('fonts/'),
+    //     'fontCache' => storage_path('fonts/'),
+    // ]);
 
-        return $pdf->download('TaxInvoice.pdf');
-    }
+    //     return $pdf->download('TaxInvoice.pdf');
+    // }
 }
