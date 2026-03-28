@@ -38,9 +38,10 @@
             </tr>
             <tr>
                 <td><strong>Present Days</strong></td>
-                <td>{{ number_format($payment->present_days, 2) }}</td>
+                <td>{{ round($payment->present_days) }}</td>
+
                 <td><strong>Total Days</strong></td>
-                <td>{{ number_format($payment->total_days, 2) }}</td>
+                <td>{{ $daysInMonth }}</td>
             </tr>
         </table>
 
@@ -96,8 +97,11 @@
         </table>
 
         <div class="net-pay">
-            Net Payable: ₹{{ number_format($payment->net_payable, 2) }}
+            Net Payable: ₹{{ round($payment->net_payable) }}
         </div>
     </div>
+
+
+    <p>NOTE: This document is electronically generated and does not require any physical signature or stamp.</p>
 </body>
 </html>

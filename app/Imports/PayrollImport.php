@@ -67,11 +67,11 @@ class FinalSheetImport implements ToCollection, WithCalculatedFormulas
                 'per_day_salary'       => $this->num($row[37] ?? 0),
 
                 'half_days'            => 0,
-                'present_days'         => $this->num($row[39] ?? 0),
+                'present_days'          => $this->num($row[46] ?? 0),
                 'weekly_off'           => $this->num($row[40] ?? 0),
                 'paid_leave'           => $this->num($row[42] ?? 0),
                 'extra_days'           => 0,
-                'total_days'           => $this->num($row[46] ?? 0),
+                'total_days'   => 0, 
 
                 'basic_salary'         => $this->num($row[47] ?? 0),
                 'hra'                  => $this->num($row[48] ?? 0),

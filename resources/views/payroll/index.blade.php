@@ -38,7 +38,7 @@
                                 <td>{{ number_format($payment->total_deduction, 2) }}</td>
                                 <td>{{ number_format($payment->net_payable, 2) }}</td>
                                 <td>
-                                    <a href="{{ route('payroll.show', $payment->id) }}" class="btn btn-info btn-sm text-white">View</a>
+                                    
                                     <a href="{{ route('payroll.downloadSlip', $payment->id) }}" class="btn btn-success btn-sm">Download Slip</a>
                                 </td>
                             </tr>

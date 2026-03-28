@@ -17,9 +17,9 @@ class PayrollController extends Controller
 {
     public function uploadForm()
     {
-          $userId = Auth::id();
-    //   dd($userId);
-      $userDetails = DB::table('users')
+        $userId = Auth::id();
+        //   dd($userId);
+        $userDetails = DB::table('users')
                     ->select('role')
                     ->where('id', $userId)
                     ->first();
@@ -59,8 +59,23 @@ class PayrollController extends Controller
 
             $payments = EmployeePayment::where('excel_file_name', basename($storedPath))->get();
 
+            // foreach ($payments as $payment) {
+            //     $pdf = Pdf::loadView('payroll.slip_pdf', compact('payment'))->setPaper('a4', 'portrait');
+
+            //     $pdfPath = 'payment_slips/' . $payment->id . '_' . time() . '.pdf';
+            //     Storage::disk('public')->put($pdfPath, $pdf->output());
+
+            //     $payment->update([
+            //         'pdf_path' => $pdfPath
+            //     ]);
+            // }
             foreach ($payments as $payment) {
-                $pdf = Pdf::loadView('payroll.slip_pdf', compact('payment'))->setPaper('a4', 'portrait');
+
+                $from = \Carbon\Carbon::parse($payment->month . ' ' . $payment->year);
+                $daysInMonth = $from->daysInMonth;
+
+                $pdf = Pdf::loadView('payroll.slip_pdf', compact('payment', 'daysInMonth'))
+                    ->setPaper('a4', 'portrait');
 
                 $pdfPath = 'payment_slips/' . $payment->id . '_' . time() . '.pdf';
                 Storage::disk('public')->put($pdfPath, $pdf->output());
