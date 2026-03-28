@@ -93,7 +93,7 @@
         }
 
         .brand-logo{
-            height:48px;
+            height:85px;
             width:auto;
             object-fit:contain;
             transition:all .3s ease;
@@ -476,7 +476,7 @@
                 <div class="brand-wrap">
                     <a href="{{ url('/') }}" class="brand-link">
                         <img src="{{ asset('storage/logo/sc1.png') }}" alt="Logo" class="brand-logo">
-                        <span class="brand-title">Logo</span>
+                        
                     </a>
                 </div>
 
